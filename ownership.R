@@ -1,4 +1,3 @@
-#fix getPayouts()--try reformatting data so can just merge, then sum payout by (Lineup, Simulation), then reshape so each simulation is a column
 numBrackets<-1000
 
 load("TourneySims_allPossible.Rda")
