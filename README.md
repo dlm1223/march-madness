@@ -1,6 +1,5 @@
 # march-madness
 System for selecting optimal march madness brackets
-Run files "simulate", "ownership", "optimize" in that order to create datasets and get optimal brackets.
-"A line I wrote on my local computer" 
-"adding a line" 
-"This is a line from RStudio"
+Order to run files: 1. "simulate" 2. "ownership" 3. "optimize" in that order to create datasets and get optimal brackets.
+Specify number of simulations and year (2016 or 2017) in simulate. Specify number of brackets in ownership
+

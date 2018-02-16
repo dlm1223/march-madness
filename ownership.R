@@ -1,0 +1,75 @@
+#fix getPayouts()--try reformatting data so can just merge, then sum payout by (Lineup, Simulation), then reshape so each simulation is a column
+numBrackets<-1000
+
+load("TourneySims_allPossible.Rda")
+tourneySims_allPossible$Round<-substr(tourneySims_allPossible$Slot, 1, 2)
+tourneySims_allPossible$Round[grepl("W|X|Y|Z", tourneySims_allPossible$Round)]<-0
+
+
+###organize ownership data, check names********************
+whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
+
+setdiff(fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1], whoPicked$Team)
+setdiff( whoPicked$Team, fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1])
+
+#play-in games
+
+if(playInTbd==T){
+  whoPicked$Team[whoPicked$Team=="Pr / Sc"]<-"Providence / Usc"
+  whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"North Carolina Central / Uc Davis"
+} else{
+  whoPicked$Team[whoPicked$Team=="Pr / Sc"]<-"Usc"
+  whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"Uc Davis"
+}
+whoPicked<-whoPicked
+
+analyze<-tourneySims_allPossible[as.numeric(gsub("R", "",tourneySims_allPossible$Round))>=1,]
+analyze$Team_Full<-id_df$Team_Full[match(analyze$Team, id_df$team_id)]
+analyze$Team_Full<-coordName(analyze$Team_Full)
+
+if(playInTbd==T & year==2017){
+  analyze$Team_Full[analyze$Team_Full%in% c("Providence", "Usc")]<-"Providence / Usc"
+  analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Uc Davis")]<-"North Carolina Central / Uc Davis"
+}
+
+setdiff( analyze$Team_Full, whoPicked$Team)
+
+analyze<-merge(analyze, whoPicked, by.x=c( "Team_Full","Round"), by.y=c("Team", "Round"), all.x=T)
+analyze$Seed<-TourneySeeds$Seed[TourneySeeds$Season==year][match( analyze$Team, TourneySeeds$Team[TourneySeeds$Season==year])]
+
+
+#shoud return nothing
+analyze[is.na(analyze$Seed),]
+
+# table(tourneySims$Team[grepl("R", tourneySims$Round)], tourneySims$Round[grepl("R", tourneySims$Round)])/501
+analyze[, c("Payout", "Sim", "Ownership")]<-sapply(analyze[, c("Payout", "Sim", "Ownership")], as.numeric)
+
+####SIMULATE BRACKETS#####
+
+whoPicked<-merge(whoPicked, unique(analyze[, c("Team_Full", "Seed")]), by.x=c("Team"), by.y=c("Team_Full"), all.x=T)
+whoPicked[is.na(whoPicked$Seed),]
+
+whoPicked<-whoPicked[!duplicated(whoPicked[, c("Team", "Round")]), ] ###play-in games get duplicated
+whoPicked[whoPicked$Round=="R6", ][order(whoPicked$Ownership[whoPicked$Round=="R6"], decreasing = T), ]
+setdiff( whoPicked$Team, analyze$Team_Full)
+
+#go to ownership debug
+source(paste0(projDir, "/ownership create brackets.R"))
+
+
+#can adjust calcPayout function in simulate calc payouts if desired
+# input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2,
+#             upset2_mult=3, upset3_mult=4, upset1_add=0, upset2_add=0, upset3_add=0)
+input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1,
+            upset2_mult=1, upset3_mult=1, upset1_add=0, upset2_add=0, upset3_add=0)
+
+
+source(paste0(projDir, "/simulate calc payouts.R"))
+
+
+#projections
+inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ]
+
+save(list=ls()[ls()%in% c("analyze", "tourneySims", "backtest", "id_df",
+                          "year", "TourneySeeds" )], file="alldata.RData")
+
