@@ -1,10 +1,10 @@
 year<-2016
 backtest<-T
-sims<-5000
+sims<-1000
 playInTbd<-F
 name<-"TourneySims.Rda"
 
-# setwd("march-madness")
+# setwd("~/Kaggle/NCAA/march-madness")
 projDir<-getwd()
 
 load("data/game data.RData")
@@ -126,6 +126,7 @@ if(backtest==T){
 tourneySims<-ldply(tourneySims, data.frame)
 
 ####GET ALL POSSIBLE TOURNEY RESULTS--PRED=.5####
+#get all possible places for each team
 samplesubmission$Pred<-.5
 
 #play-in, impute actual if playin has already occured
@@ -136,43 +137,6 @@ if(length(losing_teams)>=1){
 
 
 ###RUN SIMULATIONS####
-
-advance<-function(row){
-  # row<-TourneySlots[TourneySlots$Season==year,][5,]
-  #  newdata<-data.frame(Slot=TourneySeeds$Seed[TourneySeeds$Season==year], Team=as.numeric(TourneySeeds$Team[TourneySeeds$Season==year]), Payout=0)
-  
-  team1<-as.numeric(newdata$Team[newdata$Slot==row$Strongseed]) #as.numeric(gsub("\\D", "", row$Strongseed)) 
-  team2<-as.numeric(newdata$Team[newdata$Slot==row$Weakseed])  #as.numeric(gsub("\\D", "", row$Weakseed)) 
-  
-  
-  #simulate winner
-  if(team1<team2) {
-    prob<-samplesubmission$Pred[samplesubmission$Team==team1 & samplesubmission$OPP==team2]
-    if(runif(1)>prob){
-      winner<-team2
-      loser<-team1
-    } else{
-      winner<-team1
-      loser<-team2
-    }
-  } else {
-    prob<-samplesubmission$Pred[samplesubmission$Team==team2 & samplesubmission$OPP==team1]
-    if(runif(1)>prob){
-      winner<-team1
-      loser<-team2
-    } else{
-      
-      winner<-team2
-      loser<-team1
-    }
-  }
-  
-  
-  # advances-to, winner,loser
-  list(row$Slot, winner,loser)
-  
-}
-
 
 sims<-1000
 tourneySims_allPossible<-list();length(tourneySims_allPossible)<-sims
