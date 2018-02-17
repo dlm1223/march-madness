@@ -1,4 +1,4 @@
-numBrackets<-500
+numBrackets<-5000
 
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]

@@ -11,7 +11,7 @@ fulldf$OPPmeanRank_alt<-rowMeans(fulldf[, c("OPP.POM", "OPP.NOL","OPP.RTP", "OPP
 
 table(fulldf$Season, fulldf$Tournament)
 table(fulldf$Season[!is.na(fulldf$Spread)], fulldf$Tournament[!is.na(fulldf$Spread)])
-
+fulldf$Teamloc_num<-ifelse(fulldf$Teamloc=="H", 1, ifelse(fulldf$Teamloc=="N", 0, -1))
 test<-fulldf[fulldf$Tournament==1 & fulldf$Season%in%year& fulldf$Team<fulldf$OPP&
                fulldf$DATE!=fulldf$Rank_DATE , ]
 
@@ -19,7 +19,7 @@ train<-fulldf[(fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Season==
                 fulldf$Rank_DATE!=fulldf$DATE & !is.na(rowSums(fulldf[, c("OPP.POM", "Rank.POM", "Spread")])), ]
 
 ###model 1####
-fit<-glm(Win_factor~I(Rank.POM-OPP.POM)+Spread+I(Spread^2)+I(sign(Spread))
+fit<-glm(Win_factor~I(Rank.POM-OPP.POM)+Spread++I(Spread^2)+I(sign(Spread))
          ,  data=train, family="binomial");summary(fit)
 test$predWin<-predict(fit, newdata=test, type="response")# type="prob")[, 2]
 train$predWin<-predict(fit, newdata=train, type="response")#,type="prob")[, 2]
@@ -41,7 +41,7 @@ test$predWin3<-predict(fit3, newdata=test, type="response")
 logLoss(test$Win, test$predWin3)
 
 ##model 4####
-fit4<-glm(Win_factor~I((Rank.POM-OPP.POM))+Teamloc+ #+#^3)+
+fit4<-glm(Win_factor~I((Rank.POM-OPP.POM))+Teamloc_num+ #+#^3)+
             I(log(meanRank/OPPmeanRank)),
           family="binomial", data=train);summary(fit4)
 test$predWin4<-predict(fit4, newdata=test, type="response")
@@ -49,8 +49,8 @@ train$predWin4<-predict(fit4, newdata=train, type="response")
 logLoss(test$Win, test$predWin4)
 
 logLoss(test$Win, .5)
-logLoss(test$Win, test$predWin4)  #Rank2
-logLoss(test$Win, test$predWin3)  # Rank1
+logLoss(test$Win, test$predWin4)  # rank-model
+logLoss(test$Win, test$predWin3)  # tournemant rank-model
 logLoss(test$Win, test$predWin2)  #Spread
 logLoss(test$Win, test$predWin)  #Spread +Rank
 
@@ -109,6 +109,7 @@ samplesubmission<-merge(samplesubmission,team_stats, by=c("Team", "Season"))
 colnames(team_stats)<-c("OPP", "OPP_Full", "Season", "OPPmeanRank", "OPP.POM", "OPPloc", "OPPSeed", "OPPSeed_num")
 samplesubmission<-merge(samplesubmission,team_stats, by=c("OPP", "Season"))
 samplesubmission$Round<-sapply(1:nrow(samplesubmission), function(x)getRound(samplesubmission$TeamSeed[x], samplesubmission$OPPSeed[x], samplesubmission$Season[x]))
+samplesubmission$Teamloc_num<-0
 samplesubmission$predWin<-predict(fit, newdata=samplesubmission, type="response")
 samplesubmission$predWin2<-predict(fit2, newdata=samplesubmission, type="response")
 samplesubmission$predWin3<-predict(fit3, newdata=samplesubmission, type="response")

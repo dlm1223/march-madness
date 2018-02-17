@@ -1,6 +1,6 @@
 year<-2016
 backtest<-T
-sims<-1000
+sims<-5000
 playInTbd<-F
 name<-"TourneySims.Rda"
 
