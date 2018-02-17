@@ -80,7 +80,7 @@ dates<-c(seq(as.Date("2014-03-18"), as.Date("2014-03-21"), 1),
 
 
 if(year==2017){
-  samplesubmission<-read.csv("~/Kaggle/NCAA/SampleSubmission.csv")
+  samplesubmission<-read.csv("data/SampleSubmission.csv")
   samplesubmission$Team<-as.numeric(sapply(strsplit(samplesubmission$Id, "_"), `[[`, 2))
   samplesubmission$OPP<-as.numeric(sapply(strsplit(samplesubmission$Id, "_"), `[[`, 3))
   samplesubmission$Season<-as.numeric(sapply(strsplit(samplesubmission$Id, "_"), `[[`,1))

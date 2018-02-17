@@ -8,7 +8,7 @@ prop.table(table( brackets[, "R6CH"]))
 
 #choose x lineups that give you maximum 
 percentile<-.9
-numBrackets<-2
+numBrackets<-1
 optmode<-"Rsymphony"
 library(Rsymphony)
 

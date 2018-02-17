@@ -1,12 +1,12 @@
-year<-2016
+year<-2017
 backtest<-T
 sims<-5000
 playInTbd<-F
 name<-"TourneySims.Rda"
 
-# setwd("~/Kaggle/NCAA/march-madness")
-projDir<-getwd()
-
+setwd("~/Kaggle/NCAA/march-madness")
+# projDir<-getwd()
+# 
 load("data/game data.RData")
 source("functions.R")
 source("model fitting 2018.R")
