@@ -6,12 +6,14 @@ pasteSeed<-function(teams){
 
 bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
 numSims<-sum(bool)
-r1<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R1", colnames(brackets))& !grepl("Exp", colnames(brackets)) ])))/numSims);colnames(r1)<-c("Team_Full", "R1")
-r2<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R2", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numSims);colnames(r2)<-c("Team_Full", "R2")
-r3<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R3", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numSims);colnames(r3)<-c("Team_Full", "R3")
-r4<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R4", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numSims);colnames(r4)<-c("Team_Full", "R4")
-r5<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R5", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numSims);colnames(r5)<-c("Team_Full", "R5")
-r6<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R6", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numSims);colnames(r6)<-c("Team_Full", "R6")
+
+numBrackets<-nrow(brackets)
+r1<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R1", colnames(brackets))& !grepl("Exp", colnames(brackets)) ])))/numBrackets);colnames(r1)<-c("Team_Full", "R1")
+r2<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R2", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numBrackets);colnames(r2)<-c("Team_Full", "R2")
+r3<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R3", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numBrackets);colnames(r3)<-c("Team_Full", "R3")
+r4<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R4", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numBrackets);colnames(r4)<-c("Team_Full", "R4")
+r5<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R5", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numBrackets);colnames(r5)<-c("Team_Full", "R5")
+r6<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R6", colnames(brackets))& !grepl("Exp", colnames(brackets))])))/numBrackets);colnames(r6)<-c("Team_Full", "R6")
 ownership<-Reduce(function(x, y) merge(x, y, all=TRUE), list(r1, r2, r3, r4, r5, r6))
 ownership[is.na(ownership)]<-0
 

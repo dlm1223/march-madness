@@ -1,9 +1,4 @@
-numBrackets<-1000
-
-load("TourneySims_allPossible.Rda")
-tourneySims_allPossible$Round<-substr(tourneySims_allPossible$Slot, 1, 2)
-tourneySims_allPossible$Round[grepl("W|X|Y|Z", tourneySims_allPossible$Round)]<-0
-
+numBrackets<-500
 
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
@@ -22,26 +17,24 @@ if(playInTbd==T){
 }
 whoPicked<-whoPicked
 
-analyze<-tourneySims_allPossible[as.numeric(gsub("R", "",tourneySims_allPossible$Round))>=1,]
+
+#prepare dataframe to be used for ownership-create-breackets
+analyze<-TourneyRounds[grepl("R", TourneyRounds$Slot) & TourneyRounds$Season==year,]
+analyze$Team<-TourneySeeds$Team[TourneySeeds$Season==year][match(analyze$Seed,TourneySeeds$Seed[TourneySeeds$Season==year] )]
 analyze$Team_Full<-id_df$Team_Full[match(analyze$Team, id_df$team_id)]
 analyze$Team_Full<-coordName(analyze$Team_Full)
+analyze$Round<-substring(analyze$Slot, 1 ,2)
 
+#handle play-in teams
+analyze<-analyze[analyze$Team%in% tourneySims$Team[grepl("R1", tourneySims$Slot) ], ]
 if(playInTbd==T & year==2017){
   analyze$Team_Full[analyze$Team_Full%in% c("Providence", "Usc")]<-"Providence / Usc"
   analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Uc Davis")]<-"North Carolina Central / Uc Davis"
 }
 
 setdiff( analyze$Team_Full, whoPicked$Team)
-
 analyze<-merge(analyze, whoPicked, by.x=c( "Team_Full","Round"), by.y=c("Team", "Round"), all.x=T)
-analyze$Seed<-TourneySeeds$Seed[TourneySeeds$Season==year][match( analyze$Team, TourneySeeds$Team[TourneySeeds$Season==year])]
 
-
-#shoud return nothing
-analyze[is.na(analyze$Seed),]
-
-# table(tourneySims$Team[grepl("R", tourneySims$Round)], tourneySims$Round[grepl("R", tourneySims$Round)])/501
-analyze[, c("Payout", "Sim", "Ownership")]<-sapply(analyze[, c("Payout", "Sim", "Ownership")], as.numeric)
 
 ####SIMULATE BRACKETS#####
 
@@ -51,6 +44,7 @@ whoPicked[is.na(whoPicked$Seed),]
 whoPicked<-whoPicked[!duplicated(whoPicked[, c("Team", "Round")]), ] ###play-in games get duplicated
 whoPicked[whoPicked$Round=="R6", ][order(whoPicked$Ownership[whoPicked$Round=="R6"], decreasing = T), ]
 setdiff( whoPicked$Team, analyze$Team_Full)
+
 
 #go to ownership debug
 source(paste0(projDir, "/ownership create brackets.R"))

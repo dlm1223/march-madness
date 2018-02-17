@@ -1,6 +1,6 @@
 #calculating optimal bracket?
 # meanUpsetsByRound-->top10Prob97, top10Prob99, top10Prob90, allBrackets
-source("Bracket Plotting/plotting function.R")
+source(paste0(projDir, "/Bracket Plotting/plotting function.R"))
 brackets$SimMean<-apply(brackets[, grepl("Sim", colnames(brackets)) & !grepl("Mean|SD", colnames(brackets))], 1, mean)
 bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
 brackets$Prob80<-apply(brackets[, bool], 1, function(x) sum(x>.80)/numSims)
@@ -58,8 +58,8 @@ summary(lm(Prob995~ ExpectedR123+OwnershipR123+
 
 yvar<-"Prob90"
 plot(brackets[, yvar]~brackets$SimMean, main="5000 Brackets, 5000 Simulations", xlab="Mean Points", ylab=yvar)
-brackets$Champ<-as.factor(ifelse(brackets$R6CH%in% c("Villanova", "Gonzaga","Louisville","West Virginia","Purdue",
-                                                     "Kansas", "North Carolina"), brackets$R6CH, "Other"))
+# brackets$Champ<-as.factor(ifelse(brackets$R6CH%in% c("Villanova", "Gonzaga","Louisville","West Virginia","Purdue",
+#                                                      "Kansas", "North Carolina"), brackets$R6CH, "Other"))
 # brackets$Champ<-as.factor(ifelse(brackets$R6CH%in% c("Michigan State", "Oklahoma","West Virginia","Kentucky",
 #                                                      "North Carolina","Virginia",
 #                                                      "Kansas", "Villanova"), brackets$R6CH, "Other"))
@@ -83,7 +83,7 @@ ggplot(test[test$Champ%in% "Gonzaga",], aes(x=SimMean, y=Prob80, group=(RunnerUp
 
 brackets<-brackets[order(brackets$SimMean, decreasing = T), ]
 # opt<-which(brackets$Prob995==brackets$Prob995[order(brackets$Prob995, decreasing = T)][1])
-opt<-which.min(brackets$Sim5001_Actual)
+opt<-which.max(brackets$Prob995)
 # opt<-which(result$x[1:ncol(percentiles)]==1)
 bracket<-brackets[opt[1], 1:63]
 # bracket

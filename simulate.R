@@ -125,49 +125,12 @@ if(backtest==T){
 
 tourneySims<-ldply(tourneySims, data.frame)
 
-####GET ALL POSSIBLE TOURNEY RESULTS--PRED=.5####
-#get all possible places for each team
-samplesubmission$Pred<-.5
-
-#play-in, impute actual if playin has already occured
-if(length(losing_teams)>=1){
-  samplesubmission$Pred[samplesubmission$Team_Full%in%losing_teams]<-0
-  samplesubmission$Pred[samplesubmission$OPP_Full%in%losing_teams]<-1
-}
-
-
-###RUN SIMULATIONS####
-
-sims<-1000
-tourneySims_allPossible<-list();length(tourneySims_allPossible)<-sims
-for(j in 1:sims) {
-  # set.seed(j)
-  newdata<-data.frame(Slot=TourneySeeds$Seed[TourneySeeds$Season==year], Team=as.numeric(TourneySeeds$Team[TourneySeeds$Season==year]),Loser=NA, Payout=NA)
-  
-  for(i in 1:nrow(TourneySlots[TourneySlots$Season==year,])){
-    # i<-i+1
-    row<-TourneySlots[TourneySlots$Season==year,][i,]
-    result<-advance(row)
-    newdata[nrow(newdata)+1,1:3]<-c(result[[1]], result[[2]], result[[3]])
-  }
-  newdata$Sim<-j
-  print(j)
-  # newdata
-  tourneySims_allPossible[[j]]<-newdata
-}
-tourneySims_allPossible<-ldply(tourneySims_allPossible, data.frame)
-tail(tourneySims_allPossible)
-
-
-
-
 
 ######SAVE DATA###########
 save(tourneySims, file=name)
 
 save(samplesubmission, file="samplesubmission.Rda")
 
-save(tourneySims_allPossible, file="TourneySims_allPossible.Rda")
 
 
 
