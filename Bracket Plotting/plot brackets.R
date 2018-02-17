@@ -1,6 +1,12 @@
 #calculating optimal bracket?
 # meanUpsetsByRound-->top10Prob97, top10Prob99, top10Prob90, allBrackets
 source(paste0(projDir, "/Bracket Plotting/plotting function.R"))
+
+inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), -7]
+
+ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownership$R2, ownership$R1, decreasing = T), -1]
+
+
 brackets$SimMean<-apply(brackets[, grepl("Sim", colnames(brackets)) & !grepl("Mean|SD", colnames(brackets))], 1, mean)
 bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
 brackets$Prob80<-apply(brackets[, bool], 1, function(x) sum(x>.80)/numSims)
@@ -58,8 +64,8 @@ summary(lm(Prob995~ ExpectedR123+OwnershipR123+
 
 yvar<-"Prob90"
 plot(brackets[, yvar]~brackets$SimMean, main="5000 Brackets, 5000 Simulations", xlab="Mean Points", ylab=yvar)
-# brackets$Champ<-as.factor(ifelse(brackets$R6CH%in% c("Villanova", "Gonzaga","Louisville","West Virginia","Purdue",
-#                                                      "Kansas", "North Carolina"), brackets$R6CH, "Other"))
+brackets$Champ<-as.factor(ifelse(brackets$R6CH%in% c("Villanova", "Gonzaga","Louisville","West Virginia","Purdue",
+                                                     "Kansas", "North Carolina"), brackets$R6CH, "Other"))
 # brackets$Champ<-as.factor(ifelse(brackets$R6CH%in% c("Michigan State", "Oklahoma","West Virginia","Kentucky",
 #                                                      "North Carolina","Virginia",
 #                                                      "Kansas", "Villanova"), brackets$R6CH, "Other"))
@@ -71,12 +77,12 @@ brackets$RunnerUp<-as.factor(ifelse(brackets$RunnerUp%in% c("Villanova", "Gonzag
 #                                                      "North Carolina","Virginia",
 #                                                      "Kansas", "Villanova"), brackets$RunnerUp, "Other"))
 
-brackets<-brackets[order(brackets$Prob80, decreasing = T), ]
+brackets<-brackets[order(brackets$Prob97, decreasing = T), ]
 test<-brackets[1:round(nrow(brackets)/5), ]
-ggplot(test, aes(x=SimMean, y=Prob995, group=(Champ))) +  
+ggplot(test, aes(x=SimMean, y=Prob97, group=(Champ))) +  
   geom_point(aes(color=Champ, shape=Champ)) + scale_color_brewer(palette="Set1")+
   scale_shape_manual(values=1:nlevels(brackets$Champ)) 
-ggplot(test[test$Champ%in% "Gonzaga",], aes(x=SimMean, y=Prob80, group=(RunnerUp)))+
+ggplot(test[test$Champ%in% "Gonzaga",], aes(x=SimMean, y=Prob97, group=(RunnerUp)))+
   geom_point(aes(color=RunnerUp, shape=RunnerUp)) + scale_color_brewer(palette="Set1")+
   scale_shape_manual(values=1:nlevels(as.factor(test$RunnerUp)) )
 
@@ -102,7 +108,7 @@ organize<-function(var){
     test<-brackets
     
   } else{
-    test<-brackets[order(brackets[, var], decreasing = T), ][1:10, cols]
+    test<-brackets[order(brackets[, var], decreasing = T), ][1:20, cols]
     test[, 1:7]<-sapply(test[, 1:7], pasteSeed)
   }
   test$Type<-var
@@ -111,7 +117,10 @@ organize<-function(var){
 test<-ldply(lapply(c("SimMean", "Prob90", "Prob97", "Prob995", "ALL"), organize), data.frame)
 # test<-data
 test<-ddply(test, .(Type), summarize,
-            OwnershipR123=mean(OwnershipR123),   ExpectedR123=mean(ExpectedR123), 
+            # OwnershipR123=mean(OwnershipR123),   ExpectedR123=mean(ExpectedR123), 
+            OwnershipR1=mean(OwnershipR1)*10,  ExpectedR1=mean(ExpectedR1)*10, 
+            OwnershipR2=mean(OwnershipR2)*20,  ExpectedR2=mean(ExpectedR2)*20, 
+            OwnershipR3=mean(OwnershipR3)*40,  ExpectedR3=mean(ExpectedR3)*40, 
             OwnershipR4=mean(OwnershipR4)*80,  ExpectedR4=mean(ExpectedR4)*80, 
             OwnershipR5=mean(OwnershipR5)*160,  ExpectedR5=mean(ExpectedR5)*160,
             OwnershipR6CH=mean(OwnershipR6CH)*320,ExpectedR6CH=mean(ExpectedR6CH)*320)
@@ -120,9 +129,9 @@ test<-melt(test, id.vars = "Type")
 test<-test[order(test$Type), ]
 
 ggplot(test[grepl("Expected", test$variable), ], aes(fill=Type, y=value, x=variable)) + 
-  geom_bar(position="dodge", stat="identity")
+  geom_bar(position="dodge", stat="identity") +ggtitle("Top 20 Brackets by Optimization Percentile")
 ggplot(test[grepl("Ownership", test$variable), ], aes(fill=Type, y=value, x=variable)) + 
-  geom_bar(position="dodge", stat="identity")
+  geom_bar(position="dodge", stat="identity")+ggtitle("Top 20 Brackets by Optimization Percentile")
 head(test)
 #   
 # }
