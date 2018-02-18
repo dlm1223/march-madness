@@ -1,3 +1,6 @@
+
+
+
 library(gridExtra)
 library(grid)
 library(forecast);library(RSelenium);library(RCurl);library(slam);library(XML)
@@ -84,7 +87,10 @@ readFile<-function(year){
 whoPicked<-ldply(lapply(2016:2017, readFile), data.frame)
 
 
-setwd("")
+###****YOU NEED TO DOWNLOAD "cb2001-18" DATA FROM THE FOLLOWING LINK AND PLACE all files IN A FOLDER Massey/cb/   ******
+#https://www.kaggle.com/masseyratings/rankings/data
+
+# setwd("")
 readFile<-function(file){
   Massey_All<-read.csv(paste0("Massey/cb/", file), header=F, strip.white = T)
   Massey_All
