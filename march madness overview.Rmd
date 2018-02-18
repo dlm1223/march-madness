@@ -25,7 +25,7 @@ probs<-inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  d
 ```
 
 ```{r , echo=T, eval=T , include=T}
-head(probs, 12)
+head(probs, 20)
 
 ```
 
@@ -38,11 +38,11 @@ Then, using [ESPN Pick Percentages](http://games.espn.com/tournament-challenge-b
 
 
 ```{r , echo=T, eval=T , include=T}
-head(ownership, 12)
+head(ownership, 20)
 
 ```
 
-Above are the ownership percentages by round for the pool of brackets, 5000 brackets <br /> <br />
+Above are the ownership percentages by round for the pool of brackets, 5000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections (Duke, UNC), while others seem to be undervalued in the pool relative to their projection(Gonzaga) <br /> <br />
 
 
 ### 3. Optimization

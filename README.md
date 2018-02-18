@@ -8,7 +8,7 @@ This is the full code used for the [Shiny march madness app](bracketmath.shinyap
 The algorithm starts by projecting all the tournament matchups and then simulating the tournament:
 
 ``` r
-head(probs, 12)
+head(probs, 20)
 ```
 
     ##                      R1     R2     R3     R4     R5     R6
@@ -32,7 +32,7 @@ Above are the probabilities of teams reaching each round for 2017, 5000 simulati
 Then, using [ESPN Pick Percentages](http://games.espn.com/tournament-challenge-bracket/2017/en/whopickedwhom), you can simulate a pool of brackets.
 
 ``` r
-head(ownership, 12)
+head(ownership, 20)
 ```
 
     ##                      R1     R2     R3     R4     R5     R6
@@ -49,7 +49,7 @@ head(ownership, 12)
     ## 7 Michigan       0.7848 0.2414 0.1528 0.0560 0.0246 0.0118
     ## 4 West Virginia  0.9082 0.4758 0.1452 0.0640 0.0228 0.0082
 
-Above are the ownership percentages by round for the pool of brackets, 5000 brackets <br /> <br />
+Above are the ownership percentages by round for the pool of brackets, 5000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections (Duke, UNC), while others seem to be undervalued in the pool relative to their projection (Gonzaga) <br /> <br />
 
 ### 3. Optimization
 
@@ -62,4 +62,4 @@ plotBracket(bracket)
 
 ![](march_madness_overview_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
-Although this bracket was not successfull (North Carolina won in 2017), the system is still useful in that it gives you the optimal bracket, given your projections and your scoring system. By changing the projections and running over multiple years, it also allows for some interesting analyses like how many upsets you should put in your bracket.
+Although this bracket was not successful (North Carolina won in 2017), the system is still useful in that it gives you the optimal bracket, given your projections and your scoring system. By changing the projections and running over multiple years, it also allows for some interesting analyses like how many upsets you should typically put in your bracket.
