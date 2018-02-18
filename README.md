@@ -1,6 +1,5 @@
 # March Madness Optimization
 
-
 This is the full code used for the [Shiny march madness app](bracketmath.shinyapps.io/ncaa/). You can run the code yourself to customize more things such as increasing the number of simulations, increasing the bracket pool size, changing the projection model, and more. To run, the order of files is: 1. "simulate" 2. "ownership" 3. "optimize" in that order. Below I explain the methodology. <br /> <br />
 
 ### 1. Projection and Simulation
@@ -24,6 +23,14 @@ head(probs, 20)
     ## 3 Ucla           0.9724 0.5878 0.2706 0.1346 0.0670 0.0308
     ## 4 West Virginia  0.9108 0.5810 0.2388 0.1292 0.0590 0.0292
     ## 3 Baylor         0.8718 0.4800 0.2342 0.0956 0.0462 0.0218
+    ## 4 Purdue         0.8024 0.4648 0.2088 0.1010 0.0476 0.0214
+    ## 3 Florida State  0.8886 0.5768 0.2832 0.1184 0.0496 0.0212
+    ## 4 Florida        0.8390 0.4780 0.1828 0.0938 0.0436 0.0200
+    ## 5 Virginia       0.7820 0.4002 0.1522 0.0750 0.0342 0.0150
+    ## 4 Butler         0.8534 0.4998 0.1980 0.0808 0.0342 0.0138
+    ## 10 Wichita State 0.7346 0.2660 0.1336 0.0606 0.0272 0.0120
+    ## 6 Smu            0.7854 0.4160 0.2018 0.0782 0.0308 0.0112
+    ## 5 Iowa State     0.7088 0.3606 0.1482 0.0700 0.0270 0.0098
 
 Above are the probabilities of teams reaching each round for 2017, 5000 simulations <br /> <br />
 
@@ -48,6 +55,14 @@ head(ownership, 20)
     ## 3 Oregon         0.9652 0.7604 0.2956 0.1130 0.0368 0.0150
     ## 7 Michigan       0.7848 0.2414 0.1528 0.0560 0.0246 0.0118
     ## 4 West Virginia  0.9082 0.4758 0.1452 0.0640 0.0228 0.0082
+    ## 3 Baylor         0.9148 0.5470 0.1088 0.0404 0.0186 0.0070
+    ## 3 Florida State  0.8680 0.6016 0.1360 0.0562 0.0168 0.0070
+    ## 5 Notre Dame     0.8552 0.4406 0.1302 0.0512 0.0178 0.0064
+    ## 4 Butler         0.9242 0.6148 0.0810 0.0246 0.0134 0.0060
+    ## 4 Florida        0.8760 0.4864 0.0692 0.0254 0.0126 0.0058
+    ## 5 Iowa State     0.8354 0.4294 0.0764 0.0376 0.0116 0.0056
+    ## 4 Purdue         0.8766 0.4686 0.0708 0.0358 0.0118 0.0054
+    ## 10 Wichita State 0.6624 0.1012 0.0370 0.0150 0.0068 0.0044
 
 Above are the ownership percentages by round for the pool of brackets, 5000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections (Duke, UNC), while others seem to be undervalued in the pool relative to their projection (Gonzaga) <br /> <br />
 
@@ -60,6 +75,6 @@ bracket<-brackets[which.max(brackets$Prob90), 1:63]
 plotBracket(bracket)
 ```
 
-![](march_madness_overview_files/figure-markdown_github/unnamed-chunk-4-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
-Although this bracket was not successful (North Carolina won in 2017), the system is still useful in that it gives you the optimal bracket, given your projections and your scoring system. By changing the projections and running over multiple years, it also allows for some interesting analyses like how many upsets you should typically put in your bracket.
+Although this bracket was not successfull (North Carolina won in 2017), the system is still useful in that it gives you the optimal bracket, given your projections and your scoring system. By changing the projections and running over multiple years, it also allows for some interesting analyses like how many upsets you should typically put in your bracket.
