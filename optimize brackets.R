@@ -1,5 +1,5 @@
-#year<-2017;setwd("2017/");load("2017/alldata.RData")
-#year<-2016;setwd("2016/");load("2016/alldata.RData")
+#year<-2017;setwd(paste0(projDir, "/2017/"));load("alldata.RData")
+#year<-2016;setwd(paste0(projDir, "/2016/"));load("alldata.RData")
 
 load("BracketResults_FullTournament.Rda")
 brackets<-brackets[!duplicated(brackets[, 1:64]), ]
