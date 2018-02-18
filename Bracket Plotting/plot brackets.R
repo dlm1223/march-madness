@@ -48,7 +48,7 @@ for(i in c("R1", "R2", "R3", "R4","R5")){
   test<-rowSums(sapply(cols, function(x) brackets[, gsub("Ownership", "Expected",x)]/brackets[, x]))
   brackets[, paste0("ExpectedScaled", i)]<-test
   
-  brackets[, paste0("Ownership", i)]<-apply(brackets[, grepl(paste0("Ownership", i), colnames(brackets))], 1, sum)
+  brackets[, paste0("Ownership", i)]<-apply(brackets[,cols], 1, sum)
   
 }
 brackets$OwnershipR123<-brackets$OwnershipR1*10+brackets$OwnershipR2*20+brackets$OwnershipR3*40
@@ -95,14 +95,15 @@ bracket<-brackets[opt[1], 1:63]
 # bracket
 plotBracket(bracket)
 # calcBracket(bracket, brackets=brackets)
-cols<-c(colnames(brackets)[57:63], c("ExpectedR123","ExpectedR4", "ExpectedR5", "ExpectedR6CH", 
-                                     "OwnershipR123","OwnershipR4", "OwnershipR5", "OwnershipR6CH", 
+
+# test<-brackets[order(brackets$Prob995, decreasing = T), ][1:10, cols]
+# test[, 1:7]<-sapply(test[, 1:7], pasteSeed)
+# test
+
+cols<-c(colnames(brackets)[57:63], c("ExpectedR123", "ExpectedR1", "ExpectedR2", "ExpectedR3","ExpectedR4", "ExpectedR5", "ExpectedR6CH", 
+                                     "OwnershipR1" , "OwnershipR2", "OwnershipR3", "OwnershipR4", "OwnershipR5", "OwnershipR6CH", 
+                                     "OwnershipR123",
                                      "SimMean", "Prob90","Prob995" ))
-
-test<-brackets[order(brackets$Prob995, decreasing = T), ][1:10, cols]
-test[, 1:7]<-sapply(test[, 1:7], pasteSeed)
-test
-
 organize<-function(var){
   if(var=="ALL"){
     test<-brackets
@@ -115,6 +116,7 @@ organize<-function(var){
   test
 }
 test<-ldply(lapply(c("SimMean", "Prob90", "Prob97", "Prob995", "ALL"), organize), data.frame)
+
 # test<-data
 test<-ddply(test, .(Type), summarize,
             # OwnershipR123=mean(OwnershipR123),   ExpectedR123=mean(ExpectedR123), 
@@ -129,7 +131,7 @@ test<-melt(test, id.vars = "Type")
 test<-test[order(test$Type), ]
 
 ggplot(test[grepl("Expected", test$variable), ], aes(fill=Type, y=value, x=variable)) + 
-  geom_bar(position="dodge", stat="identity") +ggtitle("Top 20 Brackets by Optimization Percentile")
+  geom_bar(position="dodge", stat="identity") +ggtitle("Summarizing the top 20 Brackets for each Optimization Type")
 ggplot(test[grepl("Ownership", test$variable), ], aes(fill=Type, y=value, x=variable)) + 
   geom_bar(position="dodge", stat="identity")+ggtitle("Top 20 Brackets by Optimization Percentile")
 head(test)
