@@ -93,7 +93,7 @@ opt<-which.max(brackets$Prob995)
 # opt<-which(result$x[1:ncol(percentiles)]==1)
 bracket<-brackets[opt[1], 1:63]
 # bracket
-plotBracket(bracket)
+plotBracket(which.max(brackets$Prob90))
 # calcBracket(bracket, brackets=brackets)
 
 # test<-brackets[order(brackets$Prob995, decreasing = T), ][1:10, cols]

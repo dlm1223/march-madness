@@ -1,0 +1,61 @@
+---
+title: "March Madness Optimization"
+date: "February 18, 2018"
+output:
+  md_document:
+    variant: markdown_github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is the full code used for the [Shiny march madness app](bracketmath.shinyapps.io/ncaa/). You can run the code yourself to customize more things such as increasing the number of simulations, increasing the bracket pool size, changing the projection model, and more. To run, the order of files is: 1. "simulate" 2. "ownership" 3. "optimize" in that order. Below I explain the methodology. <br /> <br />
+
+### 1. Projection and Simulation
+The algorithm starts by projecting all the tournament matchups and then simulating the tournament:
+
+```{r , echo=F, eval=T , include=F}
+load("2017/allData.RData")
+load("2017/BracketResults_FullTournament.Rda")
+source("functions.R")
+source("Bracket Plotting/plotting function.R")
+ownership<-ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownership$R2, ownership$R1, decreasing = T), -1]
+probs<-inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), -7]
+```
+
+```{r , echo=T, eval=T , include=T}
+head(probs, 12)
+
+```
+
+Above are the probabilities of teams reaching each round for 2017, 5000 simulations <br /> <br />
+
+
+### 2. Bracket-Pool Simulation
+Then, using [ESPN Pick Percentages](http://games.espn.com/tournament-challenge-bracket/2017/en/whopickedwhom), you can simulate a pool of brackets.
+
+
+
+```{r , echo=T, eval=T , include=T}
+head(ownership, 12)
+
+```
+
+Above are the ownership percentages by round for the pool of brackets, 5000 brackets <br /> <br />
+
+
+### 3. Optimization
+Finally, you can apply your scoring to get finishes for each bracket compared to the others, along with mean-points scored for each bracket. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
+
+```{r , echo=T, eval=T , include=T}
+bracket<-brackets[which.max(brackets$Prob90), 1:63]
+plotBracket(bracket)
+
+```
+
+Although this bracket was not successfull (North Carolina won in 2017), the system is still useful in that it gives you the optimal bracket, given your projections and your scoring system. By changing the projections and running over multiple years, it also allows for some interesting analyses like how many upsets you should put in your bracket.
+
+
+
+
