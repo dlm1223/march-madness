@@ -4,7 +4,7 @@ sims<-5000
 playInTbd<-F
 name<-"TourneySims.Rda"
 # 
-setwd("~/Kaggle/NCAA/march-madness")
+# setwd("~/Kaggle/NCAA/march-madness")
 projDir<-getwd()
 # 
 load("data/game data.RData")
