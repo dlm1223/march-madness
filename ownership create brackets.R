@@ -122,4 +122,3 @@ r1_df<-data.frame(Slot=c(paste0("R1W", c(1, 8, 4,5, 3, 6, 2, 7)), paste0("R1X", 
                          paste0("R1Y", c(1, 8, 4,5, 3, 6, 2, 7)), paste0("R1Z",c(1, 8, 4,5, 3, 6, 2, 7))), TeamPicked=NA)
 colnames(brackets)<-  c(r1_df$Slot, r2_df$Slot,
                         "R3W1", "R3W2", "R3X1", "R3X2", "R3Y1", "R3Y2"  , "R3Z1", "R3Z2", "R4W1", "R4X1", "R4Y1", "R4Z1", "R5WX", "R5YZ", "R6CH")
-save(brackets,file= "brackets_temp")

@@ -1,4 +1,7 @@
+
 numBrackets<-5000
+
+name<-"BracketResults_FullTournament_v2.Rda"
 
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
@@ -53,16 +56,20 @@ source(paste0(projDir, "/ownership create brackets.R"))
 #can adjust calcPayout function in simulate calc payouts if desired
 # input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2,
 #             upset2_mult=3, upset3_mult=4, upset1_add=0, upset2_add=0, upset3_add=0)
+
+###CHANGE SCORING#####
+
 input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1,
             upset2_mult=1, upset3_mult=1, upset1_add=0, upset2_add=0, upset3_add=0)
 
 
 source(paste0(projDir, "/simulate calc payouts.R"))
 
-
-#projections
 inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ]
 
-save(list=ls()[ls()%in% c("analyze", "tourneySims", "backtest", "id_df",
-                          "year", "TourneySeeds" )], file="alldata.RData")
+###SAVE DATA#####
+
+save(brackets, file=name)
+
+save(list=ls()[ls()%in% c( "backtest", "id_df",   "year", "TourneySeeds" )], file="alldata.RData")
 

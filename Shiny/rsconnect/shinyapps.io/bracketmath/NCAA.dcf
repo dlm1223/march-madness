@@ -1,0 +1,12 @@
+name: NCAA
+title:
+username:
+account: bracketmath
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 261997
+bundleId: 1230317
+url: https://bracketmath.shinyapps.io/ncaa/
+when: 1519065258.24485
+asMultiple: FALSE
+asStatic: FALSE

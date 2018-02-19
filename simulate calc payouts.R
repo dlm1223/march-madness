@@ -1,41 +1,34 @@
 ######CALCULATE PAYOUTS###########
 
+tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$Team[TourneySeeds$Season==year])] ))
+tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$Team[TourneySeeds$Season==year])] ))
+tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
+tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
+tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
+tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$team_id)]
+
+
 tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), input$r1,
                            ifelse(grepl("R2", tourneySims$Slot), input$r2,
                                   ifelse(grepl("R3", tourneySims$Slot),input$r3,
                                          ifelse(grepl("R4", tourneySims$Slot),input$r4,
                                                 ifelse(grepl("R5", tourneySims$Slot), input$r5,
                                                        ifelse(grepl("R6", tourneySims$Slot), input$r6, 0))))))
-
-tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$Team[TourneySeeds$Season==year])] ))
-tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$Team[TourneySeeds$Season==year])] ))
 tourneySims$Payout<-ifelse(tourneySims$team_seed>=tourneySims$loser_seed+10, tourneySims$Payout*input$upset3_mult,
                            ifelse(tourneySims$team_seed>=tourneySims$loser_seed+5, tourneySims$Payout*input$upset2_mult,
                                   ifelse(tourneySims$team_seed>tourneySims$loser_seed, tourneySims$Payout*input$upset1_mult, tourneySims$Payout)))
 tourneySims$Payout<-ifelse(tourneySims$team_seed>=tourneySims$loser_seed+10 & tourneySims$Payout>0, tourneySims$Payout+input$upset3_add,
                            ifelse(tourneySims$team_seed>=tourneySims$loser_seed+5& tourneySims$Payout>0, tourneySims$Payout+input$upset2_add,
                                   ifelse(tourneySims$team_seed>tourneySims$loser_seed& tourneySims$Payout>0, tourneySims$Payout+input$upset1_add, tourneySims$Payout)))
-
-
-save(tourneySims, file="TourneySims_withPayouts.Rda")
-
-# load("TourneySims_withPayouts.Rda")
-tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
-tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
 tourneySims$Payout<-as.numeric(tourneySims$Payout)
 
 
-load("brackets_temp")
+brackets<-brackets[, 1:63]
 head(brackets)
-
-
 prop.table(table(brackets[,"R2W3"]))*100
 # whoPicked[whoPicked$Round=="R1" & whoPicked$Team=="North Carolina",]
 
 #####APPLY EACH TOURNAMENT SIMULATION TO EACH BRACKET####
-tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
-names<-unique(analyze[, c("Team_Full", "Team")])
-tourneySims$Team_Full<-names$Team_Full[match(tourneySims$Team, names$Team)]
 
 # tourneySims<-ddply(tourneySims, .(Sim), mutate, Times=length(Team))
 # table(tourneySims$Times)  #check again for errors, might have to recheck Team_Fulls
@@ -104,4 +97,3 @@ brackets$Prob97<-apply(brackets[, bool], 1, function(x) sum(x>.97)/numSims)
 brackets$Prob99<-apply(brackets[, bool], 1, function(x) sum(x>.99)/numSims)
 head(brackets[,c("R4W1", "R4X1", "R4Y1", "R4Z1", "R5WX", "R5YZ", "R6CH", "Prob95") ][order(brackets$Prob95, decreasing=T), ])
 
-save(brackets, file="BracketResults_FullTournament.Rda")

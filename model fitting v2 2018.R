@@ -103,10 +103,10 @@ samplesubmission<-merge(samplesubmission, odds2[,c("team_id", "opp_id", "Spread"
 
 fulldf<-fulldf[order(fulldf$DATE, decreasing = F), ]
 team_stats<-ddply(fulldf[fulldf$Tournament==1, ], .(Team,Team_Full, Season), summarize,
-                  meanRank=meanRank[1], Rank.POM=Rank.POM[1], Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1]
+                  meanRank=meanRank[1], Rank.MOR=Rank.MOR[1], Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1]
 )
 samplesubmission<-merge(samplesubmission,team_stats, by=c("Team", "Season"))
-colnames(team_stats)<-c("OPP", "OPP_Full", "Season", "OPPmeanRank", "OPP.POM", "OPPloc", "OPPSeed", "OPPSeed_num")
+colnames(team_stats)<-c("OPP", "OPP_Full", "Season", "OPPmeanRank", "OPP.MOR", "OPPloc", "OPPSeed", "OPPSeed_num")
 samplesubmission<-merge(samplesubmission,team_stats, by=c("OPP", "Season"))
 samplesubmission$Round<-sapply(1:nrow(samplesubmission), function(x)getRound(samplesubmission$TeamSeed[x], samplesubmission$OPPSeed[x], samplesubmission$Season[x]))
 samplesubmission$predWin<-predict(fit, newdata=samplesubmission, type="response")
