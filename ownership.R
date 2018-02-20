@@ -1,7 +1,7 @@
-
+# load("~/Kaggle/NCAA/march-madness/data/game data.RData");load("TourneySims_v3.Rda")
 numBrackets<-5000
 
-name<-"BracketResults_FullTournament_v2.Rda"
+name<-"BracketResults_FullTournament_v3.Rda"
 
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
@@ -71,5 +71,5 @@ inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasi
 
 save(brackets, file=name)
 
-save(list=ls()[ls()%in% c( "backtest", "id_df",   "year", "TourneySeeds" )], file="alldata.RData")
+save(list=ls()[ls()%in% c( "backtest", "id_df",   "year", "TourneySeeds", "analyze" )], file="alldata.RData")
 

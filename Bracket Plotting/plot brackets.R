@@ -1,3 +1,16 @@
+setwd("~/Kaggle/NCAA/march-madness")
+projDir<-getwd()
+
+year<-2017
+setwd(paste0(c(projDir, "/", year, "/"), sep="", collapse=""))
+load("alldata.RData")
+load("BracketResults_FullTournament_v2.Rda")
+load("TourneySims_v2.Rda")
+
+#year<-2016;setwd(paste0(projDir, "/2016/"));load("alldata.RData")
+
+
+
 #calculating optimal bracket?
 # meanUpsetsByRound-->top10Prob97, top10Prob99, top10Prob90, allBrackets
 source(paste0(projDir, "/Bracket Plotting/plotting function.R"))
@@ -5,6 +18,9 @@ source(paste0(projDir, "/Bracket Plotting/plotting function.R"))
 inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), -7]
 
 ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownership$R2, ownership$R1, decreasing = T), -1]
+
+
+###CALCULATE VARIABLES####
 
 
 brackets$SimMean<-apply(brackets[, grepl("Sim", colnames(brackets)) & !grepl("Mean|SD", colnames(brackets))], 1, mean)
@@ -59,6 +75,8 @@ summary(lm(Prob995~ ExpectedR123+OwnershipR123+
              I(ExpectedR6CH/OwnershipR6CH)+ExpectedR6CH, data=brackets))
 
 
+###PLOTTING CHAMP BY GROUP####
+
 # plot(brackets$SimSD~brackets$SimMean, main="500 Brackets, 500 Simulations", xlab="Mean Points", ylab="SD Points")
 # text(brackets$Prob90~brackets$SimMean, labels =substring(brackets$R6CH, 1, 4), col=ife, cex=.75, pos=4)
 
@@ -89,16 +107,29 @@ ggplot(test[test$Champ%in% "Gonzaga",], aes(x=SimMean, y=Prob97, group=(RunnerUp
 
 brackets<-brackets[order(brackets$SimMean, decreasing = T), ]
 # opt<-which(brackets$Prob995==brackets$Prob995[order(brackets$Prob995, decreasing = T)][1])
-opt<-which.max(brackets$Prob995)
+opt<-which.max(brackets$Prob99)
 # opt<-which(result$x[1:ncol(percentiles)]==1)
+
 bracket<-brackets[opt[1], 1:63]
+
+
+###CUSTOM BRACKET######
 # bracket
-plotBracket(which.max(brackets$Prob90))
-# calcBracket(bracket, brackets=brackets)
+opt<-which.max(brackets$Prob995)
+plotBracket(brackets[opt, 1:63])
+customBracket<-cbind(brackets[which.max(brackets$SimMean), 1:48], brackets[opt, 49:63])
+
+#argument1= brackets, argument2=all brackets. returns point scared & 
+brackets[ opt, grepl("Prob|Actual|ExpectedR123", colnames(brackets))]
+brackets[ which.max(brackets$SimMean), grepl("Prob|Actual|ExpectedR123", colnames(brackets))]
+
+calcBracket(customBracket, brackets=brackets[-opt, ]) 
 
 # test<-brackets[order(brackets$Prob995, decreasing = T), ][1:10, cols]
 # test[, 1:7]<-sapply(test[, 1:7], pasteSeed)
 # test
+
+###PLOTTING TOP 20 BRACKETS BY OPTIMIZATION GROUP####
 
 cols<-c(colnames(brackets)[57:63], c("ExpectedR123", "ExpectedR1", "ExpectedR2", "ExpectedR3","ExpectedR4", "ExpectedR5", "ExpectedR6CH", 
                                      "OwnershipR1" , "OwnershipR2", "OwnershipR3", "OwnershipR4", "OwnershipR5", "OwnershipR6CH", 

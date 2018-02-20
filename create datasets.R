@@ -1,14 +1,10 @@
-
-
-
-library(gridExtra)
-library(grid)
+library(gridExtra);library(grid)
 library(forecast);library(RSelenium);library(RCurl);library(slam);library(XML)
 library(caret);library(doSNOW);library(rvest);library(robustbase);library(rpart);library(kernlab)
 library(lpSolve);library(lpSolveAPI);library(data.table);library(xgboost);library(gurobi);library(Rcplex)
 library(reshape2);library(plyr);library(zoo);library(dplyr);library(gtools);library(RJSONIO)
 library(ggplot2);library(glmnet);library(MASS);library(TTR) 
-library(Metrics)
+library(Metrics);library(Rsymphony)
 options(stringsAsFactors=FALSE)
 options(scipen=999)
 
