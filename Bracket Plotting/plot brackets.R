@@ -1,18 +1,15 @@
+##LOAD DATA####
+
 setwd("~/Kaggle/NCAA/march-madness")
 projDir<-getwd()
 
-year<-2017
+year<-2016
 setwd(paste0(c(projDir, "/", year, "/"), sep="", collapse=""))
 load("alldata.RData")
 load("BracketResults_FullTournament_v2.Rda")
 load("TourneySims_v2.Rda")
 
-#year<-2016;setwd(paste0(projDir, "/2016/"));load("alldata.RData")
-
-
-
-#calculating optimal bracket?
-# meanUpsetsByRound-->top10Prob97, top10Prob99, top10Prob90, allBrackets
+##plotting function--calcBracket(), plotBracket() and more
 source(paste0(projDir, "/Bracket Plotting/plotting function.R"))
 
 inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), -7]
@@ -21,7 +18,7 @@ ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownershi
 
 
 ###CALCULATE VARIABLES####
-
+#calculate values for brackets like prob90, expectedvalue by round, etc
 
 brackets$SimMean<-apply(brackets[, grepl("Sim", colnames(brackets)) & !grepl("Mean|SD", colnames(brackets))], 1, mean)
 bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
@@ -38,13 +35,14 @@ expectedPoints(slots=cols,  teams=brackets[1, 1:63])
 brackets[, paste("Expected", colnames(brackets[1:63]), sep="")]<-NA
 brackets[, paste("Expected",colnames(brackets[1:63]), sep="")]<-
   matrix(unlist(lapply(1:nrow(brackets), function(x) expectedPoints(cols,teams=brackets[x, 1:63]))), byrow=T, ncol=63)
-brackets[, c("ExpectedR1234", "ExpectedR123")]<-NULL
+brackets[, c("ExpectedR1234", "ExpectedR123", "ExpectedR12")]<-NULL
 for(i in c("R1", "R2", "R3", "R4","R5")){
   brackets[, paste0("Expected", i)]<-NULL
   brackets[, paste0("Expected", i)]<-apply(brackets[, grepl(paste0("Expected", i), colnames(brackets))], 1, sum)
 }
 brackets$ExpectedR1234<-round(brackets$ExpectedR1*10+brackets$ExpectedR2*20+brackets$ExpectedR3*40+brackets$ExpectedR4*80, 1)
 brackets$ExpectedR123<-round(brackets$ExpectedR1*10+brackets$ExpectedR2*20+brackets$ExpectedR3*40, 1)
+brackets$ExpectedR12<-round(brackets$ExpectedR1*10+brackets$ExpectedR2*20, 1)
 hist(brackets$ExpectedR1[order(brackets$Prob995, decreasing = T)][1:50])
 
 ownershipFun<-function(slots, teams){
@@ -113,15 +111,16 @@ opt<-which.max(brackets$Prob99)
 bracket<-brackets[opt[1], 1:63]
 
 
-###CUSTOM BRACKET######
+###CUSTOM BRACKET CALCULATION######
 # bracket
-opt<-which.max(brackets$Prob995)
-plotBracket(brackets[opt, 1:63])
-customBracket<-cbind(brackets[which.max(brackets$SimMean), 1:48], brackets[opt, 49:63])
+opt<-which.max(brackets$Prob99)
+plotBracket(brackets[which.max(brackets$ExpectedR12), 1:63])
+customBracket<-cbind(brackets[which.max(brackets$ExpectedR12), 1:48], brackets[opt, 49:63])
+plotBracket(customBracket)
 
 #argument1= brackets, argument2=all brackets. returns point scared & 
-brackets[ opt, grepl("Prob|Actual|ExpectedR123", colnames(brackets))]
-brackets[ which.max(brackets$SimMean), grepl("Prob|Actual|ExpectedR123", colnames(brackets))]
+brackets[ opt, grepl("Prob|Actual|ExpectedR12", colnames(brackets))]
+brackets[ which.max(brackets$ExpectedR12), grepl("Prob|Actual|ExpectedR12", colnames(brackets))]
 
 calcBracket(customBracket, brackets=brackets[-opt, ]) 
 

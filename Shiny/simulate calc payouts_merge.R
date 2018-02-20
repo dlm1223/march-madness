@@ -33,9 +33,10 @@ all<-data.frame(Slot=rep(colnames(brackets)[!grepl("Sim", colnames(brackets))], 
                 Team=unlist(lapply(1:nrow(brackets),function(x)brackets[x, !grepl("Sim", colnames(brackets))] )), 
                 Bracket=rep(1:nrow(brackets), each=63))
 #get points for each pick
+#left inner join
 test<-data.table(all, key=c("Team", "Slot"))[
   data.table(tourneySims[, c("Sim", "Slot", "Payout", "Team_Full")], key=c("Team_Full", "Slot")),
-  allow.cartesian=TRUE  ]
+  allow.cartesian=TRUE , nomatch=0 ]
 
 # incProgress(1/3)
 

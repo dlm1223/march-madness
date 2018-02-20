@@ -178,13 +178,23 @@ plotBracket<-function(bracket){
 }
 calcBracket<-function(all, brackets=brackets){
   
-  all<-data.frame(Team=as.character(all), Slot=colnames(all), Bracket=10000)
   
-  test<-merge(all, tourneySims[, c("Slot", "Team_Full", "Sim", "Payout")], by.x=c("Team", "Slot"), by.y=c("Team_Full", "Slot"))
-  test<-data.table(test)
+  all<-data.frame(Team=as.character(all), Slot=colnames(all), Bracket=10000)
+  test<-data.table(all, key=c("Team", "Slot"))[
+    data.table(tourneySims[, c("Sim", "Slot", "Payout", "Team_Full")], key=c("Team_Full", "Slot")),
+    allow.cartesian=TRUE , nomatch=0 ]
   test<-test[,  list(Points=sum(Payout)),by=c("Sim", "Bracket")]
   test<-data.frame(test)
-  test<-reshape(test,timevar="Sim",idvar="Bracket",direction="wide")
+  
+  # test<-reshape(test,timevar="Sim",idvar="Bracket",direction="wide")
+  
+  #faster than doing reshape since using 1 bracket:
+  test<-test[order(test$Sim, decreasing = F),]
+  test<-data.frame(t(test$Points))
+  colnames(test)<-paste("Points.", 1:max(tourneySims$Sim), sep="")
+  test$Bracket<-10000
+  ##
+  
   colnames(test)<-gsub("Points.", "Sim", colnames(test))
   colnames(test)[grepl(max(tourneySims$Sim), colnames(test))]<-paste(colnames(test)[grepl(max(tourneySims$Sim), colnames(test))], "Actual", sep="_")
   
