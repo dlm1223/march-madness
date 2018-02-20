@@ -1,15 +1,21 @@
+
+###change model fitting file to get different cases. 
+#leave as is for default
+#model fitting = regular Pomeroy model. model fitting v2 = Morey model. model fitting v3 = pred=.5 model
+#change file name as _v2 or _v3 to save alternate sims versions
+
 year<-2016
 backtest<-T
 sims<-5000
 playInTbd<-F
-name<-"TourneySims_v3.Rda"
+name<-"TourneySims.Rda"
 # 
-setwd("~/Kaggle/NCAA/march-madness")
+# setwd("~/Kaggle/NCAA/march-madness")
 projDir<-getwd()
 # 
 load("data/game data.RData")
 source("functions.R")
-source("model fitting v3 2018.R")
+source("model fitting 2018.R")
 setwd(paste0(c( year, "/"), sep="", collapse=""))
 list.files()
 getwd()

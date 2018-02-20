@@ -1,7 +1,8 @@
 # load("~/Kaggle/NCAA/march-madness/data/game data.RData");load("TourneySims_v3.Rda")
-numBrackets<-5000
 
-name<-"BracketResults_FullTournament_v3.Rda"
+#optional: change bracketresults name as _v2 or _v3 if using different tourneysims version
+numBrackets<-5000
+name<-"BracketResults_FullTournament.Rda"
 
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]

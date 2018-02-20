@@ -1,4 +1,6 @@
 ##LOAD DATA####
+#only the default bracketresults are uploaded on github
+#to get other cases i.e. _v2 _v3, need to rerun sims and ownership using model-fitting_v2 and model-fitting_v3 as save file names as _v2, _v3.
 
 setwd("~/Kaggle/NCAA/march-madness")
 projDir<-getwd()
