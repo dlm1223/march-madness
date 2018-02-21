@@ -89,7 +89,7 @@ readFile<-function(file){
   Massey_All
 }
 files<-list.files("Massey/cb/")
-Massey_All<-ldply(lapply(files[-c(1:9)], readFile), data.frame)
+Massey_All<-ldply(lapply(files[-c(1:6)], readFile), data.frame)
 colnames(Massey_All)<-c("File", "team_id2", "Team_Full", "Source", "Source_Full", "DATE", "Rank")
 Massey_All$DATE<-as.Date(as.character(Massey_All$DATE), format="%Y%m%d")
 
@@ -166,7 +166,7 @@ fulldf$dayzero<-seasons$Dayzero[match(fulldf$Season, seasons$Season)]
 fulldf$DATE[is.na(fulldf$DATE)]<-fulldf$dayzero[is.na(fulldf$DATE)]+fulldf$Daynum[is.na(fulldf$DATE)]
 
 
-fulldf<-fulldf[fulldf$Season>=2010, ]
+fulldf<-fulldf[fulldf$Season>=2008, ]
 fulldf$Rank_DATE<-sapply(fulldf$DATE, function(x) max(Massey_means$DATE[Massey_means$DATE<=x]))
 fulldf$Rank_DATE<-as.Date(fulldf$Rank_DATE)
 winners<-fulldf
@@ -360,11 +360,13 @@ getSlot<-function(seed1, seed2, season){
 }
 fulldf$Slot<-NA
 fulldf$Slot[fulldf$Tournament==1]<-sapply(which(fulldf$Tournament==1),    function(x)getSlot(fulldf$TeamSeed[x], fulldf$OPPSeed[x], fulldf$Season[x]) )
+fulldf$Round[fulldf$Tournament==1]<-sapply(which(fulldf$Tournament==1),    function(x)getRound(fulldf$TeamSeed[x], fulldf$OPPSeed[x], fulldf$Season[x]) )
 
 
 fulldf<-merge(fulldf, TourneyGeog[, c("Season", "Slot", "Host", "Lat", "Lng")], by=c("Season","Slot"), all.x=T)
 fulldf<-merge(fulldf, TeamGeog[, c("team_id", "TeamLat", "TeamLng")], by.x=c("Team"), by.y=("team_id"), all.x=T)
 fulldf$Dist<-NA
+library(geosphere)
 fulldf$Dist[!is.na(fulldf$Lat)]<-distHaversine(fulldf[!is.na(fulldf$Lat), c( "Lng", "Lat")], fulldf[!is.na(fulldf$Lat), c( "TeamLng", "TeamLat")])/1000
 hist(fulldf$Dist)
 
