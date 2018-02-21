@@ -44,7 +44,7 @@ navbarPage("March Madness Optimization",
                     hr(),
                     
                     fluidRow(
-                      column(4,
+                      column(3,
                              h3("Scoring:"),
                              numericInput("r1", "Round 1:",   value=10, min=0, width="30%"),
                              numericInput("r2", "Round 2:",  value=20, min=0, width="30%"),
@@ -53,23 +53,32 @@ navbarPage("March Madness Optimization",
                              numericInput("r5", "Round 5:",  value=160, min=0, width="30%"),
                              numericInput("r6", "Round 6:",  value=320, min=0, width="30%")),
                       
-                      column(4,
+                      column(3,
                              h3("Multiply Points for Upsets by (optional):"),
                              
                              numericInput("upset1_mult", "1-4 Seed Difference:", value=1, min=1, width="30%"),
                              numericInput("upset2_mult", "5-9 Seed Difference:",  value=1, min=1, width="30%"),
                              numericInput("upset3_mult", "10+ Seed Difference:",  value=1, min=1, width="30%")),
                       
-                      column(4,
+                      column(3,
                              # tags$head(tags$style("{font-size:67%}")),
                              h3("Add Points to Upsets (optional):"),
                              numericInput("upset1_add", "1-4 Seed Difference:", value=0, min=0, width="30%"),
                              numericInput("upset2_add", "5-9 Seed Difference:",  value=0, min=0, width="30%"),
-                             numericInput("upset3_add", "10+ Seed Difference:",  value=0, min=0, width="30%")
+                             numericInput("upset3_add", "10+ Seed Difference:",  value=0, min=0, width="30%")),
+                      column(3,
+                             # tags$head(tags$style("{font-size:67%}")),
+                             h3("Add Team-Seed to Correct Pick (optional):"),
+                             selectInput("r1_seed_bonus", "Add For R1", selected=0, choices=c(0, 1), width="30%"),
+                             selectInput("r2_seed_bonus", "Add For R2",   selected=0, choices=c(0, 1), width="30%"),
+                             selectInput("r3_seed_bonus", "Add For R3", selected=0, choices=c(0, 1),width="30%"),
+                             selectInput("r4_seed_bonus", "Add For R4", selected=0, choices=c(0, 1),width="30%"),
+                             selectInput("r5_seed_bonus", "Add For R5",  selected=0, choices=c(0, 1),width="30%"),
+                             selectInput("r6_seed_bonus", "Add For R6", selected=0, choices=c(0, 1),width="30%"))
                              
                              # hr(),
                              
-                      ))),
+                      )  ),
            
            
            tabPanel("Optimization",
