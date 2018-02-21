@@ -195,6 +195,7 @@ function(input, output, session) {
       round64 <- tourneySims[tourneySims$Round=="R1" & tourneySims$Sim==1,]
       round64$Loser_Full<-id_df$Team_Full[match(round64$Loser, id_df$team_id)]
       ords<-c(1, 8, 4, 5, 3, 6, 2, 7)
+      round64<-round64[order(round64$Slot, decreasing = F), ]
       round64<-round64[c(ords, ords+8, ords+16, ords+24), ]
       teams<-lapply(1:nrow(round64),
                     function(x) if(round64$team_seed[x]< round64$loser_seed[x]) {

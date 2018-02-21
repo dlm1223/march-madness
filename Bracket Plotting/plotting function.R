@@ -59,6 +59,7 @@ inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasi
 
 
 round64 <- tourneySims[tourneySims$Round=="R1" & tourneySims$Sim==1,]
+round64<-round64[order(round64$Slot, decreasing = F), ]
 round64$Loser_Full<-id_df$Team_Full[match(round64$Loser, id_df$team_id)]
 ords<-c(1, 8, 4, 5, 3, 6, 2, 7)
 round64<-round64[c(ords, ords+8, ords+16, ords+24), ]

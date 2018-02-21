@@ -5,11 +5,11 @@
 setwd("~/Kaggle/NCAA/march-madness")
 projDir<-getwd()
 
-year<-2016
+year<-2014
 setwd(paste0(c(projDir, "/", year, "/"), sep="", collapse=""))
 load("alldata.RData")
-load("BracketResults_FullTournament_v2.Rda")
-load("TourneySims_v2.Rda")
+load("BracketResults_FullTournament_500sims.Rda")
+load("TourneySims_500sims.Rda")
 
 ##plotting function--calcBracket(), plotBracket() and more
 source(paste0(projDir, "/Bracket Plotting/plotting function.R"))
