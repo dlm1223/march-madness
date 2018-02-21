@@ -21,16 +21,16 @@ tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), input$r1,
 tourneySims$Payout<-ifelse(tourneySims$team_seed>=tourneySims$loser_seed+10, tourneySims$Payout*input$upset3_mult,
                            ifelse(tourneySims$team_seed>=tourneySims$loser_seed+5, tourneySims$Payout*input$upset2_mult,
                                   ifelse(tourneySims$team_seed>tourneySims$loser_seed, tourneySims$Payout*input$upset1_mult, tourneySims$Payout)))
-tourneySims$Payout<-ifelse(tourneySims$team_seed>=tourneySims$loser_seed+10 & tourneySims$Payout>0, tourneySims$Payout+input$upset3_add,
-                           ifelse(tourneySims$team_seed>=tourneySims$loser_seed+5& tourneySims$Payout>0, tourneySims$Payout+input$upset2_add,
-                                  ifelse(tourneySims$team_seed>tourneySims$loser_seed& tourneySims$Payout>0, tourneySims$Payout+input$upset1_add, tourneySims$Payout)))
-# tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r1_seed_mult)),
-#                            ifelse(grepl("R2", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r2_seed_mult)),
-#                                   ifelse(grepl("R3", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r3_seed_mult)),
-#                                          ifelse(grepl("R4", tourneySims$Slot),tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r4_seed_mult)),
-#                                                 ifelse(grepl("R5", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r5_seed_mult)),
-#                                                        ifelse(grepl("R6", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r6_seed_mult)),
-#                                                               tourneySims$Payout))))))
+# tourneySims$Payout<-ifelse(tourneySims$team_seed>=tourneySims$loser_seed+10 & tourneySims$Payout>0, tourneySims$Payout+input$upset3_add,
+#                            ifelse(tourneySims$team_seed>=tourneySims$loser_seed+5& tourneySims$Payout>0, tourneySims$Payout+input$upset2_add,
+#                                   ifelse(tourneySims$team_seed>tourneySims$loser_seed& tourneySims$Payout>0, tourneySims$Payout+input$upset1_add, tourneySims$Payout)))
+tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r1_seed_mult)),
+                           ifelse(grepl("R2", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r2_seed_mult)),
+                                  ifelse(grepl("R3", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r3_seed_mult)),
+                                         ifelse(grepl("R4", tourneySims$Slot),tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r4_seed_mult)),
+                                                ifelse(grepl("R5", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r5_seed_mult)),
+                                                       ifelse(grepl("R6", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r6_seed_mult)),
+                                                              tourneySims$Payout))))))
 
 tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), tourneySims$Payout+tourneySims$team_seed*as.numeric(input$r1_seed_bonus),
                            ifelse(grepl("R2", tourneySims$Slot), tourneySims$Payout+tourneySims$team_seed*as.numeric(input$r2_seed_bonus),

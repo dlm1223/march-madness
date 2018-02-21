@@ -13,9 +13,12 @@ function(input, output, session) {
     updateNumericInput(session, "upset1_mult", value = 1)
     updateNumericInput(session, "upset2_mult", value = 1) 
     updateNumericInput(session, "upset3_mult", value = 1) 
-    updateNumericInput(session, "upset1_add", value = 0) 
-    updateNumericInput(session, "upset2_add", value = 0) 
-    updateNumericInput(session, "upset3_add", value = 0)
+    updateNumericInput(session, "r1_seed_mult", value = 0) 
+    updateNumericInput(session, "r2_seed_mult", value = 0) 
+    updateNumericInput(session, "r3_seed_mult", value = 0) 
+    updateNumericInput(session, "r4_seed_mult", value = 0) 
+    updateNumericInput(session, "r5_seed_mult", value = 0) 
+    updateNumericInput(session, "r6_seed_mult", value = 0) 
     updateNumericInput(session, "r1_seed_bonus", value = 0) 
     updateNumericInput(session, "r2_seed_bonus", value = 0) 
     updateNumericInput(session, "r3_seed_bonus", value = 0) 
@@ -31,7 +34,8 @@ function(input, output, session) {
     # setwd(paste0(c("~/Shiny/NCAA/", input$year, "/"), sep="", collapse=""))
     if(input$r1!=10| input$r2!=20| input$r3!=40| input$r4!=80 | input$r5!=160| input$r6!=320|
        input$upset1_mult!=1| input$upset2_mult!=1| input$upset3_mult!=1|
-       input$upset1_add!=0 | input$upset2_add!=0| input$upset3_add!=0 |
+       input$r1_seed_mult!=0| input$r2_seed_mult!=0| input$r3_seed_mult!=0|
+       input$r4_seed_mult!=0| input$r5_seed_mult!=0| input$r6_seed_mult!=0|
        input$r1_seed_bonus!=0| input$r2_seed_bonus!=0| input$r3_seed_bonus!=0|
        input$r4_seed_bonus!=0| input$r5_seed_bonus!=0| input$r6_seed_bonus!=0  ){
       
