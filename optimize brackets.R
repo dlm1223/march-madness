@@ -1,7 +1,7 @@
 #year<-2017;setwd(paste0(projDir, "/2017/"));load("alldata.RData");load("BracketResults_FullTournament.Rda")
 #year<-2016;setwd(paste0(projDir, "/2016/"));load("alldata.RData");load("BracketResults_FullTournament.Rda")
 
-# percentile<-.9;numBrackets<-1
+percentile<-.9;numBrackets<-3
 
 # brackets<-brackets[!duplicated(brackets[, 1:64]), ]
 # head(percentiles)

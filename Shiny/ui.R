@@ -36,9 +36,7 @@ navbarPage("March Madness Optimization",
                         selectInput("year", "", 
                                     # value=2017,
                                     selected=2017,width = "20%",
-                                    choices=c(2016, 2017))
-                        
-                        
+                                    choices=2013:2017)
                       )),
                     
                     hr(),
@@ -55,20 +53,19 @@ navbarPage("March Madness Optimization",
                       
                       column(3,
                              h3("Multiply Points for Upsets by (optional):"),
-                             
                              numericInput("upset1_mult", "1-4 Seed Difference:", value=1, min=1, width="30%"),
                              numericInput("upset2_mult", "5-9 Seed Difference:",  value=1, min=1, width="30%"),
                              numericInput("upset3_mult", "10+ Seed Difference:",  value=1, min=1, width="30%")),
                       
                       column(3,
                              # tags$head(tags$style("{font-size:67%}")),
-                             h3("Add Points to Upsets (optional):"),
+                             h3("Multiply Team-Seed for Correct Picks (optional):"),
                              numericInput("upset1_add", "1-4 Seed Difference:", value=0, min=0, width="30%"),
                              numericInput("upset2_add", "5-9 Seed Difference:",  value=0, min=0, width="30%"),
                              numericInput("upset3_add", "10+ Seed Difference:",  value=0, min=0, width="30%")),
                       column(3,
                              # tags$head(tags$style("{font-size:67%}")),
-                             h3("Add Team-Seed to Correct Pick (optional):"),
+                             h3("Add Team-Seed for Correct Picks (optional):"),
                              selectInput("r1_seed_bonus", "Add For R1", selected=0, choices=c(0, 1), width="30%"),
                              selectInput("r2_seed_bonus", "Add For R2",   selected=0, choices=c(0, 1), width="30%"),
                              selectInput("r3_seed_bonus", "Add For R3", selected=0, choices=c(0, 1),width="30%"),

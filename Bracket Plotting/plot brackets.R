@@ -90,7 +90,7 @@ brackets$Champ<-as.factor(ifelse(brackets$R6CH%in% c("Villanova", "Gonzaga","Lou
 brackets$RunnerUp<-ifelse(brackets$R6CH==brackets$R5WX, brackets$R5YZ,brackets$R5WX )
 
 brackets$RunnerUp<-as.factor(ifelse(brackets$RunnerUp%in% c("Villanova", "Gonzaga","Louisville","West Virginia","Purdue","Kentucky",
-                                                     "Kansas", "North Carolina"), brackets$RunnerUp, "Other"))
+                                                            "Kansas", "North Carolina"), brackets$RunnerUp, "Other"))
 # brackets$RunnerUp<-as.factor(ifelse(brackets$RunnerUp%in% c("Michigan State", "Oklahoma","West Virginia","Kentucky",
 #                                                      "North Carolina","Virginia",
 #                                                      "Kansas", "Villanova"), brackets$RunnerUp, "Other"))
@@ -118,14 +118,17 @@ bracket<-brackets[opt[1], 1:63]
 opt<-which.max(brackets$Prob99)
 plotBracket(brackets[which.max(brackets$ExpectedR12), 1:63])
 customBracket<-cbind(brackets[which.max(brackets$ExpectedR12), 1:48], brackets[opt, 49:63])
-plotBracket(customBracket)
+plotBracket(brackets[opt, 1:63])
 
 #argument1= brackets, argument2=all brackets. returns point scared & 
-brackets[ opt, grepl("Prob|Actual|ExpectedR12", colnames(brackets))]
-brackets[ which.max(brackets$ExpectedR12), grepl("Prob|Actual|ExpectedR12", colnames(brackets))]
+prob99<-brackets[ opt,colnames(brackets)%in% c("ExpectedR12", "Prob99")]
+max12<-brackets[ which.max(brackets$ExpectedR12),colnames(brackets)%in% c("ExpectedR12", "Prob99")]
+custom<-calcBracket(customBracket, brackets=brackets[-opt, ])
+custom$ExpectedR12<-max12$ExpectedR12
 
-calcBracket(customBracket, brackets=brackets[-opt, ]) 
-
+test<-rbindlist(list(prob99, max12, custom[, c("Prob99", "ExpectedR12")]), fill=T)
+test$Bracket<-c("Prob99", "MaxR12", "Custom")
+test
 # test<-brackets[order(brackets$Prob995, decreasing = T), ][1:10, cols]
 # test[, 1:7]<-sapply(test[, 1:7], pasteSeed)
 # test

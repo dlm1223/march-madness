@@ -53,10 +53,7 @@ KenPom$Team<-coordName(KenPom$Team)
 
 
 readFile<-function(year){
-  string<-"data/WhoPickedWhom.csv"
-  if(year==2016){
-    string<-paste0(c("data/WhoPickedWhom", year, ".csv"), collapse="", sep="")
-  }
+  string<-paste0(year, "/WhoPickedWhom.csv")
   
   whoPicked<-read.csv(string)
   colnames(whoPicked)<-c("R1", "R2", "R3", "R4", "R5", "R6")
@@ -80,8 +77,8 @@ readFile<-function(year){
   whoPicked2$Season<-year
   whoPicked2
 }
-whoPicked<-ldply(lapply(2016:2017, readFile), data.frame)
-
+whoPicked<-ldply(lapply(2013:2017, readFile), data.frame)
+setdiff(whoPicked$Team, id_df$Team_Full)
 
 ###****YOU NEED TO DOWNLOAD "cb2001-18" DATA FROM THE FOLLOWING LINK AND PLACE all files IN A FOLDER Massey/cb/   ******
 #https://www.kaggle.com/masseyratings/rankings/data
@@ -385,4 +382,4 @@ save(list=ls()[ls()%in% c("fulldf", "KenPom", "Massey_All", "Massey_means","odds
                           "seasons", "TourneySlots", "TourneySeeds","TourneyRounds","getRound" , "TourneyGeog", "TeamGeog", "whoPicked" #tourney specific data
 )], file="data/game data.RData")
 
-# load("game data.RData")
+# load("data/game data.RData")

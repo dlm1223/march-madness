@@ -4,11 +4,11 @@
 #model fitting = regular Pomeroy model. model fitting v2 = Morey model. model fitting v3 = pred=.5 model
 #change file name as _v2 or _v3 to save alternate sims versions
 
-year<-2016
+year<-2013
 backtest<-T
-sims<-5000
+sims<-500
 playInTbd<-F
-name<-"TourneySims.Rda"
+name<-"TourneySims_500sims.Rda"
 # 
 # setwd("~/Kaggle/NCAA/march-madness")
 projDir<-getwd()
@@ -20,6 +20,9 @@ setwd(paste0(c( year, "/"), sep="", collapse=""))
 list.files()
 getwd()
 
+#need to get simulate winners in chronological order
+TourneySlots$Round<-ifelse(substring(TourneySlots$Slot, 1, 1)=="R", substring(TourneySlots$Slot, 2, 2), 0)
+TourneySlots<-TourneySlots[order(TourneySlots$Round, TourneySlots$Season, decreasing = F), ]
 TourneySlots[TourneySlots$Season==year,]
 
 
@@ -92,7 +95,6 @@ advanceActual<-function(row){
 
 tourneySims<-list();length(tourneySims)<-sims
 for(j in 1:(sims)) {
-  # set.seed(j)
   newdata<-data.frame(Slot=TourneySeeds$Seed[TourneySeeds$Season==year], 
                       Team=as.numeric(TourneySeeds$Team[TourneySeeds$Season==year]),
                       Loser=NA, Payout=NA)
