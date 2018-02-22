@@ -1,4 +1,4 @@
-#year<-2013;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda")
+#year<-2017;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda")
 
 #optional: change bracketresults name as _v2 or _v3 if using different tourneysims version
 numBrackets<-500

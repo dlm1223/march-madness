@@ -6,7 +6,8 @@
 cor(fulldf$Win, fulldf[, grepl("Rank[.]|med|min|max|mean", colnames(fulldf))], use="pairwise.complete.obs")
 fulldf$meanRank_alt<-rowMeans(fulldf[, c("Rank.POM", "Rank.NOL","Rank.RTP", "Rank.DOL" )], na.rm=T)
 fulldf$OPPmeanRank_alt<-rowMeans(fulldf[, c("OPP.POM", "OPP.NOL","OPP.RTP", "OPP.DOL" )], na.rm=T)
-
+fulldf$TeamOwnership_sum<-rowSums(fulldf[, grepl("TeamOwnership_", colnames(fulldf))])
+fulldf$OPPOwnership_sum<-rowSums(fulldf[, grepl("OPPOwnership_", colnames(fulldf))])
 
 fulldf$Teamloc_num<-ifelse(fulldf$Teamloc=="H", 1, ifelse(fulldf$Teamloc=="N", 0, -1))
 

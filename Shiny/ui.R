@@ -36,7 +36,7 @@ navbarPage("March Madness Optimization",
                         selectInput("year", "", 
                                     # value=2017,
                                     selected=2017,width = "20%",
-                                    choices=2013:2017)
+                                    choices=2012:2017)
                       )),
                     
                     hr(),
