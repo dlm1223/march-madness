@@ -1,4 +1,4 @@
-# load("~/Kaggle/NCAA/march-madness/data/game data.RData");load("TourneySims_v3.Rda")
+#year<-2013;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda")
 
 #optional: change bracketresults name as _v2 or _v3 if using different tourneysims version
 numBrackets<-500
@@ -10,8 +10,7 @@ whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
 setdiff(fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1], whoPicked$Team)
 setdiff( whoPicked$Team, fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1])
 
-#play-in games
-
+#play-in games--some of the ownership data years don't have playin updated so have to impute winner if playInTBD=F
 if(playInTbd==T){
   whoPicked$Team[whoPicked$Team=="Pr / Sc"]<-"Providence / Usc"
   whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"North Carolina Central / Uc Davis"
@@ -29,7 +28,7 @@ analyze$Team_Full<-id_df$Team_Full[match(analyze$Team, id_df$team_id)]
 analyze$Team_Full<-coordName(analyze$Team_Full)
 analyze$Round<-substring(analyze$Slot, 1 ,2)
 
-#handle play-in teams
+#handle play-in games, if playINTBD=T then combine play-in games into one
 analyze<-analyze[analyze$Team%in% c(tourneySims$Team[grepl("R1", tourneySims$Slot) ],
                                     tourneySims$Loser[grepl("R1", tourneySims$Slot) ]), ]
 if(playInTbd==T & year==2017){

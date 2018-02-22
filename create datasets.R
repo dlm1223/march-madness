@@ -51,6 +51,38 @@ KenPom$alternative_spelling<-gsub("[.]", "", KenPom$alternative_spelling)
 KenPom$Team<-coordName(KenPom$Team)
 
 
+getRound<-function(year, round){
+  #year<-2012
+  if(year==2012){
+    data<-read_html(paste0("https://web.archive.org/web/20120316095713/http://tournament.fantasysports.yahoo.com:80/t1/group/all/pickdistribution?round=", round))
+  } 
+  # else if(year==2011){
+  #   data<-read_html(paste0("https://web.archive.org/web/201105011334555/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
+  # }
+  else if(year==2009){
+    data<-read_html(paste0("https://web.archive.org/web/20090322101538/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
+  }else if(year==2008){
+    data<-read_html(paste0("https://web.archive.org/web/20080321234943/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
+  }
+  names<-data%>% html_nodes("td")%>% html_text()
+  if(names[1]!="1"){
+    names<-names[-c(1:2)]
+  }
+  names<-data.frame(matrix(names, ncol=3, byrow=T))
+  names<-names[, -1]
+  colnames(names)<-c("Team", "Ownership")
+  names$Team<-coordName(sapply(strsplit(names$Team, " \\("), `[[`, 1))
+  names$Round<-paste0("R", round)
+  names$Season<-year
+  names$Ownership<-as.numeric(names$Ownership)/100
+  names
+}
+getYear<-function(year){
+  print(year)
+  data.frame(rbindlist(lapply(1:6, function(x) getRound(year, x))))
+}
+whoPicked_yahoo<-ldply(lapply(c(2008, 2009,2012), getYear), data.frame)
+
 
 readFile<-function(year){
   string<-paste0(year, "/WhoPickedWhom.csv")
@@ -79,6 +111,8 @@ readFile<-function(year){
 }
 whoPicked<-ldply(lapply(2013:2017, readFile), data.frame)
 setdiff(whoPicked$Team, id_df$Team_Full)
+
+whoPicked<-rbind(whoPicked, whoPicked_yahoo)
 
 ###****YOU NEED TO DOWNLOAD "cb2001-18" DATA FROM THE FOLLOWING LINK AND PLACE all files IN A FOLDER Massey/cb/   ******
 #https://www.kaggle.com/masseyratings/rankings/data
@@ -294,7 +328,7 @@ head(fulldf)
 fulldf$Win_factor<-as.factor(fulldf$Win)
 levels(fulldf$Win_factor)<-c("Loss", "Win")
 
-###538 Data#
+###ADD TOURNAMENT DATA TO FULLDF#####
 
 files<-list.files("538/", pattern ="csv")
 import538<-function(file) {
@@ -344,7 +378,6 @@ fulldf$OPPSeed_num<-as.numeric(substring(fulldf$OPPSeed, 2, 3))
 fulldf<-fulldf[!(fulldf$Tournament==1 & is.na(fulldf$TeamSeed)), ] #NIT/CBI tournament
 
 
-##ADD ROUND/SLOT/LOCATION TO TOURNAMENT DATA#####
 getRound<-function(seed1, seed2, season){
   #seed1<-"W16a";seed2<-"W16b";season<-2017
   numCommon<-intersect(TourneyRounds$Slot[TourneyRounds$Seed==seed1 & TourneyRounds$Season==season], 
@@ -361,7 +394,7 @@ getSlot<-function(seed1, seed2, season){
 fulldf$Slot<-NA
 fulldf$Slot[fulldf$Tournament==1]<-sapply(which(fulldf$Tournament==1),    function(x)getSlot(fulldf$TeamSeed[x], fulldf$OPPSeed[x], fulldf$Season[x]) )
 fulldf$Round[fulldf$Tournament==1]<-sapply(which(fulldf$Tournament==1),    function(x)getRound(fulldf$TeamSeed[x], fulldf$OPPSeed[x], fulldf$Season[x]) )
-
+fulldf$Round<-as.numeric(fulldf$Round)
 
 fulldf<-merge(fulldf, TourneyGeog[, c("Season", "Slot", "Host", "Lat", "Lng")], by=c("Season","Slot"), all.x=T)
 fulldf<-merge(fulldf, TeamGeog[, c("team_id", "TeamLat", "TeamLng")], by.x=c("Team"), by.y=("team_id"), all.x=T)
@@ -376,6 +409,17 @@ fulldf<-fulldf[,`:=`(
   R1_Spread=as.numeric(ifelse(1%in% Tournament, Spread[which(Tournament==1 & Round==1)], NA))
 ), by=c("Team","Season" ) ]
 fulldf<-data.frame(fulldf)
+
+fulldf<-fulldf[, !grepl("Ownership_", colnames(fulldf))]
+for(i in c("R1", "R2", "R3", "R4", "R5", "R6")){
+  fulldf<-merge(fulldf, whoPicked[whoPicked$Round==i,c("Team", "Season", "Ownership")  ], by.x=c("Team_Full", "Season"), by.y=c("Team", "Season"), all.x=T)
+  colnames(fulldf)[colnames(fulldf)=="Ownership"]<-paste0("TeamOwnership_", i)
+  
+  fulldf<-merge(fulldf, whoPicked[whoPicked$Round==i, c("Team", "Season", "Ownership") ], by.x=c("OPP_Full", "Season"), by.y=c("Team", "Season"), all.x=T)
+  colnames(fulldf)[colnames(fulldf)=="Ownership"]<-paste0("OPPOwnership_", i)
+}
+
+
 
 fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2017& fulldf$Tournament==1, ]
 

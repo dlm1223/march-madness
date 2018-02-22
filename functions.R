@@ -216,7 +216,7 @@ coordName<-function(x){
   x[x=="La Monroe"]<-"Louisiana Monroe"
   x[x=="Loyola Marymt"|x=="Loy Marymount"|x=="Lmu"]<-"Loyola Marymount"
   x[x=="Miami OH"| x=="Miami Oh"|x=="Miami Ohio"]<-"Miami (OH)"
-  x[x=="Loyola MD"|x=="Loyola Md"|x=="Loyola Maryland"]<-"Loyola (MD)"
+  x[x=="Loyola MD"|x=="Loyola Md"|x=="Loyola Maryland"|x=="Loyola"]<-"Loyola (MD)"
   x[x=="UMKC"|x=="Missouri Kc"|x=="Umkc"]<-"Missouri-Kansas City"
   x[x=="UTSA"]<-"Texas-San Antonio"
   x[x=="Savannah St"]<-"Savannah State"
@@ -312,6 +312,7 @@ coordName<-function(x){
   x[x=="La Lafayette"]<-"Louisiana Lafayette"
   x[x=="R Morris"]<-"Robert Morris"
   x[x=="Sd State"]<-"South Dakota State"
+  x[x=="Maryland Baltimore County"]<-"Umbc"
   unname(x)
   
   

@@ -5,13 +5,15 @@
 
 cor(fulldf$Win, fulldf[, grepl("Rank[.]|med|min|max|mean", colnames(fulldf))], use="pairwise.complete.obs")
 fulldf$meanRank_alt<-rowMeans(fulldf[, c("Rank.POM", "Rank.NOL","Rank.RTP", "Rank.DOL" )], na.rm=T)
-
-
 fulldf$OPPmeanRank_alt<-rowMeans(fulldf[, c("OPP.POM", "OPP.NOL","OPP.RTP", "OPP.DOL" )], na.rm=T)
+
+
+fulldf$Teamloc_num<-ifelse(fulldf$Teamloc=="H", 1, ifelse(fulldf$Teamloc=="N", 0, -1))
+
 
 table(fulldf$Season, fulldf$Tournament)
 table(fulldf$Season[!is.na(fulldf$Spread)], fulldf$Tournament[!is.na(fulldf$Spread)])
-fulldf$Teamloc_num<-ifelse(fulldf$Teamloc=="H", 1, ifelse(fulldf$Teamloc=="N", 0, -1))
+
 test<-fulldf[fulldf$Tournament==1 & fulldf$Season%in%year& fulldf$Team<fulldf$OPP&
                fulldf$DATE!=fulldf$Rank_DATE , ]
 
@@ -19,24 +21,23 @@ train<-fulldf[(fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Season==
                 fulldf$Rank_DATE!=fulldf$DATE & !is.na(rowSums(fulldf[, c("OPP.POM", "Rank.POM", "Spread")])), ]
 
 ###model 1####
-fit<-glm(Win_factor~I(Rank.POM-OPP.POM)+Spread++I(Spread^2)+I(sign(Spread))
+fit<-glm(Win_factor~I(Rank.POM-OPP.POM)+Spread++I(Spread^2)
          ,  data=train, family="binomial");summary(fit)
 test$predWin<-predict(fit, newdata=test, type="response")# type="prob")[, 2]
 train$predWin<-predict(fit, newdata=train, type="response")#,type="prob")[, 2]
 logLoss(train$Win, train$predWin)
 
 ###model 2###
-fit2<-glm(Win_factor~Spread+I(Spread^2)+I(sign(Spread)),
+fit2<-glm(Win_factor~I(meanRank-OPPmeanRank)+Spread,
           family="binomial",
           data=train);summary(fit2)
 test$predWin2<-predict(fit2, newdata=test, type="response")
 train$predWin2<-predict(fit2, newdata=train, type="response")
 
 #model 3##
-fit3<-glm(Win_factor~I(log(TeamSeed_num/OPPSeed_num))+I((meanRank-OPPmeanRank)),
+fit3<-glm(Win_factor~I((meanRank-OPPmeanRank))+I(TeamOwnership_R3^2-OPPOwnership_R3^2),
          data=train[train$Tournament==1,], family="binomial");summary(fit3)
 train$predWin3<-predict(fit3, newdata=train, type="response")
-
 test$predWin3<-predict(fit3, newdata=test, type="response")
 logLoss(test$Win, test$predWin3)
 
@@ -50,17 +51,17 @@ logLoss(test$Win, test$predWin4)
 
 logLoss(test$Win, .5)
 logLoss(test$Win, test$predWin4)  # rank-model
-logLoss(test$Win, test$predWin3)  # tournemant rank-model
-logLoss(test$Win, test$predWin2)  #Spread
+logLoss(test$Win, test$predWin3)  # tournamant rank-model
+logLoss(test$Win, test$predWin2)  #Spread+Rank alt
 logLoss(test$Win, test$predWin)  #Spread +Rank
 
-logLoss(train$Win[train$Tournament==1], rowMeans(train[train$Tournament==1, c("predWin3", "predWin4")]))
-logLoss(train$Win[train$Tournament==1], rowMeans(train[train$Tournament==1, c("predWin4", "predWin2", "predWin")]))
+logLoss(train$Win[train$Tournament==1], rowMeans(train[train$Tournament==1, c("predWin3", "predWin4")], na.rm=T))
+logLoss(train$Win[train$Tournament==1], rowMeans(train[train$Tournament==1, c("predWin4", "predWin3", "predWin2", "predWin")], na.rm = T))
 
-train$Pred<-ifelse(train$Round==1, rowMeans(train[, c("predWin", "predWin2", "predWin4")], na.rm=T), rowMeans(train[, c("predWin3", "predWin4")], na.rm=T))
+train$Pred<-ifelse(train$Round==1, rowMeans(train[, c("predWin", "predWin2","predWin4", "predWin3")], na.rm=T), rowMeans(train[, c("predWin3","predWin3", "predWin4")], na.rm=T))
 logLoss(train$Win[train$Round>=1& train$Tournament==1], train$Pred[train$Round>=1& train$Tournament==1])
 
-test$Pred<-ifelse(test$Round==1, rowMeans(test[, c("predWin", "predWin2")], na.rm=T), rowMeans(test[, c("predWin3", "predWin4")], na.rm=T))
+test$Pred<-ifelse(test$Round==1, rowMeans(test[, c("predWin","predWin" )], na.rm=T), rowMeans(test[, c("predWin3",  "predWin4", "predWin3")], na.rm=T))
 logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred[test$Round>=1& test$Team<test$OPP])
 
 # test$Pred2<-ifelse(abs(test$OPPSeed_num-test$TeamSeed_num)==16, round(test$Pred), test$Pred)
@@ -71,14 +72,9 @@ logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred3[test$Round>=1& t
 
 
 
-
 ######write predictions########
-dates<-c(seq(as.Date("2013-03-19"), as.Date("2013-03-22"), 1), 
-         seq(as.Date("2014-03-18"), as.Date("2014-03-21"), 1), 
-         seq(as.Date("2015-03-17"), as.Date("2015-03-20"), 1),
-         seq(as.Date("2016-03-15"), as.Date("2016-03-18"), 1), 
-         seq(as.Date("2017-03-14"), as.Date("2017-03-17"), 1))
-
+dates<-unique(fulldf$DATE[which(fulldf$Round<=1)])
+dates<-dates[order(dates)]
 
 if(year==2017){
   samplesubmission<-read.csv("data/SampleSubmission.csv")
@@ -104,19 +100,23 @@ samplesubmission<-merge(samplesubmission, odds2[,c("team_id", "opp_id", "Spread"
 
 fulldf<-fulldf[order(fulldf$DATE, decreasing = F), ]
 team_stats<-ddply(fulldf[fulldf$Tournament==1, ], .(Team,Team_Full, Season), summarize,
-                  meanRank=meanRank[1], Rank.POM=Rank.POM[1], Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1]
-)
+                  meanRank=meanRank[1], Rank.POM=Rank.POM[1], Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1], 
+                  TeamOwnership_R3=TeamOwnership_R3[1])
+
+
 samplesubmission<-merge(samplesubmission,team_stats, by=c("Team", "Season"))
-colnames(team_stats)<-c("OPP", "OPP_Full", "Season", "OPPmeanRank", "OPP.POM", "OPPloc", "OPPSeed", "OPPSeed_num")
+colnames(team_stats)<-c("OPP", "OPP_Full", "Season", "OPPmeanRank", "OPP.POM", "OPPloc", "OPPSeed", "OPPSeed_num", "OPPOwnership_R3")
 samplesubmission<-merge(samplesubmission,team_stats, by=c("OPP", "Season"))
-samplesubmission$Round<-sapply(1:nrow(samplesubmission), function(x)getRound(samplesubmission$TeamSeed[x], samplesubmission$OPPSeed[x], samplesubmission$Season[x]))
+samplesubmission$Round<-as.numeric(sapply(1:nrow(samplesubmission), function(x)getRound(samplesubmission$TeamSeed[x], samplesubmission$OPPSeed[x], samplesubmission$Season[x])))
 samplesubmission$Teamloc_num<-0
 samplesubmission$predWin<-predict(fit, newdata=samplesubmission, type="response")
 samplesubmission$predWin2<-predict(fit2, newdata=samplesubmission, type="response")
 samplesubmission$predWin3<-predict(fit3, newdata=samplesubmission, type="response")
 samplesubmission$predWin4<-predict(fit4, newdata=samplesubmission, type="response")
-samplesubmission$Pred<-ifelse(!is.na(samplesubmission$Spread), rowMeans(samplesubmission[, c("predWin", "predWin2")], na.rm=T),
-                              rowMeans(samplesubmission[, c("predWin3", "predWin4")], na.rm=T))
+
+#ENSEMBLE
+samplesubmission$Pred<-ifelse(!is.na(samplesubmission$Spread), rowMeans(samplesubmission[, c("predWin", "predWin")], na.rm=T),
+                              rowMeans(samplesubmission[, c("predWin3","predWin3", "predWin4")], na.rm=T))
 
 
 cor(samplesubmission[, grepl("pred", colnames(samplesubmission))], use="pairwise.complete.obs")

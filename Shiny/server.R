@@ -129,7 +129,15 @@ function(input, output, session) {
     tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
     tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$team_id)]
     
+    names<-unique(analyze[, c("Team_Full", "Seed")])
+    names$Seed<-as.numeric(substring(names$Seed, 2, 3))
+    pasteSeed<-function(teams){
+      paste(names$Seed[match( teams, names$Team_Full)], teams, sep=" ")
+    }
+    
     inspect<-as.data.frame.matrix(table(tourneySims$Team_Full[tourneySims$Sim<=numSims], tourneySims$Round[tourneySims$Sim<=numSims])/numSims) 
+    row.names(inspect)<-pasteSeed( row.names(inspect))
+    
     inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ]
   },     include.rownames=T)
   
@@ -139,6 +147,10 @@ function(input, output, session) {
     percentiles<-optimization$percentiles
     result<-optimization$result
     bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
+    
+    year<-isolate(input$year)
+    load(paste0(c( year, "/alldata.RData"), sep="", collapse=""))
+    
     numSims<-sum(bool)
     r1<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R1", colnames(brackets))])))/numSims);colnames(r1)<-c("Team_Full", "R1")
     r2<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R2", colnames(brackets))])))/numSims);colnames(r2)<-c("Team_Full", "R2")
@@ -148,8 +160,14 @@ function(input, output, session) {
     r6<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R6", colnames(brackets))])))/numSims);colnames(r6)<-c("Team_Full", "R6")
     ownership<-Reduce(function(x, y) merge(x, y, all=TRUE), list(r1, r2, r3, r4, r5, r6))
     ownership[is.na(ownership)]<-0
-    ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownership$R2, ownership$R1, decreasing = T), ]
     
+    names<-unique(analyze[, c("Team_Full", "Seed")])
+    names$Seed<-as.numeric(substring(names$Seed, 2, 3))
+    pasteSeed<-function(teams){
+      paste(names$Seed[match( teams, names$Team_Full)], teams, sep=" ")
+    }
+    ownership$Team_Full<-pasteSeed(ownership$Team_Full)
+    ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownership$R2, ownership$R1, decreasing = T), ]
   })
   
   
@@ -185,8 +203,6 @@ function(input, output, session) {
       pdf(file = "Optimal Brackets.pdf")
       names<-unique(analyze[, c("Team_Full", "Seed")])
       names$Seed<-as.numeric(substring(names$Seed, 2, 3))
-      
-      
       pasteSeed<-function(teams){
         paste(names$Seed[match( teams, names$Team_Full)], teams, sep=" ")
       }

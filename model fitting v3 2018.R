@@ -73,11 +73,8 @@ logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred3[test$Round>=1& t
 
 
 ######write predictions########
-dates<-c(seq(as.Date("2013-03-19"), as.Date("2013-03-22"), 1), 
-         seq(as.Date("2014-03-18"), as.Date("2014-03-21"), 1), 
-         seq(as.Date("2015-03-17"), as.Date("2015-03-20"), 1),
-         seq(as.Date("2016-03-15"), as.Date("2016-03-18"), 1), 
-         seq(as.Date("2017-03-14"), as.Date("2017-03-17"), 1))
+dates<-unique(fulldf$DATE[which(fulldf$Round<=1)])
+dates<-dates[order(dates)]
 
 
 if(year==2017){
