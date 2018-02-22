@@ -1,8 +1,7 @@
 
-###change model fitting file to get different cases. 
-#leave as is for default
-#model fitting = regular Pomeroy model. model fitting v2 = Morey model. model fitting v3 = pred=.5 model
-#change file name as _v2 or _v3 to save alternate sims versions
+##to run, can change number of sims, year, name of file to save tourneysims
+#then run ownership file, where you can change numBrackets and file name to save brackets
+#then run optimize brackets file where you can optimize brackets
 
 year<-2017
 backtest<-T
@@ -10,7 +9,7 @@ sims<-500
 playInTbd<-F
 name<-"TourneySims_500sims.Rda"
 # 
-setwd("~/Kaggle/NCAA/march-madness") #comment this out
+# setwd("~/Kaggle/NCAA/march-madness") #comment this out
 projDir<-getwd()
 # 
 load("data/game data.RData")
