@@ -59,11 +59,11 @@ getRound<-function(year, round){
   # else if(year==2011){
   #   data<-read_html(paste0("https://web.archive.org/web/201105011334555/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
   # }
-  else if(year==2009){
-    data<-read_html(paste0("https://web.archive.org/web/20090322101538/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
-  }else if(year==2008){
-    data<-read_html(paste0("https://web.archive.org/web/20080321234943/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
-  }
+  # else if(year==2009){
+  #   data<-read_html(paste0("https://web.archive.org/web/20090322101538/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
+  # }else if(year==2008){
+  #   data<-read_html(paste0("https://web.archive.org/web/20080321234943/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
+  # }
   names<-data%>% html_nodes("td")%>% html_text()
   if(names[1]!="1"){
     names<-names[-c(1:2)]
@@ -81,8 +81,14 @@ getYear<-function(year){
   print(year)
   data.frame(rbindlist(lapply(1:6, function(x) getRound(year, x))))
 }
-whoPicked_yahoo<-ldply(lapply(c(2008, 2009,2012), getYear), data.frame)
-
+whoPicked_yahoo<-getYear(2012)
+whoPicked_yahoo$Team[whoPicked_yahoo$Team%in% c("Lamar/vermont")]<-"Vermont"
+whoPicked_yahoo$Team[whoPicked_yahoo$Team%in% c("Mvsu/wku")]<-"Western Kentucky"
+whoPicked_yahoo$Team[whoPicked_yahoo$Team%in% c("Byu/iona")]<-"Brigham Young"
+whoPicked_yahoo$Team[whoPicked_yahoo$Team%in% c("Cal/usf")]<-"Usf"
+whoPicked_yahoo<-ddply(whoPicked_yahoo, .(Team, Round, Season),summarize, Ownership=sum(Ownership))
+table(whoPicked_yahoo$Round)
+setdiff(whoPicked_yahoo$Team, id_df$Team_Full)
 
 readFile<-function(year){
   string<-paste0(year, "/WhoPickedWhom.csv")
@@ -109,7 +115,7 @@ readFile<-function(year){
   whoPicked2$Season<-year
   whoPicked2
 }
-whoPicked<-ldply(lapply(2013:2017, readFile), data.frame)
+whoPicked<-ldply(lapply(c(2008:2011, 2013:2017), readFile), data.frame)
 setdiff(whoPicked$Team, id_df$Team_Full)
 
 whoPicked<-rbind(whoPicked, whoPicked_yahoo)
@@ -401,7 +407,11 @@ fulldf<-merge(fulldf, TeamGeog[, c("team_id", "TeamLat", "TeamLng")], by.x=c("Te
 fulldf$Dist<-NA
 library(geosphere)
 fulldf$Dist[!is.na(fulldf$Lat)]<-distHaversine(fulldf[!is.na(fulldf$Lat), c( "Lng", "Lat")], fulldf[!is.na(fulldf$Lat), c( "TeamLng", "TeamLat")])/1000
-hist(fulldf$Dist)
+
+#opponent distance
+oppDist<-unique(fulldf[fulldf$Tournament==1, c("Team_Full","DATE", "Dist" )])
+colnames(oppDist)[colnames(oppDist)=="Dist"]<-"OPPDist"
+fulldf<-merge(fulldf, oppDist, by.x=c("OPP_Full", "DATE"), by.y=c("Team_Full", "DATE"), all.x=T)
 
 fulldf<-data.table(fulldf)
 fulldf<-fulldf[order(fulldf$DATE, decreasing = T), ]
@@ -420,8 +430,7 @@ for(i in c("R1", "R2", "R3", "R4", "R5", "R6")){
 }
 
 
-
-fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2017& fulldf$Tournament==1, ]
+fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2009& fulldf$Tournament==1, ]
 
 
 save(list=ls()[ls()%in% c("fulldf", "KenPom", "Massey_All", "Massey_means","oddsDF", "id_df", "march538", #projections data

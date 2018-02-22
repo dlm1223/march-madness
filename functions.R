@@ -58,7 +58,7 @@ coordName<-function(x){
   x[x=="sf austin"]<-"stephen f austin"
   x[x=="southern univ"|x=="southern university"]<-"southern"
   x[x=="g washington"]<-"george washington"
-  x[x=="ark pine bluff"]<-"arkansas pine bluff"
+  x[x=="ark pine bluff"|x=="ar pine bluff"]<-"arkansas pine bluff"
   x[x=="coastal car"]<-"coastal carolina"
   x[x=="central conn"]<-"central connecticut"
   x[x=="albany ny"]<-"albany"
@@ -77,7 +77,7 @@ coordName<-function(x){
   x[x=="arkansas-pine bluff"]<-"arkansas pine bluff"
   x[x=="ms valley st"]<-"mississippi valley st"
   x[x=="ole miss"]<-"mississippi"
-  x[x=="texas-arlington"]<-"ut arlington"
+  x[x=="texas-arlington"|x=="texas arlington"]<-"ut arlington"
   x[x=="ms valley st"]<-"mississippi valley st"
   x[x=="central connecticut st"]<-"central connecticut"
   x[x=="north carolina-wilmington"]<-"unc wilmington"
@@ -313,6 +313,9 @@ coordName<-function(x){
   x[x=="R Morris"]<-"Robert Morris"
   x[x=="Sd State"]<-"South Dakota State"
   x[x=="Maryland Baltimore County"]<-"Umbc"
+  x[x=="Tx San Antonio"]<-"Texas San Antonio"
+  x[x=="Texas Arlington"]<-"Ut Arlington"
+  x[x=="Ar Pine Bluff"]<-"Arkansas Pine Bluff"
   unname(x)
   
   

@@ -4,7 +4,7 @@
 #model fitting = regular Pomeroy model. model fitting v2 = Morey model. model fitting v3 = pred=.5 model
 #change file name as _v2 or _v3 to save alternate sims versions
 
-year<-2013
+year<-2012
 backtest<-T
 sims<-500
 playInTbd<-F
