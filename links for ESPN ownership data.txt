@@ -1,18 +1,13 @@
 whopickedwhom data as of 2/21/18:
 
-not yet downloaded:
-
 2008
-https://web.archive.org/web/20080322085718/http://tournament.fantasysports.yahoo.com:80/t1/group/all/pickdistribution?round=6
+https://web.archive.org/web/20080321234943/http://tournament.fantasysports.yahoo.com:80/t1/group/all/pickdistribution?round=6
 
 2009
 https://web.archive.org/web/20090322101538/http://tournament.fantasysports.yahoo.com:80/t1/group/all/pickdistribution?round=6
 
 2012
 https://web.archive.org/web/20120514112511/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution
-___________________________________________________
-
-downloaded data:
 
 2013
 https://web.archive.org/web/20140321235257/http://games.espn.go.com/tournament-challenge-bracket/2013/en/whopickedwhom
