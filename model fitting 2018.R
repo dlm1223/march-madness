@@ -36,7 +36,7 @@ test$predWin2<-predict(fit2, newdata=test, type="response")
 train$predWin2<-predict(fit2, newdata=train, type="response")
 
 #model 3##
-fit3<-glm(Win_factor~I((meanRank-OPPmeanRank))+I(TeamOwnership_R3^2-OPPOwnership_R3^2)+I(log(Dist/OPPDist)),
+fit3<-glm(Win_factor~I((meanRank-OPPmeanRank))+I(TeamOwnership_R3^2-OPPOwnership_R3^2),
          data=train[train$Tournament==1 ,], family="binomial");summary(fit3)
 train$predWin3<-predict(fit3, newdata=train, type="response")
 test$predWin3<-predict(fit3, newdata=test, type="response")

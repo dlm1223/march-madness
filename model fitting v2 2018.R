@@ -124,7 +124,7 @@ hist(samplesubmission$Pred)
 seed.lm.submission <- data.frame(id=samplesubmission$Id, pred=samplesubmission$Pred)
 head(seed.lm.submission)
 
-# write.csv(seed.lm.submission, file="Kaggle Submission.csv", row.names=FALSE)
+write.csv(seed.lm.submission, file="Kaggle Submission_v2.csv", row.names=FALSE)
 
 
 

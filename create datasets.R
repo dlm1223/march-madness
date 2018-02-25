@@ -245,6 +245,48 @@ colnames(test)<-gsub("Rank", "OPP", colnames(test))
 fulldf<-merge(fulldf[, !grepl("OPP[.]", colnames(fulldf))], 
               test, by.x=c("OPP", "Rank_DATE"), by.y=c("team_id", "DATE"), all.x=T)
 
+##s-curve data####
+getYear<-function(year){
+  link<-read_html(paste(c("https://en.wikipedia.org/wiki/", year, "_NCAA_Division_I_Men%27s_Basketball_Tournament"), sep="", collapse=""))
+  
+  if(year<=2014){
+    SCurve<-link%>% html_nodes("td .wikitable td") %>% html_text()
+  }else{
+    SCurve<-link%>% html_nodes("td, th") %>% html_text()
+    SCurve<-SCurve[(which(SCurve=="Seed")[1]+6):(grep("East Region|West Region|South Region|Midwest Region", SCurve)[1]-2)]
+    SCurve<-SCurve[!SCurve%in% c("Seed", "School", "Conference", "Record", "Berth type", "Overall rank")]
+  }
+  
+  ind<-grep("[*]", SCurve)
+  if(year%in%c(2012, 2015:2017)){
+    SCurve<-SCurve[c(1:(ind[1]+5), ind[1], 
+                     (ind[1]+6):(ind[2]+5), ind[2],
+                     (ind[2]+6):(ind[3]+5), ind[3],
+                     (ind[3]+6):(ind[4]+5), ind[4],
+                     (ind[4]+6):length(SCurve))]  #play-in games have missing column
+    SCurve<-data.frame(matrix(SCurve, ncol=6, byrow=T)) 
+    colnames(SCurve)<-c("Seed", "Team", "Conference", "Record", "BidType", "SCurve")
+  } else if(year%in%2013:2014){
+    SCurve<-SCurve[c(1:(ind[1]+6), ind[1], 
+                     (ind[1]+7):(ind[2]+6), ind[2],
+                     (ind[2]+7):(ind[3]+6), ind[3],
+                     (ind[3]+7):(ind[4]+6), ind[4],
+                     (ind[4]+7):length(SCurve))]  #play-in games have missing column
+    SCurve<-data.frame(matrix(SCurve, ncol=7, byrow=T)) 
+    colnames(SCurve)<-c("Seed", "Team", "Conference", "Record", "Coach", "BidType", "SCurve")
+    SCurve$Coach<-NULL
+    
+  }
+  SCurve$Season<-year
+  SCurve
+}
+SCurve<-ldply(lapply(2012:2017, getYear), data.frame)
+SCurve$Team<-coordName(SCurve$Team)
+SCurve$Team[SCurve$Team=="Louisville[a]"]<-"Louisville"
+
+setdiff(SCurve$Team, id_df$Team_Full)
+
+
 ##scrape odds data####
 
 if(!exists("oddsDF")){
@@ -429,12 +471,20 @@ for(i in c("R1", "R2", "R3", "R4", "R5", "R6")){
   colnames(fulldf)[colnames(fulldf)=="Ownership"]<-paste0("OPPOwnership_", i)
 }
 
+SCurve$SCurve<-as.numeric(SCurve$SCurve)
+fulldf<-fulldf[, !grepl("SCurve", colnames(fulldf))]
+fulldf<-merge(fulldf, SCurve[, c("Team", "Season", "SCurve")], by.x=c("Team_Full", "Season"), by.y=c("Team", "Season"),all.x=T)
+OPPCurve<-SCurve
+colnames(OPPCurve)[colnames(OPPCurve)=="SCurve"]<-"OPPSCurve"
+fulldf<-merge(fulldf, OPPCurve[, c("Team", "Season", "OPPSCurve")], by.x=c("OPP_Full", "Season"), by.y=c("Team", "Season"),all.x=T)
 
-fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2009& fulldf$Tournament==1, ]
+
+
+fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2015& fulldf$Tournament==1, ]
 
 
 save(list=ls()[ls()%in% c("fulldf", "KenPom", "Massey_All", "Massey_means","oddsDF", "id_df", "march538", #projections data
-                          "seasons", "TourneySlots", "TourneySeeds","TourneyRounds","getRound" , "TourneyGeog", "TeamGeog", "whoPicked" #tourney specific data
+                          "seasons", "TourneySlots", "TourneySeeds","TourneyRounds","getRound" , "TourneyGeog", "TeamGeog", "whoPicked", "SCurve" #tourney specific data
 )], file="data/game data.RData")
 
 # load("data/game data.RData")

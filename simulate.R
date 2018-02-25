@@ -3,14 +3,15 @@
 #then run ownership file, where you can change numBrackets and file name to save brackets
 #then run optimize brackets file where you can optimize brackets
 
-year<-2017
+# year<-2017
+# sims<-500
+# name<-"TourneySims_500sims.Rda"
+
 backtest<-T
-sims<-500
 playInTbd<-F
-name<-"TourneySims_500sims.Rda"
 # 
 # setwd("~/Kaggle/NCAA/march-madness") #comment this out
-projDir<-getwd()
+# projDir<-getwd()
 # 
 load("data/game data.RData")
 source("functions.R")

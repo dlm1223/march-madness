@@ -1,8 +1,8 @@
 #year<-2017;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda")
 
 #optional: change bracketresults name as _v2 or _v3 if using different tourneysims version
-numBrackets<-500
-name<-"BracketResults_FullTournament_500sims.Rda"
+# numBrackets<-500
+# name<-"BracketResults_FullTournament_500sims.Rda"
 
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
