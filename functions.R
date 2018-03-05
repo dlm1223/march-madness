@@ -1,5 +1,6 @@
 #some random functions
 
+library(geosphere)
 library(gridExtra)
 library(grid)
 library(forecast);library(RSelenium);library(RCurl);library(slam);library(XML)
@@ -12,9 +13,27 @@ options(stringsAsFactors=FALSE)
 options(scipen=999)
 
 
+#this function is a mess..but it works..sorry!
+
 coordName<-function(x){
+  x<-trimws(x)
   x<-tolower(x)
   x<-sub("^\\s+", "",x)
+  x<-gsub("fla[.]", "florida", x)
+  x<-gsub("ky[.]", "kentucky", x)
+  x<-gsub("ala[.]", "alabama", x)
+  x<-gsub("la[.]", "louisiana", x)
+  x<-gsub("ariz[.]", "arizona", x)
+  x<-gsub("mich[.]", "michigan", x)
+  x<-gsub("ill[.]", "illinois", x)
+  x<-gsub("ark[.]", "arkansas", x)
+  x<-gsub("val[.]", "valley", x)
+  x<-gsub("u[.]", "university", x)
+  x<-gsub("tex[.]", "texas", x)
+  x<-gsub("conn[.]", "connecticut", x)
+  x<-gsub("colo[.]", "colorado", x)
+  x<-gsub("caro[.]", "carolina", x)
+  x<-gsub("n[.]c[.]", "nc", x)
   x[substr(x, 1, 2)=="s "]<-gsub("s ", "south ", x[substr(x, 1, 2)=="s "])
   x[substr(x, 1, 2)=="n "]<-gsub("n ", "north ", x[substr(x, 1, 2)=="n "])
   x[substr(x, 1, 2)=="e "]<-gsub("e ", "eastern ", x[substr(x, 1, 2)=="e "])
@@ -25,9 +44,29 @@ coordName<-function(x){
   x[substr(x, 1, 3)=="st "]<-gsub("st ", "saint ", x[substr(x, 1, 3)=="st "])
   x[substr(x, 1, 3)=="wi "]<-gsub("wi ", "wisconsin ", x[substr(x, 1, 3)=="wi "])
   x[substr(x, 1, 3)=="sc "]<-gsub("sc ", "south carolina ", x[substr(x, 1, 3)=="sc "])
+  
+  #get rid of symobols
+  x<-gsub(", Jr.", " Jr.", x)
+  x<-gsub("[.]|[']|[,]", "", x)
+  x<-gsub(" Jr", "", x)
+  x<-gsub(" III", "", x)
+  x<-gsub(" IV", "", x)
+  x<-gsub(" II", "", x)
+  x<-gsub("-", " ", x)
+  x<-gsub("  ", " ", x)
+  x<-gsub("\\(","", x)
+  x<-gsub("\\)","", x)
+  x<-gsub("[.]", "", x)
+  x<-gsub("[;]", "", x)
+  x<-gsub("-", " ", x)
+  x<-gsub("  ", " ", x)
+  
+  
   x[x=="va commonwealth"|x=="virginia commonwealth"]<-"vcu"
   x[x=="brigham young"]<-"byu"
-  x[x=="eastern tennesseeastern st"|x=="east tenn. st."]<-"east tennessee st"
+  x[x=="mcneese"]<-"mcneese st"
+  x[x=="seattle u"|x=="seattle university"]<-"seattle"
+  x[x=="eastern tennesseeastern st"|x=="east tenn st"]<-"east tennessee st"
   x[x=="unc charlotte"]<-"charlotte"
   x[x=="indiana purdue"]<-"iupui"
   x[x=="la lafayette"]<-"louisiana lafayette"
@@ -36,26 +75,26 @@ coordName<-function(x){
   x[x=="md baltimore co"]<-"umbc"
   x[x=="texas-el paso"]<-"utep"
   x[x=="tx san antonio"]<-"utsa"
-  x[x=="tx pan american"]<-"texas pan american"
-  x[x=="middle tenn st"]<-"middle tennessee"
+  x[x=="tx pan american"|x=="texas pan american"]<-"texas pan american"
+  x[x=="middle tenn st"|x=="m tenn"]<-"middle tennessee"
   x[x=="saint mary's ca"]<-"saint mary's"
   x[x=="kent" ]<-"kent st"
   x[x=="rmu" |x=="r morris"]<-"robert morris"
-  x[x=="north kentucky" ]<-"northern kentucky"
+  x[x=="north kentucky"|x=="northern kent" ]<-"northern kentucky"
   x[x=="nc central" ]<-"north carolina central"
   x[x=="wku"]<-"western kentucky"
   x[x=="etsu"]<-"east tennessee st"
   x[x=="mtsu"]<-"middle tennessee"
   x[x=="fl gulf coast"|x=="fgcu"|x=="gulf coast"|x=="Gulf Coast"|x=="florida gulf"]<-"florida gulf coast"
   x[x=="tx southern"|x=="texas so"]<-"texas southern"
-  x[x=="mt st mary's"|x=="msm"|x=="mt. st. mary's"]<-"mount st mary's"
+  x[x=="mt st mary's"|x=="msm"|x=="mt. st mary's"]<-"mount st mary's"
   x[x=="il chicago"]<-"illinois chicago"
   x[x=="north iowa"|x=="n iowa"]<-"northern iowa"
   x[x=="south illinois"]<-"southern illinois"
   x[x=="american univ"|x=="american university"]<-"american"
   x[x=="north colorado"|x=="No Colorado"|x=="no colorado"]<-"northern colorado"
   x[x=="boston univ"]<-"boston university"
-  x[x=="sf austin"]<-"stephen f austin"
+  x[x=="sf austin"|x=="sfa"]<-"stephen f austin"
   x[x=="southern univ"|x=="southern university"]<-"southern"
   x[x=="g washington"]<-"george washington"
   x[x=="ark pine bluff"|x=="ar pine bluff"]<-"arkansas pine bluff"
@@ -64,84 +103,106 @@ coordName<-function(x){
   x[x=="albany ny"]<-"albany"
   x[x=="santa barbara"]<-"uc santa barbara"
   x[x=="wisconsin milwaukee"]<-"milwaukee"
-  x[x=="wisconsin green bay"]<-"green bay"
+  x[x=="wisconsin green bay"|x=="uw green bay"]<-"green bay"
   x[x=="cal poly slo"]<-"cal poly"
   x[x=="ksu"]<-"kansas state"
-  x[x=="f dickinson"]<-"fairleigh dickinson"
+  x[x=="f dickinson"|x=="fair dickinson"]<-"fairleigh dickinson"
   x[x=="saint john's"]<-"st john's"
   x[x=="fl atlantic"|x=="fla atlantic"|x=="Fla Atlantic"]<-"florida atlantic"
   x[x=="ull"|x=="louisiana-lafayette"]<-"louisiana lafayette"
   x[x=="long island"]<-"liu brooklyn"
   x[x=="ark little rock"|x=="arkansas-little rock"]<-"arkansas little rock"
-  x[x=="ms valley st"]<-"mississippi valley st"
+  x[x=="ms valley st"|x=="mississippi valley"]<-"mississippi valley st"
   x[x=="arkansas-pine bluff"]<-"arkansas pine bluff"
   x[x=="ms valley st"]<-"mississippi valley st"
   x[x=="ole miss"]<-"mississippi"
   x[x=="texas-arlington"|x=="texas arlington"]<-"ut arlington"
   x[x=="ms valley st"]<-"mississippi valley st"
   x[x=="central connecticut st"]<-"central connecticut"
-  x[x=="north carolina-wilmington"]<-"unc wilmington"
+  x[x=="north carolina-wilmington"|x=="unc willmington"]<-"unc wilmington"
   x[x=="pennsylvania"]<-"penn"
   x[x=="ms valley st"]<-"mississippi valley st"
-  x[x=="northwestern la"|x=="nw state"]<-"northwestern st"
+  x[x=="northwestern la"|x=="nw state"|x=="nw state"|x=="nw st"]<-"northwestern st"
   x[x=="north carolina state"]<-"north carolina st"
   x[x=="monmouth nj"]<-"monmouth"
   x[x=="wku"]<-"western kentucky"
   x[x=="ut san antonio"]<-"utsa"
   x[x=="se louisiana"]<-"southeastern louisiana"
-  x[x=="saint joseph's pa"]<-"saint joseph's"
+  x[x=="saint joseph's pa"|x=="sju pa"]<-"saint joseph's"
   x[x=="saint bonaventure"]<-"st bonaventure"
   x[x=="col charleston"]<-"college of charleston"
   x[x=="charleston so"]<-"charleston southern"
   x[x=="se missouri st"]<-"southeast missouri st"
   x[x=="north illinois"]<-"northern illinois"
-  x[x=="florida intl"]<-"fiu"
-  x[x=="tam c. christi"|x=="texas a&m-cc"| x=="tam c christi"| x=="texas a&m corpus chris"]<-"texas a&m corpus christi"
-  x<-gsub(" state"," st", x)
-  x<-gsub("\\(","", x)
-  x<-gsub("\\)","", x)
-  x<-gsub("[.]", "", x)
-  x<-gsub("[;]", "", x)
+  x[x=="florida intl"|x=="Florida Int"]<-"fiu"
+  
+  x[x=="xavier ohio"]<-"xavier"
+  x[x=="fort wayneipfw"]<-"ipfw"
+  x[x=="saint marys cal"]<-"saint marys"
+  x[x=="central floridaucf"]<-"ucf"
+  x[x=="omahaneb omaha"]<-"omaha"
+  x[x=="stony brook ny"]<-"stony brook"
+  x[x=="oakland michigan"]<-"oakland"
+  x[x=="north floridaunf"]<-"north florida"
+  x[x=="kansas cityumkc"]<-"umkc"
+  x[x=="njitnew jersey tech"]<-"njit"
+  x[x=="binghamton ny"]<-"binghamton"
+  x[x=="umbcmd balt"]<-"umbc"
+  x[x=="wis milwaukee"]<-"wisconsin milwaukee"
+  x[x=="central connecticutst"]<-"central connecticut"
+  x[x=="wis green bay"]<-"wisconsin green bay"
+  x[x=="long island universityliu"]<-"long island"
+  x[x=="ohio university"]<-"Ohio"
+  x[x=="louisville9619"]<-"louisville"
+  x[x=="texas san antonioutsa"]<-"texas san antonio"
+  x[x=="arkansas little rockualr"]<-"arkansas little rock"
+  x[x=="mvsumiss valleyst"|x=="mvsumiss valley state"|x=="mvsumis valley st"]<-"mississippi valley state"
+  x[x=="umesmd easternshore"|x=="md eastern shoreumes"]<-"maryland eastern shore"
+  
+  
+  
+  x[x=="tam c. christi"|x=="texas a&m-cc"| x=="tam c christi"|x=="texas a&m corpuschristi"|
+      x=="texas a&m corpus chris"|x=="a&m-corpus; chris"]<-"texas a&m corpus christi"
   x[x=="north iowa"|x=="n iowa"]<-"northern iowa"
   x[x=="prairie view"]<-"prairie view a&m"
-  x[x=="ulm"]<-"louisiana monroe"
+  x[x=="ulm"|x=="ul monroe"]<-"louisiana monroe"
   x[x== "southern methodist" ]<-"smu"
-  x[x== "louisiana st"  ]<-"lsu"
-  x[x=="saint mary's ca" ]<-"saint mary's"
+  x[x== "louisiana st" |x=="Louisiana state" ]<-"lsu"
+  x[x=="saint mary's ca" |x=="st mary's ca"]<-"saint mary's"
   x[x=="albany ny"]<-"albany"
   x[x=="southern california"]<-"usc"
   x[x=="unf"]<-"north florida"
-  x[x=="north carolina-asheville"|x=="unca"]<-"unc asheville"
+  x[x=="north carolina-asheville"|x=="unca"|x=="north carolina asheville"]<-"unc asheville"
   x[x=="uc-davis"]<-"uc davis"
   x[x=="unc"]<-"north carolina"
   x[x=="uva"]<-"virginia"
   x[x=="fsu"]<-"florida st"
   x[x=="mid tennessee"]<-"middle tennessee"
   x[x=="uri"]<-"rhode island"
-  x[x=="miami"|x=="miami fla"|x=="miami (fla.)"]<-"miami fl"
+  x[x=="miami"|x=="miami fla"|x=="miami (fla.)"|x=="miami fl"]<-"miami"
   x[x=="uc-davis"]<-"uc davis"
+  
+  
   x<-sapply(x, simpleCap)
-  
-  
-  x[x=="NC State"|x=="North Carolina St."|x=="North Carolina St" |x=="North Carolina State"]<-"N.C. State"
-  x[x=="St. Joseph's"|x=="St Joseph's"]<-"Saint Joseph's"
+  x[x=="NC State"|x=="North Carolina st"|x=="North Carolina St" |x=="North Carolina State"]<-"Nc State"
+  x[x=="st Joseph's"|x=="St Joseph's"]<-"Saint Joseph's"
   x[x=="Middle Tennessee"|x=="Middle Tenn"]<-"Middle Tennessee State"
   x[x=="Eku"]<-"Eastern Kentucky"
   x[x=="UNC"|x=="Unc"]<-"North Carolina"
   x[x=="SE Louisiana"]<-"Southeastern Louisiana"
   x[x=="Presbyterian College"]<-"Presbyterian"
   x[x=="UConn"|x=="Uconn"]<-"Connecticut"
-  x[x=="North Carolina-Asheville"|x=="NC Asheville"]<-"Unc Asheville"
-  x[x=="North Carolina-Greensboro"|x=="NC Greensboro"]<-"Unc Greensboro"
+  x[x=="North Carolina-Asheville"|x=="NC Asheville"|x=="North Carolina Asheville"]<-"Unc Asheville"
+  x[x=="North Carolina-Greensboro"|x=="NC Greensboro"|x=="North Carolina Greensboro"]<-"Unc Greensboro"
   x[x=="North Carolina-Wilmington"|x=="NC Wilmington"]<-"Unc Wilmington"
   x[x=="NC Central"]<-"North Carolina Central"
   x[grepl("East Tennessee St", x)]<-"East Tennessee State"
-  x[x=="Virginia Commonwealth"]<-"Vcu"
+  x[x=="Virginia Commonwealth"|x=="Vcuva Commonwealth"]<-"Vcu"
   x[x=="U Mass"]<-"Massachusetts"
   x[x=="San Jos?? State"]<-"San Jose State"
   x[x=="Texas Christian"]<-"TCU"
   x[x=="Southern California"|x=="Southern Cal"]<-"Usc"
-  x[x=="Nevada-Las Vegas"]<-"UNLV"
+  x[x=="Nevada-Las Vegas"|x=="Nevada Las Vegas"]<-"UNLV"
   x[x=="Saint Peters"]<-"St Peters"
   x[x=="Southern Methodist"]<-"SMU"
   x[x=="Prairie View"]<-"Prairie View A&m"
@@ -152,12 +213,12 @@ coordName<-function(x){
   x[x=="Louisiana State"]<-"Lsu"
   x[x=="Southern Methodist"]<-"SMU"
   x[x=="Centenary (LA)"]<-"Centenary"
-  x[x=="Maryland-Baltimore County"]<-"Umbc"
+  x[x=="Maryland-Baltimore County"|x=="Md Baltimore County"]<-"Umbc"
   x[x=="Southern Ill"]<-"Southern Illinois"
   x[x=="Troy State"|x=="Troy St"]<-"Troy"
   x[x=="Charleston So"]<-"Charleston Southern"
-  x[x=="St Louis"|x=="St. Louis"]<-"Saint Louis"
-  x[x=="Mt St Marys"|x=="Mt. St. Mary's"]<-"Mount St Marys"
+  x[x=="St Louis"|x=="st Louis"]<-"Saint Louis"
+  x[x=="Mt St Marys"|x=="Mt. st Mary's"]<-"Mount St Marys"
   x[x=="SF Austin"|x=="Sf Austin"]<-"Stephen F Austin"
   x[x=="South Florida"]<-"USF"
   x[x=="Saint Marys Ca"|x=="Saint Mary's (CA)"]<-"St Marys"
@@ -174,7 +235,7 @@ coordName<-function(x){
   x[x=="Ualr"|x=="Arkansas-Little Rock"|x=="Arkansas LR"]<-"Little Rock"
   x[x=="No Colorado"]<-"Northern Colorado"
   x[x=="Ucsb"]<-"Uc Santa Barbara"
-  x[x=="Csub"|x=="CS Bakersfield"]<-"Cal State Bakersfield"
+  x[x=="Csub"|x=="CS Bakersfield"|x=="Bakersfield"]<-"Cal State Bakersfield"
   x[x=="Csuf"|x=="CS Fullerton"|x=="Csu Fullerton"]<-"Cal State Fullerton"
   x[x=="Gw"|x=="G Wash"]<-"George Washington"
   x[x=="Gmu"]<-"George Mason"
@@ -182,8 +243,8 @@ coordName<-function(x){
   x[x=="Uni"]<-"Northern Iowa"
   x[x=="Nku"]<-"Northern Kentucky"
   x[x=="Tenn Martin"|x=="Tn Martin"|x=="Ut Martin"]<-"Tennessee Martin"
-  x[x=="Florida International"|x=="Florida Intl"]<-"FIU"
-  x[x=="Uncw"|x=="North Carolina Wilmington"]<-"UNC-Wilmington"
+  x[x=="Florida International"|x=="Florida Intl"|x=="Florida Int"]<-"FIU"
+  x[x=="Uncw"|x=="North Carolina Wilmington"]<-"UNC Wilmington"
   x[x=="Birmingham So"]<-"Birmingham Southern"
   x[x=="Utah Val State"|x=="Utah Val St"|x=="Utah Valley State"|x=="Utah Valley St"]<-"Utah Valley"
   x[x=="Kennesaw"]<-"Kennesaw State"
@@ -193,45 +254,47 @@ coordName<-function(x){
   x[x=="LaSalle"|x=="Lasalle"]<-"La Salle"
   x[x=="Abilene Chr"]<-"Abilene Christian"
   x[x=="Western Salem State"|x=="Western Salem St"|x=="Winston Salem"|x=="Winston-Salem"]<-"Winston Salem State"
-  x[x=="Md E Shore"|x=="MD Eastern Shore"]<-"Maryland Eastern Shore"
+  x[x=="Md E Shore"|x=="Md Eastern Shore"|x=="Umes"|x=="Md East Shore"]<-"Maryland Eastern Shore"
   x[x=="Ma Lowell"|x=="Massachusetts-Lowell"]<-"Umass Lowell"
-  x[x=="South Florida"]<-"USF"
+  x[x=="Alcorn"]<-"Alcorn State"
   x[x=="Miami (FL)"|x=="Miami FL"|x=="Miami Fl"|x=="Miami Florida"]<-"Miami"
   x[x=="Southern Miss"]<-"Southern Mississippi"
-  x[x=="Charleston"|x=="Col Charleston"|x=="Col Of Charleston"]<-"College of Charleston"
+  x[x=="Charleston"|x=="Col Charleston"|x=="Col Of Charleston"]<-"College Of Charleston"
   x[x=="Texas-Arlington"|x=="Tx Arlington"|x=="Texas Arlington"]<-"UT-Arlington"
-  x[x=="Texas A&M-CC"|x=="Texas A&M Corpus Chris"|x=="Texas A&M CC"]<-"Texas A&M Corpus Christi"
+  x[x=="Texas A&M-CC"|x=="Texas A&M Corpus Chris"|x=="Texas A&M CC"|x=="A&M Corpus Christi"|x=="A&m Corpus Chris"]<-"Texas A&M Corpus Christi"
   x[x=="Loyola (IL)"|x=="Loyola Il"]<-"Loyola Chicago"
-  x[x=="Saint Mary's"]<-"St. Mary's"
+  x[x=="Saint Mary's"|x=="St Marys Ca"]<-"st Marys"
   x[x=="American University"]<-"American"
   x[x=="Green Bay"|x=="Wisconsin Gb"]<-"Wisconsin-Green Bay"
-  x[x=="Milwaukee"|x=="Wisc Milwaukee"]<-"Wisconsin-Milwaukee"
+  x[x=="Milwaukee"|x=="Wisc Milwaukee"|x=="Uw Milwaukee"]<-"Wisconsin-Milwaukee"
   x[x=="Uncg"]<-"Unc Greensboro"
-  x[x=="Saint Peter's"]<-"St. Peter's"
+  x[x=="Saint Peter's"]<-"st Peter's"
   x[x=="Illinois-Chicago"|x=="Uic"|x=="Ill Chicago"]<-"Illinois Chicago"
-  x[x=="Fort Wayne"]<-"IPFW"
+  x[x=="Fort Wayne"|x=="Iupu Fort Wayne"]<-"IPFW"
   x[x=="Cal State Sacramento"|x=="Cal St Sacramento"]<-"Sacramento State"
   x[x=="F Dickinson"|x=="Farleigh Dickinson"]<-"Fairleigh Dickinson"
   x[x=="Penn"]<-"Pennsylvania"
   x[x=="La Monroe"]<-"Louisiana Monroe"
   x[x=="Loyola Marymt"|x=="Loy Marymount"|x=="Lmu"]<-"Loyola Marymount"
-  x[x=="Miami OH"| x=="Miami Oh"|x=="Miami Ohio"]<-"Miami (OH)"
+  x[x=="Miami OH"| x=="Miami Oh"|x=="Miami Ohio"]<-"Miami Oh"
   x[x=="Loyola MD"|x=="Loyola Md"|x=="Loyola Maryland"|x=="Loyola"]<-"Loyola (MD)"
-  x[x=="UMKC"|x=="Missouri Kc"|x=="Umkc"]<-"Missouri-Kansas City"
+  x[x=="UMKC"|x=="Missouri Kc"|x=="Umkc"]<-"Missouri Kansas City"
   x[x=="UTSA"]<-"Texas-San Antonio"
   x[x=="Savannah St"]<-"Savannah State"
-  x[x=="Southeast Mo State"|x=="Southeast Mo St"|x=="SE Missouri St."]<-"Southeast Missouri State"
+  x[x=="Southeast Mo State"|x=="Southeast Mo St"|x=="SE Missouri st"| x=="Se Missouri Statesemo"|
+      x=="Se Missouri"|x=="Se Missouri St"|x=="Se Missouri State"]<-"Southeast Missouri State"
   x[x=="Southwest Missouri State"|x=="Sw Missouri State"]<-"Missouri State"
   x[x=="Southwest Texas State"]<-"Texas State"
   x[x=="Mississippi"]<-"Ole Miss"
   x[x=="Ul Lafayette"|x=="Ull"]<-"Louisiana-Lafayette"
-  x[x=="Central Connecticut"]<-"Central Connecticut State"
-  x[x=="VMI"|x=="Virginia Military Institute"|x=="Vmi"]<-"Virginia Military"
+  x[x=="Central Connecticut"|x=="Cent Connecticut State"|x=="Cent Connecticut St"]<-"Central Connecticut State"
+  x[x=="VMI"|x=="Virginia Military Institute"|x=="Vmi"|x=="Virginia Military Inst"]<-"Virginia Military"
   x[x=="BYU"|x=="Byu"]<-"Brigham Young"
-  x[x=="LIU Brooklyn"|x=="Liu Brooklyn"|x=="Long Island University"|x=="Brooklyn"]<-"Long Island"
+  x[x=="LIU Brooklyn"|x=="Liu Brooklyn"|x=="Long Island University"]<-"Long Island"
   x[x=="Ga Southern"]<-"Georgia Southern"
   x[x=="Lbsu"]<-"Long Beach State"
   x[x=="North Arizona"]<-"Northern Arizona"
+  x[x=="Army West Point"]<-"Army"
   x[x=="The Citadel"]<-"Citadel"
   x[x=="Grambling"]<-"Grambling State"
   x[x=="Edwardsville"|x=="Siue"|x=="Southern Illinois-Edwardsville"|x=="Siu Edwardsvle"]<-"Siu Edwardsville"
@@ -239,49 +302,29 @@ coordName<-function(x){
   x[x=="Nebraska Omaha"|x=="Nebraska-Omaha" |x=="Ne Omaha"]<-"Omaha"
   x[x=="UT Rio Grande Valley"|x=="Utrgv"| tolower(x)=="texas rio grande valley"|x=="UTRGV"]<-"Texas RGV"
   x[x=="Miss Valley"]<-"Mississippi Valley State"
-  x[x=="St. Francis NY"|x=="St Francis NY"|x=="Saint Francis Ny"|x=="St Francis Brooklyn"|x=="Saint Francis Brooklyn"|x=="St Francis (BKN)"]<-"St Francis (NY)"
+  x[x=="st Francis NY"|x=="St Francis NY"|x=="Saint Francis Ny"|x=="St Francis Ny"|
+      x=="St Francis Brooklyn"|x=="Saint Francis Brooklyn"|x=="St Francis (BKN)"]<-"St Francis (NY)"
   x[x=="Bryant University"]<-"Bryant"
-  x[x=="St Johns (ny)"|x=="ST Johns Ny"|x=="St. John's (NY)"]<-"St Johns"
+  x[x=="St Johns (ny)"|x=="ST Johns Ny"|x=="st John's (NY)"]<-"St Johns"
   x[x=="South Carolina Upstate"|x=="Usc Upstate"|x=="Sc Upstate"]<-"USC Upstate"
   x[x=="Southern University"|x=="Southern U"]<-"Southern"
-  x[x=="New Jersey Tech"]<-"NJIT"
+  x[x=="New Jersey Tech"|x=="Nj Inst of Technology"]<-"NJIT"
   x[x=="Arkansas Little Rock"|x=="Ular"]<-"Little Rock"
-  x[x=="Utsa"]<-"Texas San Antonio"
-  x[x=="Texas-El Paso"]<-"Utep"
+  x[x=="Utsa"|x=="Texas San Ant"]<-"Texas San Antonio"
+  x[x=="Texas-El Paso"|x=="Texas El Paso"|x=="Tx El Paso"]<-"Utep"
   x[x=="Detroit Mercy"]<-"Detroit"
   x[x=="Saint Johns Ny"]<-"St Johns"
   x[x=="Cal Riverside"]<-"UC Riverside"
   x[x=="Sw Texas State"|x=="Sw Texas St"]<-"Texas State"
   
   
-  #get rid of symobols
-  x<-gsub(", Jr.", " Jr.", x)
-  x<-gsub("[.]|[']|[,]", "", x)
-  x<-gsub(" Jr", "", x)
-  x<-gsub(" III", "", x)
-  x<-gsub(" IV", "", x)
-  x<-gsub(" II", "", x)
-  x<-gsub("-", " ", x)
-  x<-gsub("  ", " ", x)
-
   x[which(endsWith(x, " St"))]<-gsub(" St", " State", x[which(endsWith(x, " St"))])
-  x<-gsub("Cal St. |Cal St ", "Cal State ", x)
-  x[x=="St Francis PA"|x=="Saint Francis Pa"|x=="St. Francis Pa"|x=="Saint Francis (PA)"]<-"St Francis (pa)"
-  
-  #redo
-  x<-gsub(", Jr.", " Jr.", x)
-  x<-gsub("[.]|[']|[,]", "", x)
-  x<-gsub(" Jr", "", x)
-  x<-gsub(" III", "", x)
-  x<-gsub(" IV", "", x)
-  x<-gsub(" II", "", x)
-  x<-gsub("-", " ", x)
-  x<-gsub("  ", " ", x)
+  x<-gsub("Cal st |Cal St ", "Cal State ", x)
+  x[x=="St Francis PA"|x=="Saint Francis Pa"|x=="st Francis Pa"|x=="Saint Francis (PA)"]<-"St Francis (pa)"
   
   
-  x<-sapply(x, simpleCap)
-  x<-gsub("T J", "Tj", x)
   x[x=="NANA"]<-NA
+  x[x=="Sc State"]<-"South Carolina State"
   x[x=="Texas Rio Grande Valley"]<-"Texas Rgv"
   x[x=="St Francis Pa"]<-"St Francis (pa)"
   x[x=="Drekalo Clayton"]<-"Dre Clayton"
@@ -295,16 +338,16 @@ coordName<-function(x){
   x[x=="Saint Joes"]<-"Saint Josephs"
   x[x=="Geo Washington"]<-"George Washington"
   x[x=="Coastal Caro"]<-"Coastal Carolina"
-  x[x=="Texas A&m Cc"]<-"Texas A&m Corpus Christi"
+  x[x=="Texas A&m Cc"|x=="Texas A&m Corpus Chris"]<-"Texas A&m Corpus Christi"
   x[x=="Eastern Wash"]<-"Eastern Washington"
-  x[x=="Steph F Austin"]<-"Stephen F Austin"
+  x[x=="Steph F Austin"|x=="Stephen Faustin"]<-"Stephen F Austin"
   x[x=="Nc Central"]<-"North Carolina Central"
   x[x=="Mich State"]<-"Michigan State"
   x[x=="Lamar University"]<-"Lamar"
   x[x=="Ut Rio Grande Valley"]<-"Texas Rgv"
   x[x=="Saint Johns"]<-"St Johns"
   x[x=="Saint Josephs Pa"]<-"Saint Josephs"
-  x[x=="Saint Francis Bkn"]<-"St Francis (ny)"
+  x[x=="Saint Francis Bkn"|x=="st francis brk"]<-"St Francis (ny)"
   x[x=="Massachusetts Lowell"]<-"Umass Lowell"
   x[x=="Jmu"]<-"James Madison"
   x[x=="Nd State"]<-"North Dakota State"
@@ -315,12 +358,42 @@ coordName<-function(x){
   x[x=="Maryland Baltimore County"]<-"Umbc"
   x[x=="Tx San Antonio"]<-"Texas San Antonio"
   x[x=="Texas Arlington"]<-"Ut Arlington"
-  x[x=="Ar Pine Bluff"]<-"Arkansas Pine Bluff"
-  unname(x)
+  x[x=="Ar Pine Bluff"|x=="Uapb"]<-"Arkansas Pine Bluff"
+  x[x=="New Jersey Tech"|x=="Nj Inst Of Technology"]<-"Njit"
+  x[x=="St Johns Ny"]<-"St Johns"
+  x[x=="Louisiana"]<-"Louisiana Lafayette"
+  x[x=="Va Commonwealth"]<-"Vcu"
+  x[x=="A&m Corpus Christi"]<-"Texas A&m Corpus Christi"
+  x[x=="Tenn Martin"]<-"Tennessee Martin"
+  x[x=="Csu Northridge"]<-"Cal State Northridge"
+  x[x=="Miss State"]<-"Mississippi State"
+  x[x=="Arkansas Little Rock"|x=="Arkansas Lr"]<-"Little Rock"
+  x[x=="Osu"]<-"Ohio State"
+  x[x=="St Francis Brk"]<-"St Francis (NY)"
+  x[x=="Nw State"]<-"Northwestern State"
+  x[x=="St Josephs"]<-"Saint Josephs"
+  x[x=="Mvsumiss Valley State"]<-"Mississippi Valley State"
+  
+  #redo get rid of symobols
+  x<-gsub(", Jr.", " Jr.", x)
+  x<-gsub("[.]|[']|[,]", "", x)
+  x<-gsub(" Jr", "", x)
+  x<-gsub(" III", "", x)
+  x<-gsub(" IV", "", x)
+  x<-gsub(" II", "", x)
+  x<-gsub("-", " ", x)
+  x<-gsub("  ", " ", x)
+  x<-gsub("\\(","", x)
+  x<-gsub("\\)","", x)
+  x<-gsub("[.]", "", x)
+  x<-gsub("[;]", "", x)
+  x<-gsub("-", " ", x)
+  x<-gsub("  ", " ", x)
+  sapply(x, simpleCap)
+  # unname(x)
   
   
 }
-
 # 
 # Massey$Team2<-tolower(Massey$Team)
 # Massey$Team2<-coordName(Massey$Team2)

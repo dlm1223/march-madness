@@ -1,8 +1,7 @@
-#year<-2017;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda")
+#year<-2017;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda");numBrackets<-500;name<-"BracketResults_FullTournament_500sims.Rda"
+
 
 #optional: change bracketresults name as _v2 or _v3 if using different tourneysims version
-# numBrackets<-500
-# name<-"BracketResults_FullTournament_500sims.Rda"
 
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
@@ -18,13 +17,12 @@ if(playInTbd==T){
   whoPicked$Team[whoPicked$Team=="Pr / Sc"]<-"Usc"
   whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"Uc Davis"
 }
-whoPicked<-whoPicked
 
 
 #prepare dataframe to be used for ownership-create-breackets
 analyze<-TourneyRounds[grepl("R", TourneyRounds$Slot) & TourneyRounds$Season==year,]
 analyze$Team<-TourneySeeds$Team[TourneySeeds$Season==year][match(analyze$Seed,TourneySeeds$Seed[TourneySeeds$Season==year] )]
-analyze$Team_Full<-id_df$Team_Full[match(analyze$Team, id_df$team_id)]
+analyze$Team_Full<-id_df$Team_Full[match(analyze$Team, id_df$TeamID)]
 analyze$Team_Full<-coordName(analyze$Team_Full)
 analyze$Round<-substring(analyze$Slot, 1 ,2)
 

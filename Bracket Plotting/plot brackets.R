@@ -5,11 +5,11 @@
 setwd("~/Kaggle/NCAA/march-madness")
 projDir<-getwd()
 
-year<-2014
+year<-2010
 setwd(paste0(c(projDir, "/", year, "/"), sep="", collapse=""))
 load("alldata.RData")
-load("BracketResults_FullTournament_500sims.Rda")
-load("TourneySims_500sims.Rda")
+load("BracketResults_FullTournament.Rda")
+load("TourneySims.Rda")
 
 ##plotting function--calcBracket(), plotBracket() and more
 source(paste0(projDir, "/Bracket Plotting/plotting function.R"))
@@ -119,6 +119,7 @@ opt<-which.max(brackets$Prob99)
 plotBracket(brackets[which.max(brackets$ExpectedR12), 1:63])
 customBracket<-cbind(brackets[which.max(brackets$ExpectedR12), 1:48], brackets[opt, 49:63])
 plotBracket(brackets[opt, 1:63])
+plotBracket(customBracket)
 
 #argument1= brackets, argument2=all brackets. returns point scared & 
 prob99<-brackets[ opt,colnames(brackets)%in% c("ExpectedR12", "Prob99")]
@@ -129,6 +130,19 @@ custom$ExpectedR12<-max12$ExpectedR12
 test<-rbindlist(list(prob99, max12, custom[, c("Prob99", "ExpectedR12")]), fill=T)
 test$Bracket<-c("Prob99", "MaxR12", "Custom")
 test
+
+
+opt<-which.max(brackets$Prob97)
+prob97<-brackets[ opt,colnames(brackets)%in% c("ExpectedR12", "Prob97")]
+max12<-brackets[ which.max(brackets$ExpectedR12),colnames(brackets)%in% c("ExpectedR12", "Prob97")]
+customBracket<-cbind(brackets[which.max(brackets$ExpectedR12), 1:48], brackets[opt, 49:63])
+custom<-calcBracket(customBracket, brackets=brackets[-opt, ])
+custom$ExpectedR12<-max12$ExpectedR12
+
+test<-rbindlist(list(prob97, max12, custom[, c("Prob97", "ExpectedR12")]), fill=T)
+test$Bracket<-c("Prob97", "MaxR12", "Custom")
+test
+
 # test<-brackets[order(brackets$Prob995, decreasing = T), ][1:10, cols]
 # test[, 1:7]<-sapply(test[, 1:7], pasteSeed)
 # test

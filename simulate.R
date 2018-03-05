@@ -3,15 +3,15 @@
 #then run ownership file, where you can change numBrackets and file name to save brackets
 #then run optimize brackets file where you can optimize brackets
 
-# year<-2017
+# year<-2015
 # sims<-500
 # name<-"TourneySims_500sims.Rda"
 
 backtest<-T
 playInTbd<-F
 # 
-# setwd("~/Kaggle/NCAA/march-madness") #comment this out
-# projDir<-getwd()
+setwd("~/Kaggle/NCAA/march-madness") #comment this out
+projDir<-getwd()
 # 
 load("data/game data.RData")
 source("functions.R")
@@ -40,8 +40,8 @@ advance<-function(row){
   # row<-TourneySlots[TourneySlots$Season==year,][5,]
   #  newdata<-data.frame(Slot=TourneySeeds$Seed[TourneySeeds$Season==year], Team=as.numeric(TourneySeeds$Team[TourneySeeds$Season==year]), Payout=0)
   
-  team1<-as.numeric(newdata$Team[newdata$Slot==row$Strongseed]) #as.numeric(gsub("\\D", "", row$Strongseed)) 
-  team2<-as.numeric(newdata$Team[newdata$Slot==row$Weakseed])  #as.numeric(gsub("\\D", "", row$Weakseed)) 
+  team1<-as.numeric(newdata$Team[newdata$Slot==row$StrongSeed]) #as.numeric(gsub("\\D", "", row$Strongseed)) 
+  team2<-as.numeric(newdata$Team[newdata$Slot==row$WeakSeed])  #as.numeric(gsub("\\D", "", row$Weakseed)) 
   
   
   #simulate winner
@@ -74,8 +74,8 @@ advanceActual<-function(row){
   # row<-TourneySlots[TourneySlots$Season==year,][5,]
   #  newdata<-data.frame(Slot=TourneySeeds$Seed[TourneySeeds$Season==year], Team=as.numeric(TourneySeeds$Team[TourneySeeds$Season==year]), Payout=0)
   
-  team1<-as.numeric(newdata$Team[newdata$Slot==row$Strongseed]) #as.numeric(gsub("\\D", "", row$Strongseed)) 
-  team2<-as.numeric(newdata$Team[newdata$Slot==row$Weakseed])  #as.numeric(gsub("\\D", "", row$Weakseed)) 
+  team1<-as.numeric(newdata$Team[newdata$Slot==row$StrongSeed]) #as.numeric(gsub("\\D", "", row$Strongseed)) 
+  team2<-as.numeric(newdata$Team[newdata$Slot==row$WeakSeed])  #as.numeric(gsub("\\D", "", row$Weakseed)) 
   
   #simulate winner
   #find result with team1=Team and team2=OPP

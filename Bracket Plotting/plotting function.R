@@ -177,10 +177,10 @@ plotBracket<-function(bracket){
   text(109.8,32.5,round1[1],cex=1.4)
   
 }
-calcBracket<-function(all, brackets=brackets){
+calcBracket<-function(customBracket, brackets=brackets){
   
   
-  all<-data.frame(Team=as.character(all), Slot=colnames(all), Bracket=10000)
+  all<-data.frame(Team=as.character(customBracket), Slot=colnames(customBracket), Bracket=10000)
   test<-data.table(all, key=c("Team", "Slot"))[
     data.table(tourneySims[, c("Sim", "Slot", "Payout", "Team_Full")], key=c("Team_Full", "Slot")),
     allow.cartesian=TRUE , nomatch=0 ]
@@ -199,22 +199,27 @@ calcBracket<-function(all, brackets=brackets){
   colnames(test)<-gsub("Points.", "Sim", colnames(test))
   colnames(test)[grepl(max(tourneySims$Sim), colnames(test))]<-paste(colnames(test)[grepl(max(tourneySims$Sim), colnames(test))], "Actual", sep="_")
   
+  
   test<-rbind.fill(test, brackets[, grepl("Sim", colnames(brackets))])
   numSims<-max(tourneySims$Sim)-1
   
-  for(i in 1:numSims ){
+  
+  colnames(test)<-gsub("_Actual", "", colnames(test))
+  for(i in 1:(numSims+1) ){
     test[, paste0("Percentile", i)]<-ecdf(test[, paste0("Sim", i)])(test[,  paste0("Sim", i)])
   }
+  colnames(test)[grepl(numSims+1, colnames(test))]<-paste(colnames(test)[grepl(numSims+1, colnames(test))], "Actual", sep="_")
+  
   test<-test[which(test$Bracket==10000), ]
   bool<-grepl("Percentile", colnames(test)) & !grepl("Actual", colnames(test))
-  test$Prob80<-apply(test[, bool], 1, function(x) sum(x>.80)/numSims)
+  # test$Prob80<-apply(test[, bool], 1, function(x) sum(x>.80)/numSims)
   test$Prob90<-apply(test[, bool], 1, function(x) sum(x>.9)/numSims)
   test$Prob95<-apply(test[, bool], 1, function(x) sum(x>.95)/numSims)
   test$Prob97<-apply(test[, bool], 1, function(x) sum(x>.97)/numSims)
   test$Prob99<-apply(test[, bool], 1, function(x) sum(x>.99)/numSims)
-  test$Prob995<-apply(test[, bool], 1, function(x) sum(x>.995)/numSims)
+  # test$Prob995<-apply(test[, bool], 1, function(x) sum(x>.995)/numSims)
   test$SimMean<-apply(test[, bool],1, mean)
-  test[, !grepl("Percent|Sim|Bracket", colnames(test))| grepl("Actual", colnames(test)) ]  
+  test[, !grepl("Percent|Sim|Bracket", colnames(test)) | grepl("Actual", colnames(test)) ]  
   
 }
 

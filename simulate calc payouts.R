@@ -5,7 +5,7 @@ tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds
 tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
 tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
 tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
-tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$team_id)]
+tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$TeamID)]
 
 
 tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), input$r1,

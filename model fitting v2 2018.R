@@ -94,19 +94,23 @@ if(year==2017){
   samplesubmission$Id<-apply(samplesubmission[, c("Season", "Team", "OPP")], 1, paste, sep="", collapse="_")
 }
 odds2<-oddsDF[oddsDF$DATE%in% dates & as.numeric(substring(as.character(oddsDF$DATE), 1, 4))==year, ] #first round games
-odds2$team_id<-id_df$team_id[match(odds2$Team, id_df$Team_Full)]
-odds2$opp_id<-id_df$team_id[match(odds2$OPP, id_df$Team_Full)]
-samplesubmission<-merge(samplesubmission, odds2[,c("team_id", "opp_id", "Spread")], 
-                        by.x=c("Team", "OPP"), by.y=c("team_id", "opp_id"), all.x=T  )
+odds2$TeamID<-id_df$TeamID[match(odds2$Team, id_df$Team_Full)]
+odds2$OPPID<-id_df$TeamID[match(odds2$OPP, id_df$Team_Full)]
+samplesubmission<-merge(samplesubmission, odds2[,c("TeamID", "OPPID", "Spread")], 
+                        by.x=c("Team", "OPP"), by.y=c("TeamID", "OPPID"), all.x=T  )
 
 fulldf<-fulldf[order(fulldf$DATE, decreasing = F), ]
 team_stats<-ddply(fulldf[fulldf$Tournament==1, ], .(Team,Team_Full, Season), summarize,
-                  meanRank=meanRank[1], Rank.MOR=Rank.MOR[1], Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1]
-)
+                  meanRank=meanRank[1], Rank.POM=Rank.POM[1],Rank.MOR=Rank.MOR[1], Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1], 
+                  TeamOwnership_R3=TeamOwnership_R3[1], Dist=Dist[1])
+
+
 samplesubmission<-merge(samplesubmission,team_stats, by=c("Team", "Season"))
-colnames(team_stats)<-c("OPP", "OPP_Full", "Season", "OPPmeanRank", "OPP.MOR", "OPPloc", "OPPSeed", "OPPSeed_num")
+colnames(team_stats)<-c("OPP", "OPP_Full", "Season", "OPPmeanRank", "OPP.POM", "OPP.MOR", "OPPloc", "OPPSeed", "OPPSeed_num", "OPPOwnership_R3", "OPPDist")
 samplesubmission<-merge(samplesubmission,team_stats, by=c("OPP", "Season"))
-samplesubmission$Round<-sapply(1:nrow(samplesubmission), function(x)getRound(samplesubmission$TeamSeed[x], samplesubmission$OPPSeed[x], samplesubmission$Season[x]))
+samplesubmission$Round<-as.numeric(sapply(1:nrow(samplesubmission), function(x)getRound(samplesubmission$TeamSeed[x], samplesubmission$OPPSeed[x], samplesubmission$Season[x])))
+samplesubmission$Teamloc_num<-0
+
 samplesubmission$predWin<-predict(fit, newdata=samplesubmission, type="response")
 samplesubmission$predWin2<-predict(fit2, newdata=samplesubmission, type="response")
 samplesubmission$predWin3<-predict(fit3, newdata=samplesubmission, type="response")

@@ -1,10 +1,3 @@
-library(gridExtra);library(grid)
-library(forecast);library(RSelenium);library(RCurl);library(slam);library(XML)
-library(caret);library(doSNOW);library(rvest);library(robustbase);library(rpart);library(kernlab)
-library(lpSolve);library(lpSolveAPI);library(data.table);library(xgboost);library(gurobi);library(Rcplex)
-library(reshape2);library(plyr);library(zoo);library(dplyr);library(gtools);library(RJSONIO)
-library(ggplot2);library(glmnet);library(MASS);library(TTR) 
-library(Metrics);library(Rsymphony)
 options(stringsAsFactors=FALSE)
 options(scipen=999)
 
@@ -15,40 +8,147 @@ source("functions.R")
 
 ###ORGANIZE TEAM RANKINGS#####
 
-TourneySlots<-read.csv("data/TourneySlots.csv")
+id_df<-read.csv("data/Teams.csv")
+id_df$TeamName<-coordName(id_df$TeamName)
+colnames(id_df)[1:2]<-c("TeamID", "Team_Full")
+
+id_df[duplicated(id_df$Team_Full), ]
+
+TourneySlots<-read.csv("data/NCAATourneySlots.csv")
 tail(TourneySlots, 35)
 
-TourneySeeds<-read.csv("data/TourneySeeds.csv")
+TourneySeeds<-read.csv("data/NCAATourneySeeds.csv")
+tail(TourneySeeds)
+
+seasons<-read.csv("data/Seasons.csv")
+seasons$DayZero<-as.Date(seasons$DayZero, format="%m/%d/%Y")
 
 #all possible slots that each team can be in
 getSlots<-function(seed, season){
   # slot<-"W11"
-  slot<-TourneySlots$Slot[TourneySlots$Season==season & (TourneySlots$Strongseed==seed|TourneySlots$Weakseed==seed)]
+  slot<-TourneySlots$Slot[TourneySlots$Season==season & (TourneySlots$StrongSeed==seed|TourneySlots$WeakSeed==seed)]
   next_slot<-slot
   while(slot!="R6CH"){
     next_slot<-c(next_slot, 
-                 TourneySlots$Slot[TourneySlots$Season==season & (TourneySlots$Strongseed==slot|TourneySlots$Weakseed==slot)]
+                 TourneySlots$Slot[TourneySlots$Season==season & (TourneySlots$StrongSeed==slot|TourneySlots$WeakSeed==slot)]
     )
-    slot<- TourneySlots$Slot[TourneySlots$Season==season & (TourneySlots$Strongseed==slot|TourneySlots$Weakseed==slot)]
+    slot<- TourneySlots$Slot[TourneySlots$Season==season & (TourneySlots$StrongSeed==slot|TourneySlots$WeakSeed==slot)]
   }
   data.frame(Seed=seed, Slot=next_slot, Season=season)
 }
 TourneyRounds<-lapply(1:nrow(TourneySeeds),function(x) getSlots(TourneySeeds$Seed[x], TourneySeeds$Season[x]))
 TourneyRounds<-ldply(TourneyRounds,data.frame)
 
+
+TeamGeog<-read.csv("data/TeamGeog.csv")
+colnames(TeamGeog)[2:3]<-c("TeamLat", "TeamLng")
+
+CitiesEnriched<-read.csv("data/CitiesEnriched.csv")
+head(CitiesEnriched)
+
+GameGeog<-read.csv("data/GameCities.csv")
+GameGeog<-merge(GameGeog, CitiesEnriched[, c("Lat", "Lng", "CityID")], by="CityID")
+head(GameGeog)
+
 TourneyGeog<-read.csv("data/TourneyGeog.csv")
 TourneyGeog$lat[TourneyGeog$host=="new_york"]<-40.6827
 TourneyGeog$lng[TourneyGeog$host=="new_york"]<-(-73.9753)
 colnames(TourneyGeog)<-sapply(colnames(TourneyGeog), simpleCap)
 
-TeamGeog<-read.csv("data/TeamGeog.csv")
-colnames(TeamGeog)[2:3]<-c("TeamLat", "TeamLng")
+TeamGeog$Team_Full<-id_df$Team_Full[match(TeamGeog$team_id, id_df$TeamID)]
+write.csv(TeamGeog, file="data/TeamGeogEnriched.csv")
+
+###*MASSEY DATA ******
+#https://www.kaggle.com/masseyratings/rankings/data
+
+Massey_All<-read.csv("data/MasseyOrdinals.csv")
+colnames(Massey_All)<-c("Season", "DayNum", "Source", "TeamID", "Rank")
+Massey_All$DayZero<-seasons$DayZero[match(Massey_All$Season, seasons$Season)]
+Massey_All$DATE<-Massey_All$DayZero+Massey_All$DayNum
+Massey_All$DATE<-as.Date(Massey_All$DATE)
+
+Massey_All<-data.table(Massey_All)
+Massey_means<-Massey_All[, list(  medRank=as.numeric(median(Rank)), 
+                                  maxRank=max(Rank), minRank=min(Rank), meanRank=mean(Rank)), by=c("TeamID", "DATE", "Season")]
+Massey_means<-Massey_means[order(Massey_means$DATE, decreasing = F), ]
+Massey_means<-Massey_means[, `:=`(  preRank=meanRank[1]), by=c("TeamID", "Season")]
+Massey_All<-data.frame(Massey_All)
+Massey_means<-data.frame(Massey_means)
 
 
-KenPom<-read.csv("data/PomeryRatings.csv")
-KenPom$Team<-gsub("[.]", "", KenPom$Team)
-KenPom$alternative_spelling<-gsub("[.]", "", KenPom$alternative_spelling)
+Massey_means<-Massey_means[month(Massey_means$DATE)!=4,]
+Massey_All<-Massey_All[month(Massey_All$DATE) !=4,]
+
+###SCRAPE DATA#####
+
+
+readKPOM<-function(year){
+  if(year==2017){
+    link<-"https://web.archive.org/web/20170315194730/https://kenpom.com/"
+  } else if (year==2016){
+    link<-"https://web.archive.org/web/20160317134436/https://kenpom.com/"
+  } else if (year==2015){
+    link<-"https://web.archive.org/web/20150319035724/https://kenpom.com/"
+  } else if (year==2014){
+    link<-"https://web.archive.org/web/20140320132217/https://kenpom.com"
+  } else if (year==2013){
+    link<-"https://web.archive.org/web/20130320175417/https://kenpom.com/"
+  } else if (year==2012){
+    link<-"https://web.archive.org/web/20120315142441/https://kenpom.com/"
+  }
+  page<-read_html(link)
+  info<-page%>% html_nodes("td")%>% html_text()
+  info<-data.frame(matrix(info, ncol=21, byrow=T))
+  names<-page%>% html_nodes("th a")%>% html_text()
+  names<-names[1:21]
+  colnames(info)<-c("Rank", "Team", "Conf", "WL", "AdjEM", "AdjO", "AdjO_Rk", "AdjD", "AdjD_Rk",
+                    "AdjT","AdjT_Rk" ,"Luck", "Luck_Rk", "SOS_AdjEM","SOS_AdjEM_Rk" , "SOS_OPPO", "SOS_OPPO_Rk", "SOS_OPPD","SOS_OPPD_Rk", 
+                    "NCSOS_AdjEM", "NCSOS_AdjEM_Rk")
+  info$Season<-year
+  info
+}
+KenPom<-ldply(lapply(2012:2017, readKPOM), data.frame)
+KenPom[, !colnames(KenPom)%in% c("Team", "Conf", "WL")]<-sapply(KenPom[, !colnames(KenPom)%in% c("Team", "Conf", "WL")], as.numeric)
+KenPom$Team<-gsub(paste(1:20, collapse="|"), "",KenPom$Team)
 KenPom$Team<-coordName(KenPom$Team)
+setdiff(KenPom$Team, id_df$Team_Full)
+
+
+readSAG<-function(year){
+  if(year<=2013){
+    sag<-read.csv(paste(c("SAG/SAG_POST/" ,year, ".csv"), collapse="", sep=""), header=F)
+    sag<-sag[,c(1, 2, 3,14)]
+  } else{
+    sag<-read.csv(paste(c("SAG/" ,year, ".csv"), collapse="", sep=""), header=F)
+    sag<-sag[,c(1, 2, 3,ncol(sag)-1)]
+  }
+  
+  colnames(sag)<-c("Rank.SAG.pre", "Team_Full", "Score.SAG.pre", "Score2.SAG.pre")
+  sag<-sag[!sag$Rank.SAG.pre%in%c("Colleg", "", " ", "FINAL", "HOME") & 
+             !grepl("RATING", sag$Score.SAG.pre) & !grepl("HOME|Home", sag$Team_Full), ]
+  sag$Season<-year
+  sag
+}
+##clean up columns--put letters in second column into first column
+
+SAG_Rank<-ldply(lapply(2008:2017, readSAG), data.frame)
+SAG_Rank$Score.SAG.pre<-gsub(" |=|$|^\\s+|[*]|[~]|[$]", "", SAG_Rank$Score.SAG.pre)
+SAG_Rank$Score.SAG.pre<-gsub("^\\s+|\\s+$", "", SAG_Rank$Score.SAG.pre)
+
+#error in columns
+strings<-sapply(strsplit(SAG_Rank$Score.SAG.pre,  "\\s+"), function(x) x[-length(x)])
+strings[sapply(strings, length)==0|strings=="$"]<-""
+SAG_Rank$Team_Full<-paste0(SAG_Rank$Team_Full,strings )
+
+SAG_Rank$Rank.SAG.pre<-as.numeric(gsub("[;]", "", SAG_Rank$Rank.SAG.pre))
+SAG_Rank$Score.SAG.pre<-as.numeric(sapply(strsplit(SAG_Rank$Score.SAG.pre,  "\\s+"), function(x) x[length(x)]))
+SAG_Rank$Score2.SAG.pre<-NULL
+SAG_Rank$Team_Full<-coordName(SAG_Rank$Team_Full)
+
+setdiff(SAG_Rank$Team_Full, id_df$Team_Full)
+head(SAG_Rank)
+
+
 
 
 getRound<-function(year, round){
@@ -56,14 +156,6 @@ getRound<-function(year, round){
   if(year==2012){
     data<-read_html(paste0("https://web.archive.org/web/20120316095713/http://tournament.fantasysports.yahoo.com:80/t1/group/all/pickdistribution?round=", round))
   } 
-  # else if(year==2011){
-  #   data<-read_html(paste0("https://web.archive.org/web/201105011334555/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
-  # }
-  # else if(year==2009){
-  #   data<-read_html(paste0("https://web.archive.org/web/20090322101538/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
-  # }else if(year==2008){
-  #   data<-read_html(paste0("https://web.archive.org/web/20080321234943/https://tournament.fantasysports.yahoo.com/t1/group/all/pickdistribution?round=", round))
-  # }
   names<-data%>% html_nodes("td")%>% html_text()
   if(names[1]!="1"){
     names<-names[-c(1:2)]
@@ -119,132 +211,6 @@ whoPicked<-ldply(lapply(c(2008:2011, 2013:2017), readFile), data.frame)
 setdiff(whoPicked$Team, id_df$Team_Full)
 
 whoPicked<-rbind(whoPicked, whoPicked_yahoo)
-
-###****YOU NEED TO DOWNLOAD "cb2001-18" DATA FROM THE FOLLOWING LINK AND PLACE all files IN A FOLDER Massey/cb/   ******
-#https://www.kaggle.com/masseyratings/rankings/data
-
-# setwd("")
-readFile<-function(file){
-  Massey_All<-read.csv(paste0("Massey/cb/", file), header=F, strip.white = T)
-  Massey_All
-}
-files<-list.files("Massey/cb/")
-Massey_All<-ldply(lapply(files[-c(1:6)], readFile), data.frame)
-colnames(Massey_All)<-c("File", "team_id2", "Team_Full", "Source", "Source_Full", "DATE", "Rank")
-Massey_All$DATE<-as.Date(as.character(Massey_All$DATE), format="%Y%m%d")
-
-Massey_All<-data.table(Massey_All)
-Massey_means<-Massey_All[, list(  medRank=as.numeric(median(Rank)),
-                                  maxRank=max(Rank), minRank=min(Rank), meanRank=mean(Rank)), by=c("team_id2", "Team_Full", "DATE")]
-Massey_All<-data.frame(Massey_All)
-Massey_means<-data.frame(Massey_means)
-Massey_means$Team_Full<-coordName(Massey_means$Team_Full)
-
-id_df<-unique(KenPom[, c("team_id", "Team")])
-id2<-unique(Massey_means[, c("team_id2", "Team_Full")])
-colnames(id2)<-c("team_id2", "Team_Full")
-colnames(id_df)<-c("team_id", "Team_Full")
-id_df<-merge(id_df, id2, by=c("Team_Full"), all.x=T)
-head(id_df)
-
-Massey_means$team_id<-id_df$team_id[match(Massey_means$Team_Full, id_df$Team_Full)]
-Massey_All$team_id<-id_df$team_id[match(Massey_All$team_id2, id_df$team_id2)]
-
-Massey_All<-Massey_All[!months(Massey_All$DATE)=="April",]
-Massey_means<-Massey_means[!months(Massey_means$DATE)=="April",]
-###ORGANIZE GAME DATA#####
-
-
-dates<-seq(as.Date("2017-03-14"), as.Date("2017-04-03"), 1)
-dates<-gsub( "-", "/",as.character(dates))
-dates<-dates[!dates=="2017/04/02"]
-importData<-function(date){
-  print(date)
-  site<-paste0("http://www.ncaa.com/scoreboard/basketball-men/d1/", date)
-  site<-read_html(site)
-  scores<-site  %>% 
-    html_nodes(".score , .team a")%>% 
-    html_text()
-  scores<-data.frame(matrix(scores, ncol=2, byrow=T))
-  colnames(scores)<-c("TeamFull", "Pts")
-  scores$GameIndex<-rep(seq(1, nrow(scores)/2), each=2)
-  scores$Away<-rep(c(1, 0), times=nrow(scores)/2)
-  away<-scores[scores$Away==1,]
-  colnames(away)[1:2]<-c("OPP_Full", "OPPscore")
-  colnames(scores)[1:2]<-c("Team_Full", "Teamscore")
-  scores<-merge(scores[scores$Away==0, ], away, by=c("GameIndex"))
-  scores<-scores[, !grepl("Away|Index", colnames(scores))]
-  scores$DATE<-date
-  scores
-}
-tourney17<-ldply(lapply(dates, importData), data.frame)
-tourney17<-tourney17[!is.na(tourney17$Teamscore), ]
-tourney17[, c("Teamscore", "OPPscore")]<-sapply(tourney17[,  c("Teamscore", "OPPscore")], as.numeric)
-tourney17[, c("Team_Full", "OPP_Full")]<-sapply(tourney17[, c("Team_Full", "OPP_Full")], coordName)
-tourney17$Wteam<-ifelse(tourney17$Teamscore>tourney17$OPPscore, tourney17$Team_Full, tourney17$OPP_Full)
-tourney17$Lteam<-ifelse(tourney17$Teamscore>tourney17$OPPscore, tourney17$OPP_Full, tourney17$Team_Full)
-tourney17$Wteam<-id_df$team_id[match(tourney17$Wteam, id_df$Team_Full)]
-tourney17$Lteam<-id_df$team_id[match(tourney17$Lteam, id_df$Team_Full)]
-tourney17$DATE<-as.Date(tourney17$DATE, format="%Y/%m/%d")
-tourney17$Wloc<-"N"
-tourney17$Season<-2017
-
-
-tourney<-read.csv("data/TourneyDetailedResults.csv")
-tourney<-rbind.fill(tourney, tourney17[, c("Wteam", "Lteam", "DATE", "Wloc", "Season")])
-tourney$Tournament<-1
-tail(tourney)
-
-
-regularSeason<-read.csv("data/RegularSeasonDetailedResults.csv")
-regularSeason$Tournament<-0
-fulldf<-rbind.fill(tourney, regularSeason)
-
-seasons<-read.csv("data/Seasons.csv")
-seasons$Dayzero<-as.Date(seasons$Dayzero, format="%m/%d/%Y")
-fulldf$dayzero<-seasons$Dayzero[match(fulldf$Season, seasons$Season)]
-fulldf$DATE[is.na(fulldf$DATE)]<-fulldf$dayzero[is.na(fulldf$DATE)]+fulldf$Daynum[is.na(fulldf$DATE)]
-
-
-fulldf<-fulldf[fulldf$Season>=2008, ]
-fulldf$Rank_DATE<-sapply(fulldf$DATE, function(x) max(Massey_means$DATE[Massey_means$DATE<=x]))
-fulldf$Rank_DATE<-as.Date(fulldf$Rank_DATE)
-winners<-fulldf
-colnames(winners)<-gsub("W", "Team", colnames(winners))
-colnames(winners)<-gsub("L", "OPP", colnames(winners))
-colnames(winners)[colnames(winners)%in% c("Teamteam", "OPPteam")]<-c("Team", "OPP")
-
-losers<-fulldf
-colnames(losers)<-gsub("W", "OPP", colnames(losers))
-colnames(losers)<-gsub("L", "Team", colnames(losers))
-losers$OPPloc<-ifelse(losers$OPPloc=="A", "H", ifelse(losers$OPPloc=="H", "A", "N"))
-colnames(losers)[colnames(losers)=="OPPloc"]<-"Teamloc"
-colnames(losers)[colnames(losers)%in% c("OPPteam", "Teamteam")]<-c("OPP", "Team")
-
-winners$Win<-1
-losers$Win<-0
-fulldf<-rbind(winners, losers)
-fulldf<-merge(fulldf, Massey_means, by.x=c("Team", "Rank_DATE"), by.y = c("team_id", "DATE"), all.x=T)
-
-OPP_means<-Massey_means
-colnames(OPP_means)<-gsub("Team","OPP", colnames(OPP_means))
-colnames(OPP_means)<-gsub("team","opp", colnames(OPP_means))
-colnames(OPP_means)[grepl("Rank", colnames(OPP_means))]<-paste("OPP", colnames(OPP_means)[grepl("Rank", colnames(OPP_means))], sep="")
-head(OPP_means)
-fulldf<-merge(fulldf, OPP_means, by.x=c("OPP", "Rank_DATE"), by.y = c("opp_id", "DATE"), all.x=T)
-
-sources<- c("MAS", "SAG", "POM", "MOR", "CMP", "PGH", "RTP",
-            "WIL", "WLK", "TPR", "NOL", "PIG", "DOL", "BIH", "70T",
-            "DII", "DOK", "RT", "TRP", "BIH", "KPK")
-test<-Massey_All[ Massey_All$Source%in%sources,c("team_id", "Source", "DATE", "Rank") ]
-
-test<-reshape(test, timevar = c("Source"), idvar = c("DATE", "team_id"), direction = "wide")
-fulldf<-merge(fulldf[, !grepl("Rank[.]", colnames(fulldf))], 
-              test, by.x=c("Team", "Rank_DATE"), by.y=c("team_id", "DATE"), all.x=T)
-colnames(test)<-gsub("Rank", "OPP", colnames(test))
-fulldf<-merge(fulldf[, !grepl("OPP[.]", colnames(fulldf))], 
-              test, by.x=c("OPP", "Rank_DATE"), by.y=c("team_id", "DATE"), all.x=T)
-
 ##s-curve data####
 getYear<-function(year){
   link<-read_html(paste(c("https://en.wikipedia.org/wiki/", year, "_NCAA_Division_I_Men%27s_Basketball_Tournament"), sep="", collapse=""))
@@ -286,13 +252,142 @@ SCurve$Team[SCurve$Team=="Louisville[a]"]<-"Louisville"
 
 setdiff(SCurve$Team, id_df$Team_Full)
 
+##538 Data####
+
+files<-list.files("538/", pattern ="csv")
+import538<-function(file) {
+  #file<-files[2]
+  comp<-read.csv(paste0("538/", file), header=F)
+  comp<-unlist(sapply(1:nrow(comp),function(x) comp[x,]))
+  comp<-comp[comp!="" & !is.na(comp) & !comp%in% c(as.character(1:16), paste(as.character(1:16), c("b"), sep=""),
+                                                   paste(as.character(1:16), c("a"), sep="")) & !comp%in% c("v")]
+  comp<-gsub("%|<", "",  comp)
+  comp<-data.frame(t(matrix(comp, nrow=8)))
+  comp$Season<-as.numeric(gsub(".csv", "", file))
+  comp  
+}
+march538_1<-ldply(lapply(files[1:2], import538), data.frame)
+march538_1[, 3:8]<-sapply(march538_1[, 3:8],  function(x) as.numeric(x)*.001)
+
+colnames(march538_1)[3:8]<-c("rd2_win", "rd3_win", "rd4_win", "rd5_win", "rd6_win", "rd7_win")
+colnames(march538_1)[1:2]<-c("Region", "team_name")
+
+march538_2<-read.csv("538/2017.csv")
+march538_2$Season<-2017
+march538_2<-march538_2[march538_2$gender=="mens",]
+march538_2<-march538_2[!duplicated(march538_2[, c("team_name")], fromLast=T), ]
+
+march538_3<-read.csv("538/2016.csv")
+march538_3$Season<-2016
+march538_3<-march538_3[march538_3$gender=="mens" &as.Date(as.character(march538_3$forecast_date), format="%m/%d/%Y")<=as.Date("2016-03-19") ,]
+march538_3<-march538_3[!duplicated(march538_3[, c("team_name")], fromLast=T), ]
+
+march538<-data.frame(rbindlist(list(march538_1, march538_2, march538_3), fill=T))
+march538<-march538[, c("team_name", "Season", "rd2_win", "rd3_win", "rd4_win", "rd5_win", "rd6_win", "rd7_win")]
+march538$Team<-coordName((march538$team_name))
+
+setdiff(march538$Team, id_df$Team_Full)
+
+
+
+
+readTR<-function(date){
+  print(date)
+  link<-paste0("https://www.teamrankings.com/ncaa-basketball/ranking/predictive-by-other/?date=", as.character(date))
+  link<-read_html(link)
+  data<-link%>% html_nodes("td, h2")%>% html_text()
+  data<-data[1:(which(data=="About The New Ratings")-1)]
+  data<-data.frame(matrix(data, ncol=9, byrow=T))
+  if(nrow(data)>=1){
+    data$DATE<-as.Date(date)
+  }
+  data
+}
+dates<-unique(Massey_means$DATE[Massey_means$Season>=2007])
+
+TR_Rank<-ldply(lapply(dates, readTR), data.frame)
+
+
+###ORGANIZE GAME DATA#####
+
+
+tourney<-read.csv("data/NCAATourneyDetailedResults.csv")
+tourney$Tournament<-1
+tail(tourney)
+
+
+regularSeason<-read.csv("data/RegularSeasonDetailedResults.csv")
+regularSeason$Tournament<-0
+
+fulldf<-rbind.fill(tourney, regularSeason)
+fulldf$DayZero<-seasons$DayZero[match(fulldf$Season, seasons$Season)]
+fulldf$DATE<-fulldf$DayZero+fulldf$DayNum
+fulldf$DATE<-as.Date(fulldf$DATE)
+
+
+fulldf<-fulldf[fulldf$Season>=2005, ]
+
+dates<-unique(Massey_means$DATE)
+fulldf$Rank_DATE<-sapply(fulldf$DATE, function(x) max(dates[dates<=x]))
+fulldf$Rank_DATE<-as.Date(fulldf$Rank_DATE)
+
+fulldf<-merge(fulldf, GameGeog[, c("Lat", "Lng", "WTeamID", "LTeamID", "DayNum", "Season")], 
+              by=c("WTeamID","LTeamID", "DayNum", "Season"), all.x=T)
+
+winners<-fulldf
+colnames(winners)<-gsub("W", "Team", colnames(winners))
+colnames(winners)<-gsub("L", "OPP", colnames(winners))
+colnames(winners)<-gsub("OPPoc", "loc", colnames(winners))
+colnames(winners)[colnames(winners)%in% c("TeamTeamID", "OPPTeamID")]<-c("Team", "OPP")
+colnames(winners)[colnames(winners)%in% c("OPPat", "OPPng")]<-c("Lat", "Lng")
+
+losers<-fulldf
+colnames(losers)<-gsub("W", "OPP", colnames(losers))
+colnames(losers)<-gsub("L", "Team", colnames(losers))
+colnames(losers)[colnames(losers)=="OPPTeamoc"]<-"Teamloc"
+losers$Teamloc<-ifelse(losers$Teamloc=="A", "H", ifelse(losers$Teamloc=="H", "A", "N"))
+colnames(losers)[colnames(losers)%in% c( "OPPTeamID", "TeamTeamID")]<-c("OPP", "Team")
+colnames(losers)[colnames(losers)%in% c("Teamat", "Teamng")]<-c("Lat", "Lng")
+
+head(losers)
+
+winners$Win<-1
+losers$Win<-0
+fulldf<-rbind(winners, losers)
+fulldf$Team_Full<-id_df$Team_Full[match(fulldf$Team, id_df$TeamID)]
+fulldf$OPP_Full<-id_df$Team_Full[match(fulldf$OPP, id_df$TeamID)]
+
+fulldf<-merge(fulldf, Massey_means, by.x=c("Team", "Rank_DATE", "Season"), by.y = c("TeamID", "DATE", "Season"), all.x=T)
+
+OPP_means<-Massey_means
+colnames(OPP_means)<-gsub("Team","OPP", colnames(OPP_means))
+colnames(OPP_means)<-gsub("team","opp", colnames(OPP_means))
+colnames(OPP_means)[grepl("Rank", colnames(OPP_means))]<-paste("OPP", colnames(OPP_means)[grepl("Rank", colnames(OPP_means))], sep="")
+head(OPP_means)
+fulldf<-merge(fulldf, OPP_means, by.x=c("OPP", "Rank_DATE", "Season"), by.y = c("OPPID", "DATE", "Season"), all.x=T)
+
+sources<- c("MAS", "SAG", "POM", "MOR", "CMP", "PGH", "RTP","BPI",
+            "WIL", "WLK", "TPR", "NOL", "PIG", "DOL",  "70T",
+            "DII", "DOK", "RT",  "BIH", "KPK")
+test<-Massey_All[ Massey_All$Source%in%sources,c("TeamID", "Source", "DATE", "Rank", "Season") ]
+
+test<-reshape(test, timevar = c("Source"), idvar = c("DATE", "Season", "TeamID"), direction = "wide")
+
+fulldf<-merge(fulldf[, !grepl("Rank[.]", colnames(fulldf))], 
+              test, by.x=c("Team", "Rank_DATE", "Season"), by.y=c("TeamID", "DATE", "Season"), all.x=T)
+colnames(test)<-gsub("Rank", "OPP", colnames(test))
+fulldf<-merge(fulldf[, !grepl("OPP[.]", colnames(fulldf))], 
+              test, by.x=c("OPP", "Rank_DATE", "Season"), by.y=c("TeamID", "DATE", "Season"), all.x=T)
+
+sum(is.na(fulldf$Team_Full[fulldf$Season>=2011]))
+
 
 ##scrape odds data####
 
 if(!exists("oddsDF")){
-  dates<-unique(fulldf$DATE)
+  dates<-unique(fulldf$DATE[fulldf$Season>=2007])
 } else{
-  dates<-as.Date(setdiff(unique(fulldf$DATE), oddsDF$DATE))
+  dates<-as.Date(setdiff(unique(fulldf$DATE[fulldf$Season>=2007]), oddsDF$DATE))
   
 }
 
@@ -348,26 +443,29 @@ oddsDF<-oddsDF[!duplicated(oddsDF[, c("Team", "DATE")]), ]
 
 
 oddsDF[oddsDF$DATE==as.Date("2017-03-17"), ]
-setdiff( fulldf$Team_Full, oddsDF$Team)
+setdiff(oddsDF$Team, id_df$Team_Full)
 
 fulldf<-merge(fulldf, oddsDF[, c("Team", "Spread", "DATE")], by.x=c("Team_Full","DATE"), by.y=c("Team", "DATE"),all.x=T)
+fulldf$Spread[fulldf$Season<=2009| abs(fulldf$Spread)>=50]<-NA #errors in oddsDF
 
+#DOL, POM, BPI, SAG, 
+cor(fulldf$Win[!is.na(rowSums(fulldf[,c("Rank.POM", "Rank.BPI", "Rank.KPK", "Rank.SAG", "Rank.DOL")]))], 
+    fulldf[!is.na(rowSums(fulldf[,c("Rank.POM", "Rank.BPI", "Rank.KPK", "Rank.SAG", "Rank.DOL")])), grepl("Rank[.]|med|min|max|mean", colnames(fulldf))], use="pairwise.complete.obs")
 
-cor(fulldf$Win, fulldf[, grepl("Rank[.]|med|min|max|mean", colnames(fulldf))], use="pairwise.complete.obs")
-fulldf$Teamtr<-fulldf$Teamor+fulldf$Teamdr
-fulldf$OPPtr<-fulldf$OPPor+fulldf$OPPdr
+fulldf$TeamTR<-fulldf$TeamOR+fulldf$TeamDR
+fulldf$OPPTR<-fulldf$OPPOR+fulldf$OPPDR
 
 fulldf<-data.table(fulldf)
 fulldf<-fulldf[order(fulldf$DATE, decreasing = T), ]
 fulldf<-fulldf[,`:=`(
   DaysOff=as.integer(DATE-lead(DATE, 1)),
-  TeamscoreMARGIN=moving(Teamscore-OPPscore,41,"median" ),
-  Teamfga3MARGIN=moving(Teamfga3-OPPfga3,41,"median" ),
-  TeamftaMARGIN=moving(Teamfta-OPPfta,41,"median" ),
-  TeamtoMARGIN=moving(Teamto-OPPto,41,"median" ),
-  TeamtrMARGIN=moving(Teamtr-OPPtr,41,"median" ),
-  TeamblkMARGIN=moving(Teamblk-OPPblk,41,"median" ),
-  TeamstlMARGIN=moving(Teamstl-OPPstl,41,"median" )
+  TeamscoreMARGIN=moving(TeamScore-OPPScore,41,"median" ),
+  TeamFGA3MARGIN=moving(TeamFGA3-OPPFGA3,41,"median" ),
+  TeamFTAMARGIN=moving(TeamFTA-OPPFTA,41,"median" ),
+  TeamTOMARGIN=moving(TeamTO-OPPTO,41,"median" ),
+  TeamTRMARGIN=moving(TeamTR-OPPTR,41,"median" ),
+  TeamBlkMARGIN=moving(TeamBlk-OPPBlk,41,"median" ),
+  TeamStlMARGIN=moving(TeamStl-OPPStl,41,"median" )
 ), by=c("Team","Season" ) ]
 fulldf<-data.frame(fulldf)
 head(fulldf)
@@ -378,48 +476,15 @@ levels(fulldf$Win_factor)<-c("Loss", "Win")
 
 ###ADD TOURNAMENT DATA TO FULLDF#####
 
-files<-list.files("538/", pattern ="csv")
-import538<-function(file) {
-  #file<-files[2]
-  comp<-read.csv(paste0("538/", file), header=F)
-  comp<-unlist(sapply(1:nrow(comp),function(x) comp[x,]))
-  comp<-comp[comp!="" & !is.na(comp) & !comp%in% c(as.character(1:16), paste(as.character(1:16), c("b"), sep=""),
-                                                   paste(as.character(1:16), c("a"), sep="")) & !comp%in% c("v")]
-  comp<-gsub("%|<", "",  comp)
-  comp<-data.frame(t(matrix(comp, nrow=8)))
-  comp$Season<-as.numeric(gsub(".csv", "", file))
-  comp  
-}
-march538_1<-ldply(lapply(files[1:2], import538), data.frame)
-march538_1[, 3:8]<-sapply(march538_1[, 3:8],  function(x) as.numeric(x)*.001)
-
-colnames(march538_1)[3:8]<-c("rd2_win", "rd3_win", "rd4_win", "rd5_win", "rd6_win", "rd7_win")
-colnames(march538_1)[1:2]<-c("Region", "team_name")
-
-march538_2<-read.csv("538/2017.csv")
-march538_2$Season<-2017
-march538_2<-march538_2[march538_2$gender=="mens",]
-march538_2<-march538_2[!duplicated(march538_2[, c("team_name")], fromLast=T), ]
-
-march538_3<-read.csv("538/2016.csv")
-march538_3$Season<-2016
-march538_3<-march538_3[march538_3$gender=="mens" &as.Date(as.character(march538_3$forecast_date), format="%m/%d/%Y")<=as.Date("2016-03-19") ,]
-march538_3<-march538_3[!duplicated(march538_3[, c("team_name")], fromLast=T), ]
-
-march538<-data.frame(rbindlist(list(march538_1, march538_2, march538_3), fill=T))
-march538<-march538[, c("team_name", "Season", "rd2_win", "rd3_win", "rd4_win", "rd5_win", "rd6_win", "rd7_win")]
-march538$Team<-coordName((march538$team_name))
-
-# load("game data.RData")
 
 fulldf<-merge(fulldf, march538[, !colnames(march538)=="team_name"], by.x=c("Team_Full", "Season"), by.y=c("Team", "Season"), all.x=T)
 march538_2<-march538
 colnames(march538_2)<-gsub("rd", "OPPrd", colnames(march538_2))
 fulldf<-merge(fulldf, march538_2[, !colnames(march538_2)=="team_name"], by.x=c("OPP_Full", "Season"), by.y=c("Team", "Season"), all.x=T)
 
-fulldf<-merge(fulldf, TourneySeeds, by.x=c("Season", "Team"), by.y=c("Season", "Team"), all.x=T)
+fulldf<-merge(fulldf, TourneySeeds, by.x=c("Season", "Team"), by.y=c("Season", "TeamID"), all.x=T)
 colnames(fulldf)[colnames(fulldf)=="Seed"]<-"TeamSeed"
-fulldf<-merge(fulldf, TourneySeeds,by.x=c("OPP", "Season") ,by.y=c("Team", "Season"), all.x=T)
+fulldf<-merge(fulldf, TourneySeeds,by.x=c("OPP", "Season") ,by.y=c("TeamID", "Season"), all.x=T)
 colnames(fulldf)[colnames(fulldf)=="Seed"]<-"OPPSeed"
 fulldf$TeamSeed_num<-as.numeric(substring(fulldf$TeamSeed, 2, 3))
 fulldf$OPPSeed_num<-as.numeric(substring(fulldf$OPPSeed, 2, 3))
@@ -444,14 +509,13 @@ fulldf$Slot[fulldf$Tournament==1]<-sapply(which(fulldf$Tournament==1),    functi
 fulldf$Round[fulldf$Tournament==1]<-sapply(which(fulldf$Tournament==1),    function(x)getRound(fulldf$TeamSeed[x], fulldf$OPPSeed[x], fulldf$Season[x]) )
 fulldf$Round<-as.numeric(fulldf$Round)
 
-fulldf<-merge(fulldf, TourneyGeog[, c("Season", "Slot", "Host", "Lat", "Lng")], by=c("Season","Slot"), all.x=T)
 fulldf<-merge(fulldf, TeamGeog[, c("team_id", "TeamLat", "TeamLng")], by.x=c("Team"), by.y=("team_id"), all.x=T)
 fulldf$Dist<-NA
 library(geosphere)
 fulldf$Dist[!is.na(fulldf$Lat)]<-distHaversine(fulldf[!is.na(fulldf$Lat), c( "Lng", "Lat")], fulldf[!is.na(fulldf$Lat), c( "TeamLng", "TeamLat")])/1000
 
 #opponent distance
-oppDist<-unique(fulldf[fulldf$Tournament==1, c("Team_Full","DATE", "Dist" )])
+oppDist<-unique(fulldf[!is.na(fulldf$Dist), c("Team_Full","DATE", "Dist" )])
 colnames(oppDist)[colnames(oppDist)=="Dist"]<-"OPPDist"
 fulldf<-merge(fulldf, oppDist, by.x=c("OPP_Full", "DATE"), by.y=c("Team_Full", "DATE"), all.x=T)
 
@@ -463,13 +527,24 @@ fulldf<-fulldf[,`:=`(
 fulldf<-data.frame(fulldf)
 
 fulldf<-fulldf[, !grepl("Ownership_", colnames(fulldf))]
+fulldf$TeamOwnership_RX<-NA
+fulldf$OPPOwnership_RX<-NA
+
 for(i in c("R1", "R2", "R3", "R4", "R5", "R6")){
   fulldf<-merge(fulldf, whoPicked[whoPicked$Round==i,c("Team", "Season", "Ownership")  ], by.x=c("Team_Full", "Season"), by.y=c("Team", "Season"), all.x=T)
   colnames(fulldf)[colnames(fulldf)=="Ownership"]<-paste0("TeamOwnership_", i)
   
   fulldf<-merge(fulldf, whoPicked[whoPicked$Round==i, c("Team", "Season", "Ownership") ], by.x=c("OPP_Full", "Season"), by.y=c("Team", "Season"), all.x=T)
   colnames(fulldf)[colnames(fulldf)=="Ownership"]<-paste0("OPPOwnership_", i)
+  
+  bool<-which(fulldf$Round==as.numeric(gsub("R", "", i)))
+  fulldf$TeamOwnership_RX[bool]<-fulldf[bool,paste0("TeamOwnership_", i) ]
+  fulldf$OPPOwnership_RX[bool]<-fulldf[bool,paste0("OPPOwnership_", i) ]
 }
+
+
+
+#sagrank
 
 SCurve$SCurve<-as.numeric(SCurve$SCurve)
 fulldf<-fulldf[, !grepl("SCurve", colnames(fulldf))]
@@ -478,13 +553,31 @@ OPPCurve<-SCurve
 colnames(OPPCurve)[colnames(OPPCurve)=="SCurve"]<-"OPPSCurve"
 fulldf<-merge(fulldf, OPPCurve[, c("Team", "Season", "OPPSCurve")], by.x=c("OPP_Full", "Season"), by.y=c("Team", "Season"),all.x=T)
 
+#kenpom
+
+fulldf<-merge(fulldf, KenPom[, !colnames(KenPom)%in% c("Rank", "Conf", "WL")], by.x=c("Team_Full","Season"), by.y=c("Team", "Season"), all.x=T)
+OppPom<-KenPom
+colnames(OppPom)[ !colnames(OppPom)%in% c("Rank", "Team", "Conf", "WL", "Season")]<-
+  paste("OPP", colnames(OppPom)[ !colnames(OppPom)%in% c("Rank", "Team", "Conf", "WL", "Season")], sep="")
+fulldf<-merge(fulldf, OppPom[, !colnames(KenPom)%in% c("Rank", "Conf", "WL")], by.x=c("OPP_Full","Season"), by.y=c("Team", "Season"), all.x=T)
+
+#sag-pre tournament
+
+fulldf<-fulldf[, !grepl("SAG[.]pre", colnames(fulldf))]
+fulldf<-merge(fulldf, SAG_Rank, by=c("Team_Full","Season"), all.x=T)
+OPP_Rank<-SAG_Rank
+colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")]<-
+  paste( "OPP", colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")], sep="")
+fulldf<-merge(fulldf, OPP_Rank, by.x=c("OPP_Full","Season"), by.y=c("Team_Full", "Season"), all.x=T)
+
 
 
 fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2015& fulldf$Tournament==1, ]
 
 
-save(list=ls()[ls()%in% c("fulldf", "KenPom", "Massey_All", "Massey_means","oddsDF", "id_df", "march538", #projections data
-                          "seasons", "TourneySlots", "TourneySeeds","TourneyRounds","getRound" , "TourneyGeog", "TeamGeog", "whoPicked", "SCurve" #tourney specific data
+save(list=ls()[ls()%in% c("fulldf", "KenPom", "SAG_Rank", "Massey_All", "Massey_means","oddsDF", "id_df", "march538", #projections data
+                          "seasons", "TourneySlots", "TourneySeeds","TourneyRounds","getRound" ,
+                          "TourneyGeog", "TeamGeog", "GameGeog", "whoPicked", "SCurve" #tourney specific data
 )], file="data/game data.RData")
 
 # load("data/game data.RData")
