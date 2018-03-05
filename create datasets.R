@@ -318,10 +318,16 @@ TR_Rank<-ldply(rankList, data.frame)
 TR_Rank<-TR_Rank[,c( 1:3, 10)]
 colnames(TR_Rank)[1:3]<-c("Rank.TR", "Team_Full", "Score.TR")
 TR_Rank<-TR_Rank[TR_Rank$Rank.TR!="About The New Ratings",]
-TR_Rank$Team_Full<-sapply(strsplit(TR_Rank$Team_Full, "\\("), `[[`, 1)
+TR_Rank[,c("Rank.TR", "Score.TR")]<-sapply(TR_Rank[,c("Rank.TR", "Score.TR")], as.numeric)
+TR_Rank$Team_Full<-sapply(strsplit(TR_Rank$Team_Full, "\\("), function(x) paste(x[-length(x)], collapse="("))
+TR_Rank<-TR_Rank[TR_Rank$Team_Full!=" ",]
 TR_Rank$Team_Full<-coordName(TR_Rank$Team_Full)
-setdiff( id_df$Team_Full, TR_Rank$Team_Full)
-unique(TR_Rank$Team_Full[grepl("Mason|Ark|Cal|Virginia", TR_Rank$Team_Full) ])
+
+head(TR_Rank[grepl("Wilm", TR_Rank$Team_Full), ])
+
+setdiff(id_df$Team_Full,TR_Rank$Team_Full )
+setdiff( TR_Rank$Team_Full[TR_Rank$Rank.TR<=150], id_df$Team_Full )
+unique(TR_Rank$Team_Full[grepl("App", TR_Rank$Team_Full) ])
 
 ###ORGANIZE GAME DATA#####
 
@@ -587,11 +593,18 @@ colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")]<-
 fulldf<-merge(fulldf, OPP_Rank, by.x=c("OPP_Full","Season"), by.y=c("Team_Full", "Season"), all.x=T)
 
 
+fulldf<-fulldf[, !grepl("[.]TR", colnames(fulldf))]
+fulldf<-merge(fulldf, TR_Rank, by.x=c("Team_Full","Rank_DATE"), by.y=c("Team_Full", "DATE"), all.x=T)
+OPP_Rank<-TR_Rank
+colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "DATE")]<-
+  paste( "OPP", colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "DATE")], sep="")
+fulldf<-merge(fulldf, OPP_Rank, by.x=c("OPP_Full","Rank_DATE"), by.y=c("Team_Full", "DATE"), all.x=T)
+
 
 fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2015& fulldf$Tournament==1, ]
 
 
-save(list=ls()[ls()%in% c("fulldf", "KenPom", "SAG_Rank", "Massey_All", "Massey_means","oddsDF", "id_df", "march538", #projections data
+save(list=ls()[ls()%in% c("fulldf", "KenPom", "SAG_Rank", "TR_Rank", "Massey_All", "Massey_means","oddsDF", "id_df", "march538", #projections data
                           "seasons", "TourneySlots", "TourneySeeds","TourneyRounds","getRound" ,
                           "TourneyGeog", "TeamGeog", "GameGeog", "whoPicked", "SCurve" #tourney specific data
 )], file="data/game data.RData")

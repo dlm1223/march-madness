@@ -51,8 +51,8 @@ cor(test$predWin[test$Tournament==1], test$predWin2[test$Tournament==1], use = "
 
 
 #model 3##
-fit3<-glm(Win_factor~I(log(Rank.SAG/OPP.SAG))++I(Score.SAG.pre^2-OPPScore.SAG.pre^2),
-          data=train[train$Tournament==1 ,], family="binomial");summary(fit3)
+fit3<-glm(Win_factor~I(Score.TR-OPPScore.TR)+I((Rank.MOR-OPP.MOR))+I(Dist^.25-OPPDist^.25),
+          data=train, family="binomial");summary(fit3)
 train$predWin3<-predict(fit3, newdata=train, type="response")
 test$predWin3<-predict(fit3, newdata=test, type="response")
 
@@ -87,7 +87,7 @@ train$Pred<-ifelse(train$Round==1, rowMeans(train[, c("predWin",  "predWin2")], 
 logLoss(train$Win[train$Round>=1& train$Tournament==1], train$Pred[train$Round>=1& train$Tournament==1])
 
 test$Pred<-ifelse(test$Round==1, rowMeans(test[, c("predWin" ,"predWin2","predWin")], na.rm=T), 
-                  rowMeans(test[, c("predWin4" ,"predWin4")], na.rm=T))
+                  rowMeans(test[, c("predWin4", "predWin3")], na.rm=T))
 
 #align test set predictions so that Team<OPP
 test$Win[test$Team>test$OPP]<-1-test$Win[test$Team>test$OPP]
@@ -136,13 +136,15 @@ samplesubmission<-merge(samplesubmission, odds2[,c("TeamID", "OPPID", "Spread")]
 fulldf<-fulldf[order(fulldf$DATE, decreasing = F), ]
 team_stats<-ddply(fulldf[fulldf$Tournament==1, ], .(Team,Team_Full, Season), summarize,
                   meanRank=meanRank[1],meanRank_alt=meanRank_alt[1],Score.SAG.pre=Score.SAG.pre[1],
-                  Rank.POM=Rank.POM[1],Rank.MOR=Rank.MOR[1], Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1], 
+                  Rank.POM=Rank.POM[1],Rank.MOR=Rank.MOR[1], Rank.SAG=Rank.SAG[1], Score.TR=Score.TR[1],
+                  Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1], 
                   TeamOwnership_R3=TeamOwnership_R3[1])
 
 
 samplesubmission<-merge(samplesubmission,team_stats, by=c("Team", "Season"))
 colnames(team_stats)<-c("OPP", "OPP_Full", "Season", "OPPmeanRank", "OPPmeanRank_alt","OPPScore.SAG.pre",
-                        "OPP.POM", "OPP.MOR", "OPPloc", "OPPSeed", "OPPSeed_num", "OPPOwnership_R3")
+                        "OPP.POM", "OPP.MOR", "OPP.SAG", "OPPScore.TR",
+                        "OPPloc", "OPPSeed", "OPPSeed_num", "OPPOwnership_R3")
 samplesubmission<-merge(samplesubmission,team_stats, by=c("OPP", "Season"))
 
 
@@ -179,7 +181,7 @@ samplesubmission$predWin4<-predict(fit4, newdata=samplesubmission, type="respons
 
 #ENSEMBLE
 samplesubmission$Pred<-ifelse(!is.na(samplesubmission$Spread), rowMeans(samplesubmission[, c("predWin", "predWin2")], na.rm=T),
-                              rowMeans(samplesubmission[, c("predWin4", "predWin4")], na.rm=T))
+                              rowMeans(samplesubmission[, c("predWin4", "predWin3")], na.rm=T))
 
 
 cor(samplesubmission[, grepl("pred", colnames(samplesubmission))], use="pairwise.complete.obs")
