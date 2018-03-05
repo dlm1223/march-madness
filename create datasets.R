@@ -292,6 +292,7 @@ setdiff(march538$Team, id_df$Team_Full)
 
 
 readTR<-function(date){
+  Sys.sleep(2)
   print(date)
   link<-paste0("https://www.teamrankings.com/ncaa-basketball/ranking/predictive-by-other/?date=", as.character(date))
   link<-read_html(link)
@@ -305,8 +306,11 @@ readTR<-function(date){
 }
 dates<-unique(Massey_means$DATE[Massey_means$Season>=2007])
 
-TR_Rank<-ldply(lapply(dates, readTR), data.frame)
-
+rankList<-list();length(rankList)<-length(dates)
+for(i in 1:length(dates)){
+  rankList[[i]]<-readTR(dates[i])
+}
+TR_Rank<-ldply(rankList, data.frame)
 
 ###ORGANIZE GAME DATA#####
 
