@@ -14,11 +14,10 @@ cor(fulldf$Win, fulldf[, grepl("Rank[.]|med|min|max|mean", colnames(fulldf))], u
 table(fulldf$Season, fulldf$Tournament)
 table(fulldf$Season[!is.na(fulldf$Spread)], fulldf$Tournament[!is.na(fulldf$Spread)])
 
-test<-fulldf[which(fulldf$Tournament==1 & fulldf$Season%in%year& fulldf$Team<fulldf$OPP&
-               abs(fulldf$Spread<=40) ), ]
+test<-fulldf[which(fulldf$Tournament==1 & fulldf$Season%in%year& fulldf$Team<fulldf$OPP), ]
 
 train<-fulldf[which((fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Season==min(year))) &# fulldf$Team==fulldf$Fav&
-                !is.na(rowSums(fulldf[, c("OPP.POM", "Rank.POM", "Spread")])) & abs(fulldf$Spread<=40)), ]
+                !is.na(rowSums(fulldf[, c("OPP.POM", "Rank.POM", "Spread")]))), ]
 
 summary(glm(Win_factor~TeamscoreMARGIN, data=train, family="binomial"))
 scores2prob <- function(margin){

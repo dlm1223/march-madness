@@ -292,10 +292,14 @@ setdiff(march538$Team, id_df$Team_Full)
 
 
 readTR<-function(date){
-  Sys.sleep(2)
+  Sys.sleep(1)
   print(date)
   link<-paste0("https://www.teamrankings.com/ncaa-basketball/ranking/predictive-by-other/?date=", as.character(date))
-  link<-read_html(link)
+  
+  #download since getting time-out error sometimes
+  download.file(link, destfile = "scrapedpage.html", quiet=TRUE)
+  link <- read_html("scrapedpage.html")
+  
   data<-link%>% html_nodes("td, h2")%>% html_text()
   data<-data[1:(which(data=="About The New Ratings")-1)]
   data<-data.frame(matrix(data, ncol=9, byrow=T))
@@ -311,6 +315,13 @@ for(i in 1:length(dates)){
   rankList[[i]]<-readTR(dates[i])
 }
 TR_Rank<-ldply(rankList, data.frame)
+TR_Rank<-TR_Rank[,c( 1:3, 10)]
+colnames(TR_Rank)[1:3]<-c("Rank.TR", "Team_Full", "Score.TR")
+TR_Rank<-TR_Rank[TR_Rank$Rank.TR!="About The New Ratings",]
+TR_Rank$Team_Full<-sapply(strsplit(TR_Rank$Team_Full, "\\("), `[[`, 1)
+TR_Rank$Team_Full<-coordName(TR_Rank$Team_Full)
+setdiff( id_df$Team_Full, TR_Rank$Team_Full)
+unique(TR_Rank$Team_Full[grepl("Mason|Ark|Cal|Virginia", TR_Rank$Team_Full) ])
 
 ###ORGANIZE GAME DATA#####
 
@@ -332,6 +343,7 @@ fulldf$DATE<-as.Date(fulldf$DATE)
 fulldf<-fulldf[fulldf$Season>=2005, ]
 
 dates<-unique(Massey_means$DATE)
+
 fulldf$Rank_DATE<-sapply(fulldf$DATE, function(x) max(dates[dates<=x]))
 fulldf$Rank_DATE<-as.Date(fulldf$Rank_DATE)
 

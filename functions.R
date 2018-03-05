@@ -43,7 +43,15 @@ coordName<-function(x){
   x[substr(x, 1, 3)=="nc "]<-gsub("nc ", "north carolina ", x[substr(x, 1, 3)=="nc "])
   x[substr(x, 1, 3)=="st "]<-gsub("st ", "saint ", x[substr(x, 1, 3)=="st "])
   x[substr(x, 1, 3)=="wi "]<-gsub("wi ", "wisconsin ", x[substr(x, 1, 3)=="wi "])
-  x[substr(x, 1, 3)=="sc "]<-gsub("sc ", "south carolina ", x[substr(x, 1, 3)=="sc "])
+  x[substr(x, 1, 3)=="va "]<-gsub("va ", "virginia ", x[substr(x, 1, 3)=="va "])
+  x[substr(x, 1, 3)=="ga "]<-gsub("ga ", "georgia ", x[substr(x, 1, 3)=="ga "])
+  x[substr(x, 1, 3)=="la "]<-gsub("la ", "louisiana ", x[substr(x, 1, 3)=="la "])
+  x[substr(x, 1, 3)=="tx "]<-gsub("tx ", "texas ", x[substr(x, 1, 3)=="tx "])
+  
+  x[substr(x, 1, 4)=="ark "]<-gsub("ark ", "arkansas ", x[substr(x, 1, 4)=="ark "])
+  x[substr(x, 1, 5)=="alab "]<-gsub("alab ", "alabama ", x[substr(x, 1, 5)=="alab "])
+  
+  x<-gsub("Wshgtn", "Washington", x)
   
   #get rid of symobols
   x<-gsub(", Jr.", " Jr.", x)
@@ -94,7 +102,7 @@ coordName<-function(x){
   x[x=="american univ"|x=="american university"]<-"american"
   x[x=="north colorado"|x=="No Colorado"|x=="no colorado"]<-"northern colorado"
   x[x=="boston univ"]<-"boston university"
-  x[x=="sf austin"|x=="sfa"]<-"stephen f austin"
+  x[x=="sf austin"|x=="sfa"|x=="ste f austin"]<-"stephen f austin"
   x[x=="southern univ"|x=="southern university"]<-"southern"
   x[x=="g washington"]<-"george washington"
   x[x=="ark pine bluff"|x=="ar pine bluff"]<-"arkansas pine bluff"
@@ -125,6 +133,7 @@ coordName<-function(x){
   x[x=="northwestern la"|x=="nw state"|x=="nw state"|x=="nw st"]<-"northwestern st"
   x[x=="north carolina state"]<-"north carolina st"
   x[x=="monmouth nj"]<-"monmouth"
+  x[x=="western virginia"]<-"west virginia"
   x[x=="wku"]<-"western kentucky"
   x[x=="ut san antonio"]<-"utsa"
   x[x=="se louisiana"]<-"southeastern louisiana"
@@ -230,15 +239,15 @@ coordName<-function(x){
   x[x=="Uci"]<-"Uc Irvine"
   x[x=="Ucd"]<-"Uc Davis"
   x[x=="Nccu"]<-"North Carolina Central"
-  x[x=="Csun"|x=="CS Northridge"]<-"Cal State Northridge"
+  x[x=="Csun"|x=="CS Northridge"|x=="Cal State Nrdge"]<-"Cal State Northridge"
   x[x=="Famu"]<-"Florida A&m"
   x[x=="Ualr"|x=="Arkansas-Little Rock"|x=="Arkansas LR"]<-"Little Rock"
   x[x=="No Colorado"]<-"Northern Colorado"
   x[x=="Ucsb"]<-"Uc Santa Barbara"
   x[x=="Csub"|x=="CS Bakersfield"|x=="Bakersfield"]<-"Cal State Bakersfield"
   x[x=="Csuf"|x=="CS Fullerton"|x=="Csu Fullerton"]<-"Cal State Fullerton"
-  x[x=="Gw"|x=="G Wash"]<-"George Washington"
-  x[x=="Gmu"]<-"George Mason"
+  x[x=="Gw"|x=="G Wash"|x=="Geo Washington"|x=="Geo Wshgtn"]<-"George Washington"
+  x[x=="Gmu"|x=="Geo Mason"]<-"George Mason"
   x[x=="Ecu"]<-"East Carolina"
   x[x=="Uni"]<-"Northern Iowa"
   x[x=="Nku"]<-"Northern Kentucky"
@@ -252,7 +261,7 @@ coordName<-function(x){
   x[x=="Ut Chattanooga"]<-"Chattanooga"
   x[x=="Cent Arkansas"]<-"Central Arkansas"
   x[x=="LaSalle"|x=="Lasalle"]<-"La Salle"
-  x[x=="Abilene Chr"]<-"Abilene Christian"
+  x[x=="Abilene Chr"|x=="Abl Christian"]<-"Abilene Christian"
   x[x=="Western Salem State"|x=="Western Salem St"|x=="Winston Salem"|x=="Winston-Salem"]<-"Winston Salem State"
   x[x=="Md E Shore"|x=="Md Eastern Shore"|x=="Umes"|x=="Md East Shore"]<-"Maryland Eastern Shore"
   x[x=="Ma Lowell"|x=="Massachusetts-Lowell"]<-"Umass Lowell"
@@ -262,7 +271,7 @@ coordName<-function(x){
   x[x=="Charleston"|x=="Col Charleston"|x=="Col Of Charleston"]<-"College Of Charleston"
   x[x=="Texas-Arlington"|x=="Tx Arlington"|x=="Texas Arlington"]<-"UT-Arlington"
   x[x=="Texas A&M-CC"|x=="Texas A&M Corpus Chris"|x=="Texas A&M CC"|x=="A&M Corpus Christi"|x=="A&m Corpus Chris"]<-"Texas A&M Corpus Christi"
-  x[x=="Loyola (IL)"|x=="Loyola Il"]<-"Loyola Chicago"
+  x[x=="Loyola (IL)"|x=="Loyola Il"|x=="Loyola Chi"]<-"Loyola Chicago"
   x[x=="Saint Mary's"|x=="St Marys Ca"]<-"st Marys"
   x[x=="American University"]<-"American"
   x[x=="Green Bay"|x=="Wisconsin Gb"]<-"Wisconsin-Green Bay"
