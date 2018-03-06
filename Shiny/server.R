@@ -196,7 +196,7 @@ function(input, output, session) {
       tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
       tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
       tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
-      tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$team_id)]
+      tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$TeamID)]
       
       
       # Write to a file specified by the 'file' argument
@@ -209,7 +209,7 @@ function(input, output, session) {
       
       
       round64 <- tourneySims[tourneySims$Round=="R1" & tourneySims$Sim==1,]
-      round64$Loser_Full<-id_df$Team_Full[match(round64$Loser, id_df$team_id)]
+      round64$Loser_Full<-id_df$Team_Full[match(round64$Loser, id_df$TeamID)]
       ords<-c(1, 8, 4, 5, 3, 6, 2, 7)
       round64<-round64[order(round64$Slot, decreasing = F), ]
       round64<-round64[c(ords, ords+8, ords+16, ords+24), ]

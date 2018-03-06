@@ -5,8 +5,8 @@ account: bracketmath
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 261997
-bundleId: 1254442
+bundleId: 1254452
 url: https://bracketmath.shinyapps.io/ncaa/
-when: 1520314639.5041
+when: 1520315287.32494
 asMultiple: FALSE
 asStatic: FALSE
