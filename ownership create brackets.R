@@ -4,12 +4,19 @@ r1_df<-data.frame(Slot=c(paste0("R1W", c(1, 8, 4,5, 3, 6, 2, 7)), paste0("R1X", 
                          paste0("R1Y", c(1, 8, 4,5, 3, 6, 2, 7)), paste0("R1Z",c(1, 8, 4,5, 3, 6, 2, 7))), TeamPicked=NA)
 
 table(analyze$Team_Full, analyze$Round)
-unique(analyze[analyze$Team_Full=="florida st",1:4])
+unique(analyze[analyze$Team_Full=="Vermont",1:4])
 
+unique(whoPicked[whoPicked$Team=="Vermont",1:4])
 
 
 brackets<-list();length(brackets)<-numBrackets
 for(j in 1:length(brackets)){
+  
+  
+  #the bracket simulation procedure starts with the finals, 
+  #then goes to earlier rounds, rejecting ecah 2-team sample if the winner of the next round is not in the 2 teams sampled
+  #i cant figure out a better way to do this and the brackets get pretty close except for slightly under-sampling the underdog teams
+  
   
   #sample 1 champion using pick-percentages as probabilities
   R6<-sample(whoPicked$Team[whoPicked$Round=="R6"] , 1, prob=c(whoPicked$Ownership[ whoPicked$Round=="R6"]))
