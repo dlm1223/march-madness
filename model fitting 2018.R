@@ -46,12 +46,12 @@ logLoss(test$Win, test$predWin)
 logLoss(test$Win, test$predWin2)
 logLoss(test$Win, rowMeans(test[,c("predWin", "predWin2")]))
 
-cor(train$predWin[train$Tournament==1], train$predWin2[train$Tournament==1], use = "pairwise.complete.obs")
+# cor(train$predWin[train$Tournament==1], train$predWin2[train$Tournament==1], use = "pairwise.complete.obs")
 cor(test$predWin[test$Tournament==1], test$predWin2[test$Tournament==1], use = "pairwise.complete.obs")
 
 
 #model 3##
-fit3<-glm(Win_factor~I(Score.TR-OPPScore.TR)+I((Rank.MOR-OPP.MOR))+I(Dist^.25-OPPDist^.25),
+fit3<-glm(Win_factor~I((Score.TR-OPPScore.TR))+I((Rank.MOR-OPP.MOR))+I(Dist^.25-OPPDist^.25),
           data=train, family="binomial");summary(fit3)
 train$predWin3<-predict(fit3, newdata=train, type="response")
 test$predWin3<-predict(fit3, newdata=test, type="response")
@@ -68,7 +68,7 @@ logLoss(test$Win, test$predWin4)
 
 logLoss(test$Win, test$predWin3)
 logLoss(test$Win, test$predWin4)
-cor(train$predWin3[train$Tournament==1], train$predWin4[train$Tournament==1], use = "pairwise.complete.obs")
+# cor(train$predWin3[train$Tournament==1], train$predWin4[train$Tournament==1], use = "pairwise.complete.obs")
 cor(train$Win[!is.na(train$predWin3) & !is.na(train$predWin4)], train$predWin3[!is.na(train$predWin3) & !is.na(train$predWin4)])
 
 
