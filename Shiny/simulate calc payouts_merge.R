@@ -3,8 +3,8 @@
 #             r1_seed_mult=1, r2_seed_mult=0,r3_seed_mult=0, r4_seed_mult=0,r5_seed_mult=0, r6_seed_mult=0,
 #             r1_seed_bonus=0, r2_seed_bonus=0,r3_seed_bonus=0, r4_seed_bonus=0,r5_seed_bonus=0, r6_seed_bonus=0)
 
-tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$Team[TourneySeeds$Season==year])] ))
-tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$Team[TourneySeeds$Season==year])] ))
+tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
+tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
 tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
 tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
 tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]

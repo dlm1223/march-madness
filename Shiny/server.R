@@ -122,12 +122,12 @@ function(input, output, session) {
     load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
     numSims<-max(tourneySims$Sim)-backtest
     
-    tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$Team[TourneySeeds$Season==year])] ))
-    tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$Team[TourneySeeds$Season==year])] ))
+    tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
+    tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
     tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
     tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
     tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
-    tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$team_id)]
+    tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$TeamID)]
     
     names<-unique(analyze[, c("Team_Full", "Seed")])
     names$Seed<-as.numeric(substring(names$Seed, 2, 3))
