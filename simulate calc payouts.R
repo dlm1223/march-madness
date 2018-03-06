@@ -1,7 +1,7 @@
 ######CALCULATE PAYOUTS###########
 
-tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$Team[TourneySeeds$Season==year])] ))
-tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$Team[TourneySeeds$Season==year])] ))
+tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
+tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
 tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
 tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
 tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
