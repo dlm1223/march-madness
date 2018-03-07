@@ -1,4 +1,7 @@
-#year<-2017;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda");numBrackets<-500;name<-"BracketResults_FullTournament_500sims.Rda"
+#year<-2012;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda");
+
+numBrackets<-500;
+name<-"BracketResults_FullTournament_500sims.Rda"
 
 
 #optional: change bracketresults name as _v2 or _v3 if using different tourneysims version
@@ -6,18 +9,21 @@
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
 
-setdiff(fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1], whoPicked$Team)
+setdiff(fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1], whoPicked$Team) #teams missing from whoPicked
+
 setdiff( whoPicked$Team, fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1])
 
 #play-in games--some of the ownership data years don't have playin updated so have to impute winner if playInTBD=F
-if(playInTbd==T){
-  whoPicked$Team[whoPicked$Team=="Pr / Sc"]<-"Providence / Usc"
-  whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"North Carolina Central / Uc Davis"
-} else{
-  whoPicked$Team[whoPicked$Team=="Pr / Sc"]<-"Usc"
-  whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"Uc Davis"
+if(year==2017){
+  if(playInTbd==T){
+    whoPicked$Team[whoPicked$Team=="Pr / Sc"]<-"Providence / Usc"
+    whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"North Carolina Central / Uc Davis"
+  } else{
+    whoPicked$Team[whoPicked$Team=="Pr / Sc"]<-"Usc"
+    whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"Uc Davis"
+  }
 }
-
+  
 
 #prepare dataframe to be used for ownership-create-breackets
 analyze<-TourneyRounds[grepl("R", TourneyRounds$Slot) & TourneyRounds$Season==year,]
@@ -47,6 +53,7 @@ whoPicked[is.na(whoPicked$Seed),]
 whoPicked<-whoPicked[!duplicated(whoPicked[, c("Team", "Round")]), ] ###play-in games get duplicated
 whoPicked[whoPicked$Round=="R6", ][order(whoPicked$Ownership[whoPicked$Round=="R6"], decreasing = T), ]
 setdiff( whoPicked$Team, analyze$Team_Full)
+setdiff( analyze$Team_Full, whoPicked$Team)
 
 
 #go to ownership debug
