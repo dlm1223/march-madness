@@ -68,7 +68,7 @@ Above are the ownership percentages by round for the pool of brackets, 5000 brac
 
 ### 3. Optimization
 
-Finally, you can apply your scoring to get finishes for each bracket compared to the others, along with mean-points scored for each bracket. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
+Finally, you can apply your scoring to get finishes for each bracket compared to the others across the simulations, along with mean-points scored for a given bracket across the simulations. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
 
 ``` r
 bracket<-brackets[which.max(brackets$Prob90), 1:63]
