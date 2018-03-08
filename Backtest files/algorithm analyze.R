@@ -15,6 +15,42 @@ cor(compare$pred, compare$pred2)
 plot(compare$pred~compare$pred2)
 
 
+setwd(projDir)
+readFile<-function(year){
+  load(paste(c(year ,"/TourneySims", version,".Rda"), sep="", collapse=""))
+  load(paste(c(year ,"/alldata.RData"), sep="", collapse=""))
+  tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
+  tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
+  tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
+  tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$TeamID)]
+  numSims<-max(tourneySims$Sim)-1
+  inspect<-as.data.frame.matrix(table(tourneySims$Team_Full[tourneySims$Sim<=numSims], tourneySims$Round[tourneySims$Sim<=numSims])/numSims) 
+  inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ]
+  winner<-row.names(inspect)[which.max(inspect$R6)]
+  actualWinner<-tourneySims[tourneySims$Sim==max(tourneySims$Sim) & tourneySims$Slot=="R6CH", "Team_Full"]
+  
+  load(paste(c(year ,"/TourneySims_v2.Rda"), sep="", collapse=""))
+  tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
+  tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
+  tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
+  tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$TeamID)]
+  numSims<-max(tourneySims$Sim)-1
+  inspect<-as.data.frame.matrix(table(tourneySims$Team_Full[tourneySims$Sim<=numSims], tourneySims$Round[tourneySims$Sim<=numSims])/numSims) 
+  inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ]
+  winner2<-row.names(inspect)[which.max(inspect$R6)]
+  
+  analyze<-TourneySeeds[TourneySeeds$Season==year, ]
+  analyze$Team_Full<-id_df$Team_Full[match(analyze$Team, id_df$TeamID)]
+  names<-unique(analyze[, c("Team_Full", "Seed")])
+  names$Seed<-as.numeric(substring(names$Seed, 2, 3))
+  pasteSeed<-function(teams){
+    paste(names$Seed[match( teams, names$Team_Full)], teams, sep=" ")
+  }
+  data.frame(Year=year,projectedWinner_Model1=pasteSeed(winner), projectedWinner_Model2=pasteSeed(winner2),actualWinner=pasteSeed(actualWinner))
+}
+submissions<-ldply(lapply(2010:2017, readFile), data.frame)
+submissions
+save(submissions, file="Backtest files/compare.Rda")
 
 #Pool Size and March Madness: Backtesting March Madness Strategies
 

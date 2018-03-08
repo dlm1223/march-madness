@@ -1,6 +1,6 @@
-##Backtesting March Madness: Sensitivity Analysis
+##March Madness: Sensitivity Analysis and Backtesting
 
-##Backtesting March Madness: Optimize Your Pool Scoring
+##March Madness: Optimize Your Pool's Scoring
 
 
 
@@ -81,7 +81,7 @@ groupedLine(test, title="Cumulative Profit, 90th-percentile parameter")
 
 
 ##apply medium pool scoring to all, winner take all###
-percentile<-.95
+percentile<-.99
 
 backtest$numWinning<-rowSums(apply(backtest[, grepl("result", colnames(backtest))],2, function(x) x>=percentile  ), na.rm=T)
 backtest$numSecond<-rowSums(apply(backtest[, grepl("result", colnames(backtest))],2, function(x) x<percentile & x>=percentile-(1-percentile) ), na.rm=T)
