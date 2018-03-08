@@ -10,7 +10,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This is the full code used for the [Shiny march madness app](https://bracketmath.shinyapps.io/ncaa/). You can run the code yourself to customize more things such as increasing the number of simulations, increasing the bracket pool size, changing the projection model, and more. To run, the order of files is: 1. "simulate" 2. "ownership" 3. "optimize" in that order. Below I explain the methodology. <br /> <br />
+This is the full code used for the [Shiny march madness app](https://bracketmath.shinyapps.io/ncaa/). You can run the code yourself to customize more things such as increasing the number of simulations, increasing the bracket pool size, changing the projection model, and more. To run, the order of files is: 1. "simulate" 2. "ownership" 3. "optimize brackets" in that order. Below I explain the methodology. <br /> <br />
 
 ### 1. Projection and Simulation
 The algorithm starts by projecting all the tournament matchups and then simulating the tournament:
@@ -18,6 +18,8 @@ The algorithm starts by projecting all the tournament matchups and then simulati
 ```{r , echo=F, eval=T , include=F}
 load("2017/allData.RData")
 load("2017/BracketResults_FullTournament.Rda")
+load("2017/TourneySims.Rda")
+
 source("functions.R")
 source("Bracket Plotting/plotting function.R")
 ownership<-ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownership$R2, ownership$R1, decreasing = T), -1]
@@ -42,11 +44,12 @@ head(ownership, 20)
 
 ```
 
-Above are the ownership percentages by round for the pool of brackets, 5000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections (Duke, UNC), while others seem to be undervalued in the pool relative to their projection (Gonzaga) <br /> <br />
+Above are the ownership percentages by round for the pool of brackets, 5000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections (Duke, UNC), while others seem to be undervalued in the pool relative to their projection (Gonzaga) 
 
 
 ### 3. Optimization
-Finally, you can apply your scoring to get finishes for each bracket compared to the others, along with mean-points scored for each bracket. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
+Finally, you can apply your scoring to get finishes for each bracket compared to the others across the simulations, along with mean-points scored for a given bracket across the simulations. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
+
 
 ```{r , echo=T, eval=T , include=T}
 bracket<-brackets[which.max(brackets$Prob90), 1:63]

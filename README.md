@@ -1,5 +1,3 @@
-# March Madness Optimization
-
 This is the full code used for the [Shiny march madness app](https://bracketmath.shinyapps.io/ncaa/). You can run the code yourself to customize more things such as increasing the number of simulations, increasing the bracket pool size, changing the projection model, and more. To run, the order of files is: 1. "simulate" 2. "ownership" 3. "optimize brackets" in that order. Below I explain the methodology. <br /> <br />
 
 ### 1. Projection and Simulation
@@ -11,26 +9,26 @@ head(probs, 20)
 ```
 
     ##                      R1     R2     R3     R4     R5     R6
-    ## 1 Gonzaga        0.9748 0.7802 0.5480 0.3884 0.2380 0.1496
-    ## 1 Villanova      0.9924 0.7720 0.5412 0.3694 0.2288 0.1446
-    ## 1 North Carolina 0.9834 0.7506 0.5394 0.3280 0.2050 0.1058
-    ## 1 Kansas         0.9752 0.7284 0.4792 0.2894 0.1562 0.0858
-    ## 2 Kentucky       0.9590 0.6556 0.4128 0.2346 0.1372 0.0716
-    ## 2 Duke           0.9476 0.6726 0.4074 0.1988 0.0988 0.0532
-    ## 2 Louisville     0.9732 0.6258 0.3712 0.2016 0.1044 0.0506
-    ## 3 Oregon         0.9530 0.6118 0.3132 0.1562 0.0736 0.0328
-    ## 2 Arizona        0.9542 0.5938 0.3628 0.1636 0.0744 0.0314
-    ## 3 Ucla           0.9724 0.5878 0.2706 0.1346 0.0670 0.0308
-    ## 4 West Virginia  0.9108 0.5810 0.2388 0.1292 0.0590 0.0292
-    ## 3 Baylor         0.8718 0.4800 0.2342 0.0956 0.0462 0.0218
-    ## 4 Purdue         0.8024 0.4648 0.2088 0.1010 0.0476 0.0214
-    ## 3 Florida State  0.8886 0.5768 0.2832 0.1184 0.0496 0.0212
-    ## 4 Florida        0.8390 0.4780 0.1828 0.0938 0.0436 0.0200
-    ## 5 Virginia       0.7820 0.4002 0.1522 0.0750 0.0342 0.0150
-    ## 4 Butler         0.8534 0.4998 0.1980 0.0808 0.0342 0.0138
-    ## 10 Wichita State 0.7346 0.2660 0.1336 0.0606 0.0272 0.0120
-    ## 6 Smu            0.7854 0.4160 0.2018 0.0782 0.0308 0.0112
-    ## 5 Iowa State     0.7088 0.3606 0.1482 0.0700 0.0270 0.0098
+    ## 1 Gonzaga        0.9806 0.8524 0.6378 0.4946 0.3310 0.2254
+    ## 1 Villanova      0.9810 0.7342 0.5352 0.3962 0.2186 0.1250
+    ## 1 North Carolina 0.9886 0.8214 0.6274 0.3792 0.2278 0.1190
+    ## 1 Kansas         0.9754 0.7650 0.5116 0.3468 0.1910 0.0940
+    ## 2 Kentucky       0.9650 0.6608 0.4714 0.2668 0.1454 0.0678
+    ## 2 Louisville     0.9522 0.6632 0.4348 0.2178 0.1124 0.0490
+    ## 4 West Virginia  0.8896 0.6620 0.2540 0.1610 0.0892 0.0452
+    ## 2 Duke           0.9588 0.6992 0.4740 0.2062 0.0850 0.0418
+    ## 2 Arizona        0.9498 0.5706 0.3494 0.1086 0.0484 0.0230
+    ## 3 Ucla           0.9630 0.6478 0.2232 0.0946 0.0464 0.0204
+    ## 3 Oregon         0.9260 0.6580 0.2700 0.1024 0.0472 0.0198
+    ## 4 Purdue         0.8068 0.4992 0.2196 0.1152 0.0504 0.0188
+    ## 10 Wichita State 0.7528 0.2742 0.1628 0.0798 0.0412 0.0186
+    ## 4 Florida        0.8342 0.5282 0.1818 0.0978 0.0392 0.0186
+    ## 5 Virginia       0.7638 0.3842 0.1574 0.0952 0.0376 0.0156
+    ## 7 St Marys       0.6622 0.3186 0.2136 0.0812 0.0314 0.0124
+    ## 3 Florida State  0.8700 0.5936 0.2734 0.0796 0.0306 0.0120
+    ## 4 Butler         0.8416 0.5612 0.1992 0.0760 0.0296 0.0116
+    ## 5 Iowa State     0.7298 0.3806 0.1666 0.0864 0.0330 0.0112
+    ## 3 Baylor         0.8724 0.4982 0.2062 0.0634 0.0230 0.0088
 
 Above are the probabilities of teams reaching each round for 2017, 5000 simulations <br /> <br />
 
@@ -43,32 +41,32 @@ head(ownership, 20)
 ```
 
     ##                      R1     R2     R3     R4     R5     R6
-    ## 1 North Carolina 0.9846 0.9492 0.8360 0.4312 0.2714 0.1596
-    ## 2 Duke           0.9868 0.9370 0.7672 0.4146 0.2628 0.1276
-    ## 1 Villanova      0.9850 0.9114 0.7896 0.4214 0.2536 0.1194
-    ## 1 Kansas         0.9864 0.9186 0.7800 0.5200 0.2174 0.1140
-    ## 3 Ucla           0.9758 0.8586 0.4618 0.2474 0.1544 0.0828
-    ## 1 Gonzaga        0.9820 0.9122 0.6570 0.3734 0.1618 0.0820
-    ## 2 Kentucky       0.9786 0.8542 0.4354 0.2214 0.1364 0.0716
-    ## 2 Arizona        0.9848 0.9078 0.7346 0.3808 0.1556 0.0642
-    ## 2 Louisville     0.9746 0.7122 0.4730 0.1764 0.0588 0.0286
-    ## 3 Oregon         0.9652 0.7604 0.2956 0.1130 0.0368 0.0150
-    ## 7 Michigan       0.7848 0.2414 0.1528 0.0560 0.0246 0.0118
-    ## 4 West Virginia  0.9082 0.4758 0.1452 0.0640 0.0228 0.0082
-    ## 3 Baylor         0.9148 0.5470 0.1088 0.0404 0.0186 0.0070
-    ## 3 Florida State  0.8680 0.6016 0.1360 0.0562 0.0168 0.0070
-    ## 5 Notre Dame     0.8552 0.4406 0.1302 0.0512 0.0178 0.0064
-    ## 4 Butler         0.9242 0.6148 0.0810 0.0246 0.0134 0.0060
-    ## 4 Florida        0.8760 0.4864 0.0692 0.0254 0.0126 0.0058
-    ## 5 Iowa State     0.8354 0.4294 0.0764 0.0376 0.0116 0.0056
-    ## 4 Purdue         0.8766 0.4686 0.0708 0.0358 0.0118 0.0054
-    ## 10 Wichita State 0.6624 0.1012 0.0370 0.0150 0.0068 0.0044
+    ## 1 North Carolina 0.9834 0.9490 0.8342 0.4366 0.2742 0.1442
+    ## 1 Villanova      0.9890 0.9162 0.7964 0.4300 0.2618 0.1322
+    ## 2 Duke           0.9882 0.9390 0.7716 0.4112 0.2572 0.1166
+    ## 1 Kansas         0.9856 0.9144 0.7836 0.5244 0.2166 0.1076
+    ## 1 Gonzaga        0.9834 0.9134 0.6588 0.3740 0.1640 0.0866
+    ## 3 Ucla           0.9776 0.8614 0.4660 0.2550 0.1620 0.0860
+    ## 2 Kentucky       0.9762 0.8450 0.4394 0.2206 0.1392 0.0730
+    ## 2 Arizona        0.9828 0.9002 0.7260 0.3874 0.1508 0.0674
+    ## 2 Louisville     0.9746 0.7128 0.4724 0.1726 0.0540 0.0282
+    ## 3 Oregon         0.9600 0.7596 0.3014 0.1078 0.0334 0.0184
+    ## 4 West Virginia  0.9190 0.4636 0.1282 0.0574 0.0216 0.0112
+    ## 7 Michigan       0.7766 0.2364 0.1404 0.0524 0.0190 0.0102
+    ## 3 Baylor         0.9182 0.5308 0.1106 0.0354 0.0176 0.0086
+    ## 5 Notre Dame     0.8668 0.4660 0.1446 0.0548 0.0172 0.0072
+    ## 5 Virginia       0.8228 0.4166 0.0610 0.0264 0.0144 0.0068
+    ## 3 Florida State  0.8702 0.5906 0.1352 0.0508 0.0138 0.0068
+    ## 4 Florida        0.8744 0.4714 0.0690 0.0270 0.0150 0.0060
+    ## 4 Purdue         0.8774 0.4652 0.0660 0.0372 0.0144 0.0058
+    ## 4 Butler         0.9308 0.6336 0.0846 0.0228 0.0122 0.0052
+    ## 8 Wisconsin      0.6848 0.0568 0.0420 0.0182 0.0112 0.0052
 
-Above are the ownership percentages by round for the pool of brackets, 5000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections (Duke, UNC), while others seem to be undervalued in the pool relative to their projection (Gonzaga) <br /> <br />
+Above are the ownership percentages by round for the pool of brackets, 5000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections (Duke, UNC), while others seem to be undervalued in the pool relative to their projection (Gonzaga)
 
 ### 3. Optimization
 
-Finally, you can apply your scoring to get finishes for each bracket compared to the others, along with mean-points scored for each bracket. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
+Finally, you can apply your scoring to get finishes for each bracket compared to the others across the simulations, along with mean-points scored for a given bracket across the simulations. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
 
 ``` r
 bracket<-brackets[which.max(brackets$Prob90), 1:63]
