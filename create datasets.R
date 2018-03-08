@@ -391,6 +391,7 @@ fulldf<-merge(fulldf, OPP_means, by.x=c("OPP", "Rank_DATE", "Season"), by.y = c(
 sources<- c("MAS", "SAG", "POM", "MOR", "CMP", "PGH", "RTP","BPI",
             "WIL", "WLK", "TPR", "NOL", "PIG", "DOL",  "70T",
             "DII", "DOK", "RT",  "BIH", "KPK")
+sources<-unique(Massey_All$Source[Massey_All$Season==2017])
 test<-Massey_All[ Massey_All$Source%in%sources,c("TeamID", "Source", "DATE", "Rank", "Season") ]
 
 test<-reshape(test, timevar = c("Source"), idvar = c("DATE", "Season", "TeamID"), direction = "wide")
@@ -593,15 +594,19 @@ colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")]<-
 fulldf<-merge(fulldf, OPP_Rank, by.x=c("OPP_Full","Season"), by.y=c("Team_Full", "Season"), all.x=T)
 
 
-fulldf<-fulldf[, !grepl("[.]TR", colnames(fulldf))]
+
+fulldf<-fulldf[, !colnames(fulldf)%in% c("Rank.TR", "OPP.TR", "Score.TR", "OPPScore.TR")]
 fulldf<-merge(fulldf, TR_Rank, by.x=c("Team_Full","Rank_DATE"), by.y=c("Team_Full", "DATE"), all.x=T)
 OPP_Rank<-TR_Rank
-colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "DATE")]<-
-  paste( "OPP", colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "DATE")], sep="")
+colnames(OPP_Rank)[c(1, 3)]<-c("OPP.TR", "OPPScore.TR")
 fulldf<-merge(fulldf, OPP_Rank, by.x=c("OPP_Full","Rank_DATE"), by.y=c("Team_Full", "DATE"), all.x=T)
 
 
-fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2015& fulldf$Tournament==1, ]
+fulldf$Teamloc_num<-ifelse(fulldf$Teamloc=="H", 1, ifelse(fulldf$Teamloc=="N", 0, -1))
+fulldf$OPPloc_num<-ifelse(fulldf$Teamloc=="H", -1, ifelse(fulldf$Teamloc=="N", 0, 1))
+
+
+fulldf[fulldf$Team_Full=='North Carolina'& fulldf$Season==2017& fulldf$Tournament==1, ]
 
 
 save(list=ls()[ls()%in% c("fulldf", "KenPom", "SAG_Rank", "TR_Rank", "Massey_All", "Massey_means","oddsDF", "id_df", "march538", #projections data

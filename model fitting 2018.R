@@ -1,14 +1,32 @@
 # load("game data.RData")
 # year<-2014
 # source("functions.R")
-fulldf$meanRank_alt<-rowMeans(fulldf[, c("Rank.POM", "Rank.MOR","Rank.SAG" )], na.rm=T)
-fulldf$OPPmeanRank_alt<-rowMeans(fulldf[, c("OPP.POM", "OPP.MOR","OPP.SAG" )], na.rm=T)
-fulldf$Teamloc_num<-ifelse(fulldf$Teamloc=="H", 1, ifelse(fulldf$Teamloc=="N", 0, -1))
-fulldf$OPPloc_num<-ifelse(fulldf$Teamloc=="H", -1, ifelse(fulldf$Teamloc=="N", 0, 1))
+
+
+###PREPROCESS#####
+
+
+#inspect correlations
+bool<-fulldf$Season==2017& !is.na(fulldf$Rank.DOK)
+cors<-sapply(sources, function(x) cor(fulldf$Win[bool], 
+                                      fulldf[bool, paste0("Rank.", x)]-fulldf[bool, paste0("OPP.", x)], use="pairwise.complete.obs"))
+mor<-sapply(sources, function(x) cor(fulldf$Rank.MOR[bool],    fulldf[bool, paste0("Rank.", x)], use="pairwise.complete.obs"))
+all<-data.frame(Cor=cors, Mor=mor)
+all[order(all$Cor, decreasing = F), ]
+#DOK,TRP, JNG, SEL, MCL, RTP, RPI, 7OT, LOG
+summary(fulldf$Rank.TRP[bool])
+
+
+#DOK,TRP, JNG, SEL, MCL, RTP, RPI, 7OT, LOG
+#DOK,TRP, JNG, SEL, MCL, RTP, RPI, 7OT, LOG
+
+fulldf$meanRank_alt<-rowMeans(fulldf[, c("Rank.DOK", "Rank.SEL", "Rank.7OT", "Rank.LOG", "Rank.TRP", "Rank.YAG" )], na.rm=T)
+fulldf$OPPmeanRank_alt<-rowMeans(fulldf[, c("OPP.DOK", "OPP.SEL", "OPP.7OT", "OPP.LOG",  "OPP.TRP", "OPP.YAG" )], na.rm=T)
 fulldf$Fav<-ifelse(fulldf$Rank.POM<fulldf$OPP.POM, fulldf$Team, fulldf$OPP ) #if team is not favorite
 fulldf$Under<-ifelse(fulldf$Rank.POM<fulldf$OPP.POM, fulldf$OPP, fulldf$Team ) #if team is not favorite
 
-cor(fulldf$Win, fulldf[, grepl("Rank[.]|med|min|max|mean", colnames(fulldf))], use="pairwise.complete.obs")
+cor(fulldf$Score.TR[!is.na(rowSums(fulldf[, c("Rank.MOR", "Score.TR","Rank.PGH")]))], 
+    fulldf[!is.na(rowSums(fulldf[, c("Rank.MOR", "Score.TR","Rank.PGH")])), grepl("Rank[.]|med|min|max|mean", colnames(fulldf))], use="pairwise.complete.obs")
 
 
 table(fulldf$Season, fulldf$Tournament)
@@ -26,8 +44,11 @@ scores2prob <- function(margin){
   probs
 }
 
+###MODEL FITTING#####
 
-###model 1####
+
+
+###model 1##
 fit<-glm(Win_factor~Spread
          ,  data=train, family="binomial");summary(fit)
 test$predWin<-predict(fit, newdata=test, type="response")# type="prob")[, 2]
@@ -35,7 +56,7 @@ train$predWin<-predict(fit, newdata=train, type="response")#,type="prob")[, 2]
 logLoss(train$Win, train$predWin)
 
 ###model 2###
-fit2<-glm(Win_factor~Spread,
+fit2<-glm(Win_factor~Spread, #+I(sign(Spread)*sqrt(abs(Spread)))
           family="binomial",
           data=train);summary(fit2)
 test$predWin2<-predict(fit2, newdata=test, type="response")
@@ -51,15 +72,15 @@ cor(test$predWin[test$Tournament==1], test$predWin2[test$Tournament==1], use = "
 
 
 #model 3##
-fit3<-glm(Win_factor~I((Score.TR-OPPScore.TR))+I((Rank.MOR-OPP.MOR))+I(Dist^.25-OPPDist^.25),
+fit3<-glm(Win_factor~I((Score.TR-OPPScore.TR))+I(Rank.MOR-OPP.MOR)++I(Dist^.25-OPPDist^.25),
           data=train, family="binomial");summary(fit3)
 train$predWin3<-predict(fit3, newdata=train, type="response")
 test$predWin3<-predict(fit3, newdata=test, type="response")
 
 
 
-##model 4####
-fit4<-glm(Win_factor~I(log(Rank.SAG/OPP.SAG))+I((Rank.MOR-OPP.MOR))+I(Dist^.25-OPPDist^.25),
+##model 4##
+fit4<-glm(Win_factor~I(log(meanRank_alt/OPPmeanRank_alt))++I((Rank.MOR-OPP.MOR))+I(Dist^.25-OPPDist^.25),
           family="binomial", data=train);summary(fit4)
 test$predWin4<-predict(fit4, newdata=test, type="response")
 train$predWin4<-predict(fit4, newdata=train, type="response")
@@ -68,7 +89,7 @@ logLoss(test$Win, test$predWin4)
 
 logLoss(test$Win, test$predWin3)
 logLoss(test$Win, test$predWin4)
-# cor(train$predWin3[train$Tournament==1], train$predWin4[train$Tournament==1], use = "pairwise.complete.obs")
+cor(train$predWin3[train$Tournament==1], train$predWin4[train$Tournament==1], use = "pairwise.complete.obs")
 cor(train$Win[!is.na(train$predWin3) & !is.na(train$predWin4)], train$predWin3[!is.na(train$predWin3) & !is.na(train$predWin4)])
 
 
@@ -103,6 +124,9 @@ test$Pred3<-ifelse(test$Round>=6, test$Win,  test$Pred)
 logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred3[test$Round>=1& test$Team<test$OPP])
 table(test$Round)
 
+test$Pred4<-ifelse(test$Round==5& grepl("Y|Z", test$Slot), test$Win,  test$Pred)
+logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred4[test$Round>=1& test$Team<test$OPP])
+
 
 ######write predictions########
 dates<-unique(fulldf$DATE[which(fulldf$Round<=1)])
@@ -125,7 +149,7 @@ if(year==2017){
   samplesubmission$Id<-apply(samplesubmission[, c("Season", "Team", "OPP")], 1, paste, sep="", collapse="_")
 }
 
-###create test-set for prediction######
+###create test-set for prediction###
 
 odds2<-oddsDF[oddsDF$DATE%in% dates & as.numeric(substring(as.character(oddsDF$DATE), 1, 4))==year, ] #first round games
 odds2$TeamID<-id_df$TeamID[match(odds2$Team, id_df$Team_Full)]

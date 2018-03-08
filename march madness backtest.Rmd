@@ -43,7 +43,7 @@ groupedLine<-function(test, title="Cumulative Profit"){
 }
 ```
 
-### Testing Parameter Combos:
+##Testing Parameter Combos:
 
 I'm using 500 simulations-500 brackets for this and am testing it over 8 seasons, 2010-2017. I use the simulations and brackets to choose the optimal brackets and then I look at the profit and ROI using the actual results for the given year. **The first thing I do is look at performance of different parameter combos of the app.**
 
@@ -76,7 +76,7 @@ groupedLine(test, title="Cumulative Profit, 90th-percentile parameter")
 
 As you can see in the above plots, the brackets from the 90th-percentile-parameter do best, and diversifying even has you winning in 7/8 years.
 
-###Testing Payout Structures:
+##Testing Payout Structures:
 
  **My next question is: is the better ROI for the 90th-percentile-parameter a function of the optimization algorithm or a function of the payout structure?** Meaning, is it doing better because it is giving you better brackets or because the payout structure is less top heavy? To test this hypothesis I use the same algorithm output but I re-calculate ROI using a medium-pool 20-man payout. Below I repeat the same pots, but calculate all payouts using the medium 20-man pool scoring as the scoring for all the parameters:
 
@@ -131,7 +131,7 @@ groupedLine(test, title="Cumulative Profit, 90th-percentile parameter")
 
 ##Conclusion:
 
-Overall, a system should give you good results and also have good median results. In finance, they have things like Sharpe ratio to measure the trade-off of risk and returns. However, just by looking at the plots, it seems the best thing to do is to **use .9 optimization percentile and to multi-enter. This is true regardless of your actual pool size. If you have a choice,it's best to enter small pools (<=20 people)**. With pools of this size you are giving yourself a really good shot of winning.Ideally, you have a lot of friends and can divide them into different groups without them knowing. That way you can put a different bracket in each group. Or, make a pool that allows for multi-entry. While the largest pools may give the most profit over time, it's better to enter smaller pools to reduce your risk of losing. All of this has been for 1-2-4-8-16-32 scoring. I also assume brackets cannot finish in the same place i.e. you are multi-entering the same pool. Because the optimized brackets are so uncorrelated this assumption doesn't really matter. In a future post I will examine different scoring systems in addition to testing sensitivity of this analysis to a different projections system. You can replicate my analysis by manually running the app or by downloading my code from github.
+Overall, a system should give you good results and also have good median results. In finance, they have things like Sharpe ratio to measure the trade-off of risk and returns. However, just by looking at the plots, it seems the best thing to do is to **use .9 optimization percentile and to multi-enter. This is true regardless of your actual pool size. If you have a choice,it's best to enter small pools (<=20 people)**. With pools of this size you are giving yourself a really good shot of winning.Ideally, you have a lot of friends and can divide them into different groups without them knowing. That way you can put a different bracket in each group. Or, make a pool that allows for multi-entry. While the largest pools may give the most profit over time, it's better to enter smaller pools to reduce your risk of losing. All of this has been for 1-2-4-8-16-32 scoring. I also assume brackets cannot finish in the same place i.e. you are multi-entering the same pool. Because the optimized brackets are so uncorrelated this assumption doesn't really matter. In a future post I will examine different scoring systems in addition to testing sensitivity of this analysis to a different projections system. You can replicate my analysis by manually running the [app](https://bracketmath.shinyapps.io/ncaa/) or by downloading my code from [github](https://github.com/dlm1223/march-madness/blob/master/algorithm%20analyze.R).
 
 
 
