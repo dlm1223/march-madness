@@ -5,7 +5,6 @@
 
 ###PREPROCESS#####
 
-
 #inspect correlations
 bool<-fulldf$Season==2017& !is.na(fulldf$Rank.DOK)
 cors<-sapply(sources, function(x) cor(fulldf$Win[bool], 
@@ -159,8 +158,12 @@ samplesubmission<-merge(samplesubmission, odds2[,c("TeamID", "OPPID", "Spread")]
 
 fulldf<-fulldf[order(fulldf$DATE, decreasing = F), ]
 team_stats<-ddply(fulldf[fulldf$Tournament==1, ], .(Team,Team_Full, Season), summarize,
-                  meanRank=meanRank[1],meanRank_alt=meanRank_alt[1],Score.SAG.pre=Score.SAG.pre[1],
-                  Rank.POM=Rank.POM[1],Rank.MOR=Rank.MOR[1], Rank.SAG=Rank.SAG[1], Score.TR=Score.TR[1],
+                  meanRank=meanRank[1],meanRank_alt=meanRank_alt[1],
+                  Score.SAG.pre=Score.SAG.pre[1],
+                   Rank.POM=Rank.POM[1],
+                  Rank.MOR=Rank.MOR[1],
+                  Rank.SAG=Rank.SAG[1], 
+                  Score.TR=Score.TR[1],
                   Teamloc="N", TeamSeed=TeamSeed[1], TeamSeed_num=TeamSeed_num[1], 
                   TeamOwnership_R3=TeamOwnership_R3[1])
 
