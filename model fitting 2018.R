@@ -33,8 +33,7 @@ table(fulldf$Season[!is.na(fulldf$Spread)], fulldf$Tournament[!is.na(fulldf$Spre
 
 test<-fulldf[which(fulldf$Tournament==1 & fulldf$Season%in%year& fulldf$Team<fulldf$OPP), ]
 
-train<-fulldf[which((fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Season==min(year))) &# fulldf$Team==fulldf$Fav&
-                !is.na(rowSums(fulldf[, c("OPP.POM", "Rank.POM", "Spread")]))), ]
+train<-fulldf[which((fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Season==min(year)))), ]
 
 summary(glm(Win_factor~TeamscoreMARGIN, data=train, family="binomial"))
 scores2prob <- function(margin){

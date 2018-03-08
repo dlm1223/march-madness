@@ -34,8 +34,7 @@ table(fulldf$Season[!is.na(fulldf$Spread)], fulldf$Tournament[!is.na(fulldf$Spre
 
 test<-fulldf[which(fulldf$Tournament==1 & fulldf$Season%in%year& fulldf$Team<fulldf$OPP), ]
 
-train<-fulldf[which((fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Season==min(year))) &# fulldf$Team==fulldf$Fav&
-                      !is.na(rowSums(fulldf[, c("OPP.POM", "Rank.POM", "Spread")]))), ]
+train<-fulldf[which((fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Season==min(year)))), ]
 
 summary(glm(Win_factor~TeamscoreMARGIN, data=train, family="binomial"))
 scores2prob <- function(margin){
@@ -221,7 +220,7 @@ head(samplesubmission[, 1:10], 20)
 seed.lm.submission <- data.frame(id=samplesubmission$Id, pred=samplesubmission$Pred)
 head(seed.lm.submission)
 
-# write.csv(seed.lm.submission, file=paste0(year, "/Kaggle Submission v2.csv"), row.names=FALSE)
+write.csv(seed.lm.submission, file=paste0(year, "/Kaggle Submission v2.csv"), row.names=FALSE)
 
 
 
