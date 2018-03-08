@@ -12,6 +12,7 @@ I made an [app](https://bracketmath.shinyapps.io/ncaa/) to optimize March Madnes
 
 
 ```{r , echo=F, eval=T , include=F}
+wd<-getwd()
 load("backtest results.Rda")
 library(plyr);library(dplyr);library(ggplot2);library(ggrepel)
 

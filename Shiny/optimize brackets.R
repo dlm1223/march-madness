@@ -1,5 +1,5 @@
 #year<-2017;setwd(paste0(projDir, "/2017/"));load("alldata.RData");load("BracketResults_FullTournament.Rda")
-#year<-2016;setwd(paste0(projDir, "/2016/"));load("alldata.RData");load("BracketResults_FullTournament.Rda")
+#year<-2012;setwd(paste0(projDir, "/2012/"));load("alldata.RData");load("BracketResults_500sims.Rda")
 
 # percentile<-.9;numBrackets<-1
 
