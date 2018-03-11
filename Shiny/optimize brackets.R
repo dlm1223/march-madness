@@ -54,7 +54,7 @@ if(optmode=="RCplex"){
 }else if (optmode=="Rsymphony"){
   model$sense[model$sense=="="]<-"=="
   result<-Rsymphony_solve_LP(max=T, obj=model$obj, mat=A[1:(q-1),], types=rep("B",ncol(A)),
-                             rhs=model$rhs, dir = model$sense, time_limit = 10, gap_limit = .01 )
+                             rhs=model$rhs, dir = model$sense, time_limit = 20, gap_limit = .02 )
   result$x<-result$solution
   
 }
