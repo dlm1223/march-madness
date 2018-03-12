@@ -4,18 +4,18 @@
 #then run optimize brackets file where you can optimize brackets
 
 # year<-2012
-# sims<-500
-# name<-"TourneySims_500sims.Rda"
+sims<-500
+name<-"TourneySims_500sims.Rda"
 
-backtest<-T
-playInTbd<-F
 # 
 # setwd("~/Kaggle/NCAA/march-madness") #comment this out
 # projDir<-getwd()
-# 
+backtest<-ifelse(year==2018, F, T)
+playInTbd<-ifelse(year==2018, T, F)
+
 load("data/game data.RData")
 source("functions.R")
-source("model fitting v2 2018.R")
+source("model fitting 2018.R")
 setwd(paste0(c( year, "/"), sep="", collapse=""))
 list.files()
 getwd()

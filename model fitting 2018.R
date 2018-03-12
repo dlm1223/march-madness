@@ -1,5 +1,5 @@
 # load("game data.RData")
-# year<-2014
+# year<-2018
 # source("functions.R")
 
 
@@ -117,24 +117,35 @@ logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred[test$Round>=1& te
 
 # test$Pred2<-ifelse(abs(test$OPPSeed_num-test$TeamSeed_num)==16, round(test$Pred), test$Pred)
 # logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred2[test$Round>=1& test$Team<test$OPP])
+table(test$Round)
 
 test$Pred3<-ifelse(test$Round>=6, test$Win,  test$Pred)
 logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred3[test$Round>=1& test$Team<test$OPP])
-table(test$Round)
+
+test$Pred4<-ifelse(test$Round==5& grepl("W|X", test$Slot), test$Win,  test$Pred)
+logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred4[test$Round>=1& test$Team<test$OPP])
 
 test$Pred4<-ifelse(test$Round==5& grepl("Y|Z", test$Slot), test$Win,  test$Pred)
 logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred4[test$Round>=1& test$Team<test$OPP])
 
+test$Pred5<-test$Pred
+test$Pred5[which(test$Round==1)][which.min(abs(.5-test$Pred[test$Round==1]))]<-
+  test$Win[which(test$Round==1)][which.min(abs(.5-test$Pred[test$Round==1]))]
+logLoss(test$Win[test$Round>=1& test$Team<test$OPP], test$Pred5[test$Round>=1& test$Team<test$OPP])
+
 
 ######write predictions########
 dates<-unique(fulldf$DATE[which(fulldf$Round<=1)])
+dates<-c(dates, seq(as.Date("2018-03-13"), as.Date("2018-03-16"), 1))
 dates<-dates[order(dates)]
 
-if(year==2017){
+if(year==2018){
   samplesubmission<-read.csv("data/SampleSubmission.csv")
-  samplesubmission$Team<-as.numeric(sapply(strsplit(samplesubmission$Id, "_"), `[[`, 2))
-  samplesubmission$OPP<-as.numeric(sapply(strsplit(samplesubmission$Id, "_"), `[[`, 3))
-  samplesubmission$Season<-as.numeric(sapply(strsplit(samplesubmission$Id, "_"), `[[`,1))
+  samplesubmission$Team<-as.numeric(sapply(strsplit(samplesubmission$ID, "_"), `[[`, 2))
+  samplesubmission$OPP<-as.numeric(sapply(strsplit(samplesubmission$ID, "_"), `[[`, 3))
+  samplesubmission$Season<-as.numeric(sapply(strsplit(samplesubmission$ID, "_"), `[[`,1))
+  colnames(samplesubmission)<-gsub("ID", "Id", colnames(samplesubmission))
+  
   
 } else{
   bool<-fulldf$Season==year& fulldf$Tournament==1
@@ -145,6 +156,8 @@ if(year==2017){
                                Season=year)
   samplesubmission<-samplesubmission[samplesubmission$Team<samplesubmission$OPP, ]
   samplesubmission$Id<-apply(samplesubmission[, c("Season", "Team", "OPP")], 1, paste, sep="", collapse="_")
+  
+  
 }
 
 ###create test-set for prediction###
@@ -156,7 +169,7 @@ samplesubmission<-merge(samplesubmission, odds2[,c("TeamID", "OPPID", "Spread")]
                         by.x=c("Team", "OPP"), by.y=c("TeamID", "OPPID"), all.x=T  )
 
 fulldf<-fulldf[order(fulldf$DATE, decreasing = F), ]
-team_stats<-ddply(fulldf[fulldf$Tournament==1, ], .(Team,Team_Full, Season), summarize,
+team_stats<-ddply(fulldf[which(fulldf$Season==year& (fulldf$Tournament==1| is.na(fulldf$Tournament))), ], .(Team,Team_Full, Season), summarize,
                   meanRank=meanRank[1],meanRank_alt=meanRank_alt[1],
                   Score.SAG.pre=Score.SAG.pre[1],
                    Rank.POM=Rank.POM[1],
@@ -189,11 +202,13 @@ samplesubmission<-merge(samplesubmission, TeamGeog[, c("team_id", "TeamLat", "Te
 samplesubmission$Dist<-NA
 samplesubmission$Dist[!is.na(samplesubmission$Lat)]<-distHaversine(samplesubmission[!is.na(samplesubmission$Lat), c( "Lng", "Lat")], samplesubmission[!is.na(samplesubmission$Lat), c( "TeamLng", "TeamLat")])/1000
 
+
 #opponent distance
 oppDist<- TeamGeog[, c("team_id", "TeamLat", "TeamLng")]
 colnames(oppDist)[colnames(oppDist)%in% c("TeamLat", "TeamLng")]<-c("OPPLat", "OPPLng")
 samplesubmission<-merge(samplesubmission, oppDist, by.x="OPP", by.y="team_id", all.x=T)
 samplesubmission$OPPDist[!is.na(samplesubmission$OPPLat)]<-distHaversine(samplesubmission[!is.na(samplesubmission$OPPLat), c( "Lng", "Lat")], samplesubmission[!is.na(samplesubmission$Lat), c( "OPPLng", "OPPLat")])/1000
+
 
 ###predictions####
 

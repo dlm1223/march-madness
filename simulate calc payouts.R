@@ -81,9 +81,9 @@ brackets<-cbind(brackets, all)
 
 ###ANALYZE RESULTS#####
 
-hist(as.numeric(brackets[45, 65:ncol(brackets)]))
+hist(as.numeric(brackets[45,grepl("Sim", colnames(brackets))]))
 brackets<-brackets[, !grepl("Percentile|Prob", colnames(brackets))]
-for(i in 1:(numSims+1) ){
+for(i in 1:(numSims+backtest) ){
   brackets[, paste0("Percentile", i)]<-ecdf(brackets[, paste0("Sim", i)])(brackets[,  paste0("Sim", i)])
 }
 if(backtest==T){

@@ -31,7 +31,6 @@ function(input, output, session) {
   # current_input <- reactiveValues(current=list(r1=)
   
   brackets<-eventReactive(input$apply_scoring,ignoreNULL = F, {
-    # setwd(paste0(c("~/Shiny/NCAA/", input$year, "/"), sep="", collapse=""))
     if(input$r1!=10| input$r2!=20| input$r3!=40| input$r4!=80 | input$r5!=160| input$r6!=320|
        input$upset1_mult!=1| input$upset2_mult!=1| input$upset3_mult!=1|
        input$r1_seed_mult!=0| input$r2_seed_mult!=0| input$r3_seed_mult!=0|
@@ -58,31 +57,39 @@ function(input, output, session) {
   optimization <- eventReactive( input$refreshInputs, {
     brackets<-brackets()
     
-    
     percentile<-input$percentile
     numBrackets<-input$numBrackets
+    year<-input$year
+    backtest<-ifelse(year==2018, F,T)
     
     source("optimize brackets.R", local=T )
-    list(brackets=brackets, percentiles=percentiles, result=result)
+    list(brackets=brackets, percentiles=percentiles, result=result, year=year, backtest=backtest)
     
   })
+  
+  
+  
   
   output$summary <- renderTable({
     
     # withProgress(message="Calculating",value=0.5, {
     optimization <- optimization()
     
-    # })
     
     brackets<-optimization$brackets
     percentiles<-optimization$percentiles
     result<-optimization$result
     percentile<-isolate(input$percentile)
+    backtest<-optimization$backtest
     
     cols<- grepl("R4|R5|R6|_Actual", colnames(brackets)) | colnames(brackets)%in% paste("Prob", percentile*100, sep="", collapse="")
     col<-colnames(brackets)[grepl("Percentile", colnames(brackets)) & grepl("Actual", colnames(brackets))]
+    if(backtest==F){
+      col<- colnames(brackets)%in% paste("Prob", percentile*100, sep="", collapse="")
+    }
     
     test<-brackets[which(result$x[1:ncol(percentiles)]==1),cols][ order(brackets[which(result$x[1:ncol(percentiles)]==1), col], decreasing = T),]
+    
     colnames(test)<-gsub("501|1001", "", colnames(test))
     colnames(test)[colnames(test)=="Sim_Actual"]<-"Score_Actual"
     test
@@ -104,11 +111,14 @@ function(input, output, session) {
     brackets<-optimization$brackets
     percentiles<-optimization$percentiles
     result<-optimization$result
-    top<-max(brackets[which(result$x[1:ncol(percentiles)]==1), grepl("Percentile", colnames(brackets)) & grepl("Actual", colnames(brackets))])
-    ret<-top>=isolate(input$percentile)
+    year<-optimization$year
     
-    if((input$year)==2018){
-      ret<-""
+    
+    if((year)==2018){
+      ret<-"TBD"
+    } else{
+      top<-max(brackets[which(result$x[1:ncol(percentiles)]==1), grepl("Percentile", colnames(brackets)) & grepl("Actual", colnames(brackets))])
+      ret<-top>=isolate(input$percentile)
     }
     paste0(c("Success? " ,ret), sep="", collapse="")
     
@@ -117,7 +127,7 @@ function(input, output, session) {
   
   output$table1 <- renderTable({
     optimization <- optimization()
-    year<-isolate(input$year)
+    year<-optimization$year
     load(paste0(c( year, "/alldata.RData"), sep="", collapse=""))
     load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
     numSims<-max(tourneySims$Sim)-backtest
@@ -146,9 +156,10 @@ function(input, output, session) {
     brackets<-optimization$brackets
     percentiles<-optimization$percentiles
     result<-optimization$result
+    year<-optimization$year
+    
     bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
     
-    year<-isolate(input$year)
     load(paste0(c( year, "/alldata.RData"), sep="", collapse=""))
     
     numSims<-sum(bool)
@@ -171,6 +182,9 @@ function(input, output, session) {
   })
   
   
+  
+  
+  
   ##https://stackoverflow.com/questions/32012893/shiny-app-run-code-to-generate-a-pdf-then-offer-that-pdf-to-user-for-download
 
   output$downloadBrackets <- downloadHandler(
@@ -186,7 +200,7 @@ function(input, output, session) {
       brackets<-optimization$brackets
       percentiles<-optimization$percentiles
       result<-optimization$result
-      year<-isolate(input$year)
+      year<-optimization$year
       load(paste0(c( year, "/alldata.RData"), sep="", collapse=""))
       load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
       

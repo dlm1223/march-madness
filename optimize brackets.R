@@ -9,6 +9,7 @@
 
 #choose x lineups that give you maximum 
 optmode<-"Rsymphony"
+library(Rsymphony)
 
 #each row is a simulation, each column is a lineup. goal:maximize sum of 
 percentiles<-brackets[, grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))]

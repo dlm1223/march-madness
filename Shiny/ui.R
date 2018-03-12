@@ -35,8 +35,8 @@ navbarPage("March Madness Optimization",
                         h3("Tournament Year:"),
                         selectInput("year", "", 
                                     # value=2017,
-                                    selected=2017,width = "20%",
-                                    choices=2012:2017)
+                                    selected=2018,width = "20%",
+                                    choices=2012:2018)
                       )),
                     
                     hr(),
@@ -130,8 +130,14 @@ navbarPage("March Madness Optimization",
                     )
                     
            ),
-           
-           
+           # tabPanel("Custom Bracket",
+           #          h5("Fill out a custom bracket and click calculate to get percentiles based on inputted scoring")
+           #          # fluidRow(
+           #          #   column(3,
+           #          #          h3("Scoring:"),
+           #          #          numericInput("r1", "Round 1:",   value=10, min=0, width="30%"),
+           #          #          
+           #          ),
            tabPanel("About",
                     tags$div(
                       tags$p(),

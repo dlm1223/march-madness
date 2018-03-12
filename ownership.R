@@ -9,9 +9,7 @@
 ###organize ownership data, check names********************
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
 
-setdiff(fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1], whoPicked$Team) #teams missing from whoPicked
 
-setdiff( whoPicked$Team, fulldf$Team_Full[fulldf$Season==year & fulldf$Tournament==1])
 
 #play-in games--some of the ownership data years don't have playin updated so have to impute winner if playInTBD=F
 if(year==2017){
@@ -23,7 +21,7 @@ if(year==2017){
     whoPicked$Team[whoPicked$Team=="North Carolina / Ud"]<-"Uc Davis"
   }
 }
-  
+
 
 #prepare dataframe to be used for ownership-create-breackets
 analyze<-TourneyRounds[grepl("R", TourneyRounds$Slot) & TourneyRounds$Season==year,]
@@ -38,6 +36,11 @@ analyze<-analyze[analyze$Team%in% c(tourneySims$Team[grepl("R1", tourneySims$Slo
 if(playInTbd==T & year==2017){
   analyze$Team_Full[analyze$Team_Full%in% c("Providence", "Usc")]<-"Providence / Usc"
   analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Uc Davis")]<-"North Carolina Central / Uc Davis"
+} else if(playInTbd==T & year==2018){
+  analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+  analyze$Team_Full[analyze$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+  analyze$Team_Full[analyze$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+  analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
 }
 
 setdiff( analyze$Team_Full, whoPicked$Team)
@@ -72,7 +75,8 @@ input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1,
 
 source(paste0(projDir, "/simulate calc payouts.R"))
 
-inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ]
+inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ][1:20,]
+
 
 ###SAVE DATA#####
 
