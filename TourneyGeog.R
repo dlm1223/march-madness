@@ -1,4 +1,4 @@
-test1<-unique(fulldf[!is.na(fulldf$Slot), c("Slot", "Lat", "Lng", "Season")])
+test1<-unique(fulldf[!is.na(fulldf$Slot) & !is.na(fulldf$Lat), c("Slot", "Lat", "Lng", "Season")])
 
 
 slots<-TourneySlots[TourneySlots$Season==2018, ]

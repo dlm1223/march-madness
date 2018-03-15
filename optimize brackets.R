@@ -1,7 +1,7 @@
 #year<-2017;setwd(paste0(projDir, "/2017/"));load("alldata.RData");load("BracketResults_FullTournament.Rda")
 #year<-2016;setwd(paste0(projDir, "/2016/"));load("alldata.RData");load("BracketResults_FullTournament.Rda")
 
-# percentile<-.9;numBrackets<-3
+percentile<-.9;numBrackets<-1
 
 # brackets<-brackets[!duplicated(brackets[, 1:64]), ]
 # head(percentiles)
@@ -55,7 +55,7 @@ if(optmode=="RCplex"){
 }else if (optmode=="Rsymphony"){
   model$sense[model$sense=="="]<-"=="
   result<-Rsymphony_solve_LP(max=T, obj=model$obj, mat=A[1:(q-1),], types=rep("B",ncol(A)),
-                             rhs=model$rhs, dir = model$sense, time_limit = 10, gap_limit = .01 )
+                             rhs=model$rhs, dir = model$sense, time_limit = 20, gap_limit = .01 )
   result$x<-result$solution
   
 }
@@ -70,3 +70,9 @@ brackets[,paste("Prob", percentile*100, sep="", collapse="") ]<-apply(brackets[,
 brackets[which(result$x[1:ncol(percentiles)]==1),c(1:63, which(colnames(brackets)%in% c("Prob95", "Prob97", "Prob90") | grepl("Actual", colnames(brackets))) )]
 
 # brackets[which(result$x[1:ncol(percentiles)]==1),c(1:7, which(result$x[(ncol(percentiles)+1):(ncol(percentiles)+1+numSims)]==1)+7+numSims)]
+pdf(file = "Optimal Brackets.pdf")
+for (i in which(result$x[1:ncol(percentiles)]==1)){
+  plotBracket(bracket = brackets[i, 1:63])  
+}
+dev.off()
+file.copy(from="Optimal Brackets.pdf", to=file)

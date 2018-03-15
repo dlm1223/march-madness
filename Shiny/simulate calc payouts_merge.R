@@ -3,14 +3,6 @@
 #             r1_seed_mult=1, r2_seed_mult=0,r3_seed_mult=0, r4_seed_mult=0,r5_seed_mult=0, r6_seed_mult=0,
 #             r1_seed_bonus=0, r2_seed_bonus=0,r3_seed_bonus=0, r4_seed_bonus=0,r5_seed_bonus=0, r6_seed_bonus=0)
 
-tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
-tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
-tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
-tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
-tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
-tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$TeamID)]
-
-
 tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), input$r1,
                            ifelse(grepl("R2", tourneySims$Slot), input$r2,
                                   ifelse(grepl("R3", tourneySims$Slot),input$r3,
@@ -31,6 +23,7 @@ tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), tourneySims$Payout*(1+
                                                 ifelse(grepl("R5", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r5_seed_mult)),
                                                        ifelse(grepl("R6", tourneySims$Slot), tourneySims$Payout*(1+(tourneySims$team_seed-1)*as.numeric(input$r6_seed_mult)),
                                                               tourneySims$Payout))))))
+# tourneySims$seed_diff<-floor(sapply(tourneySims$team_seed-tourneySims$loser_seed,function(x) max(x, 0)/2))
 
 tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), tourneySims$Payout+tourneySims$team_seed*as.numeric(input$r1_seed_bonus),
                            ifelse(grepl("R2", tourneySims$Slot), tourneySims$Payout+tourneySims$team_seed*as.numeric(input$r2_seed_bonus),

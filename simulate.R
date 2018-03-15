@@ -3,19 +3,20 @@
 #then run ownership file, where you can change numBrackets and file name to save brackets
 #then run optimize brackets file where you can optimize brackets
 
-# year<-2012
-sims<-500
-name<-"TourneySims_500sims.Rda"
+# year<-2018
+# sims<-1000
+# name<-"TourneySims_500sims.Rda"
 
 # 
-# setwd("~/Kaggle/NCAA/march-madness") #comment this out
-# projDir<-getwd()
+setwd("~/Kaggle/NCAA/march-madness") #comment this out
+projDir<-getwd()
 backtest<-ifelse(year==2018, F, T)
-playInTbd<-ifelse(year==2018, T, F)
+playInTbd<-F
 
 load("data/game data.RData")
 source("functions.R")
 source("model fitting 2018.R")
+
 setwd(paste0(c( year, "/"), sep="", collapse=""))
 list.files()
 getwd()
@@ -28,6 +29,10 @@ TourneySlots[TourneySlots$Season==year,]
 
 #handling play-in games, impute actual into simulation prediction iff game has occured
 losing_teams<-fulldf$Team_Full[grepl("a|b", fulldf$TeamSeed)& fulldf$Season==year & fulldf$Tournament==1 & grepl("a|b", fulldf$OPPSeed)& fulldf$Win==0]
+if(year==2018){
+  losing_teams<-c("Ucla", "Long Island", "Arizona State", "North Carolina Central")  #
+}
+
 if(length(losing_teams)>=1){
   samplesubmission$Pred[samplesubmission$Team_Full%in%losing_teams]<-0
   samplesubmission$Pred[samplesubmission$OPP_Full%in%losing_teams]<-1
@@ -133,7 +138,22 @@ if(backtest==T){
 }
 
 tourneySims<-ldply(tourneySims, data.frame)
+tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
+tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
+tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
+tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
+tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
+tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$TeamID)]
 
+if(playInTbd==T & year==2017){
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("Providence", "Usc")]<-"Providence / Usc"
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("North Carolina Central", "Uc Davis")]<-"North Carolina Central / Uc Davis"
+} else if(playInTbd==T & year==2018){
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+}
 
 ######SAVE DATA###########
 save(tourneySims, file=name)

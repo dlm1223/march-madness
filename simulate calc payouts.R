@@ -1,13 +1,5 @@
 ######CALCULATE PAYOUTS###########
 
-tourneySims$team_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Team,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
-tourneySims$loser_seed<-as.numeric(gsub("\\D", "",TourneySeeds$Seed[TourneySeeds$Season==year][match(tourneySims$Loser,TourneySeeds$TeamID[TourneySeeds$Season==year])] ))
-tourneySims$Round<-substr(tourneySims$Slot, 1, 2)
-tourneySims$Round[grepl("W|X|Y|Z", tourneySims$Round)]<-0
-tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
-tourneySims$Team_Full<-id_df$Team_Full[match(tourneySims$Team, id_df$TeamID)]
-
-
 tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), input$r1,
                            ifelse(grepl("R2", tourneySims$Slot), input$r2,
                                   ifelse(grepl("R3", tourneySims$Slot),input$r3,
@@ -36,6 +28,7 @@ prop.table(table(brackets[,"R2W3"]))*100
 numSims<-max(tourneySims$Sim)-backtest
 inspect<-as.data.frame.matrix(table(tourneySims$Team_Full[tourneySims$Sim<=numSims], tourneySims$Round[tourneySims$Sim<=numSims])/numSims) 
 inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ]
+
 
 all<-data.frame(Slot=rep(colnames(brackets)[!grepl("Sim", colnames(brackets))], times=nrow(brackets)), 
                 Team=unlist(lapply(1:nrow(brackets),function(x)brackets[x, !grepl("Sim", colnames(brackets))] )), 

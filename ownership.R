@@ -1,7 +1,4 @@
-#year<-2012;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims_500sims.Rda");
-
-# numBrackets<-500;
-# name<-"BracketResults_FullTournament_500sims.Rda"
+# year<-2018;setwd(projDir);load("data/game data.RData");setwd(as.character(year));load("TourneySims.Rda"); numBrackets<-500;name<-"BracketResults_FullTournament_500sims.Rda"
 
 
 #optional: change bracketresults name as _v2 or _v3 if using different tourneysims version
@@ -41,10 +38,17 @@ if(playInTbd==T & year==2017){
   analyze$Team_Full[analyze$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
   analyze$Team_Full[analyze$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
   analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+  whoPicked$Team[whoPicked$Team%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+  whoPicked$Team[whoPicked$Team%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+  whoPicked$Team[whoPicked$Team%in% c("Long Island", "Radford")]<-"Liu/rad"
+  whoPicked$Team[whoPicked$Team%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
 }
+
 
 setdiff( analyze$Team_Full, whoPicked$Team)
 setdiff( whoPicked$Team, analyze$Team_Full)
+
+
 analyze<-merge(analyze, whoPicked, by.x=c( "Team_Full","Round"), by.y=c("Team", "Round"), all.x=T)
 
 
@@ -54,9 +58,14 @@ whoPicked<-merge(whoPicked, unique(analyze[, c("Team_Full", "Seed")]), by.x=c("T
 whoPicked[is.na(whoPicked$Seed),]
 
 whoPicked<-whoPicked[!duplicated(whoPicked[, c("Team", "Round")]), ] ###play-in games get duplicated
+
 whoPicked[whoPicked$Round=="R6", ][order(whoPicked$Ownership[whoPicked$Round=="R6"], decreasing = T), ]
 setdiff( whoPicked$Team, analyze$Team_Full)
 setdiff( analyze$Team_Full, whoPicked$Team)
+
+analyze<-analyze[analyze$Seed%in% whoPicked$Seed, ]
+
+
 
 
 #go to ownership debug
@@ -82,5 +91,5 @@ inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasi
 
 save(brackets, file=name)
 
-save(list=ls()[ls()%in% c( "backtest", "id_df",   "year", "TourneySeeds", "analyze" )], file="alldata.RData")
+save(list=ls()[ls()%in% c( "backtest", "playInTbd", "id_df",   "year", "TourneySeeds", "analyze" )], file="alldata.RData")
 
