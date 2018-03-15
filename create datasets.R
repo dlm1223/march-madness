@@ -49,17 +49,13 @@ GameGeog<-merge(GameGeog, CitiesEnriched[, c("Lat", "Lng", "CityID", "City","Sta
 
 
 
-
-
 TeamGeog$Team_Full<-id_df$Team_Full[match(TeamGeog$team_id, id_df$TeamID)]
 write.csv(TeamGeog, file="data/TeamGeogEnriched.csv")
 
 ###*MASSEY DATA ******
 #https://www.kaggle.com/masseyratings/rankings/data
-Massey18<-fread("data/MasseyOrdinals_2018.csv")
 
 Massey_All<-fread("data/MasseyOrdinals.csv")
-Massey_All<-rbind(Massey_All, Massey18)
 
 colnames(Massey_All)<-c("Season", "DayNum", "Source", "TeamID", "Rank")
 Massey_All$DayZero<-seasons$DayZero[match(Massey_All$Season, seasons$Season)]
@@ -148,9 +144,23 @@ setdiff(SAG_Rank$Team_Full, id_df$Team_Full)
 head(SAG_Rank)
 
 
+readMOR<-function(year){
+  print(year)
+  mor<-read.csv(paste(c("MOR/",year, ".csv"), collapse=""), header=F)
+  mor<-mor[, c(2, ncol(mor))]
+  colnames(mor)<-c( "Team_Full", "Score.MOR")
+  mor$Season<-year
+  
+  mor
+}
+##clean up columns--put letters in second column into first column
+
+MOR_Rank<-ldply(lapply(c(2005:2017), readMOR), data.frame)
+MOR_Rank$Team_Full<-coordName(MOR_Rank$Team_Full)
+setdiff(MOR_Rank$Team_Full, id_df$Team_Full)
 
 
-getRound<-function(year, round){
+getYahoo<-function(year, round){
   #year<-2012
   if(year==2012){
     data<-read_html(paste0("https://web.archive.org/web/20120316095713/http://tournament.fantasysports.yahoo.com:80/t1/group/all/pickdistribution?round=", round))
@@ -170,7 +180,7 @@ getRound<-function(year, round){
 }
 getYear<-function(year){
   print(year)
-  data.frame(rbindlist(lapply(1:6, function(x) getRound(year, x))))
+  data.frame(rbindlist(lapply(1:6, function(x) getYahoo(year, x))))
 }
 whoPicked_yahoo<-getYear(2012)
 whoPicked_yahoo$Team[whoPicked_yahoo$Team%in% c("Lamar/vermont")]<-"Vermont"
@@ -353,6 +363,8 @@ unique(TR_Rank$Team_Full[grepl("App", TR_Rank$Team_Full) ])
 tourney<-read.csv("data/NCAATourneyDetailedResults.csv")
 tourney$Tournament<-1
 
+#add 1 row so that have a row with final 2018 Massey Ratings
+
 test<-TourneySeeds[TourneySeeds$Season==2018,c("TeamID", "Season") ]
 test$DATE<-as.Date("2018-03-13")
 colnames(test)[colnames(test)=="TeamID"]<-"WTeamID"
@@ -425,6 +437,66 @@ fulldf<-merge(fulldf[, !grepl("OPP[.]", colnames(fulldf))],
               test, by.x=c("OPP", "Rank_DATE", "Season"), by.y=c("TeamID", "DATE", "Season"), all.x=T)
 
 sum(is.na(fulldf$Team_Full[fulldf$Season>=2011]))
+##scrape odds data####
+
+if(!exists("moneyDF")){
+  dates<-unique(fulldf$DATE[fulldf$Season>=2007])
+} else{
+  dates<-as.Date(setdiff(unique(fulldf$DATE[fulldf$DATE>as.Date("2006-11-17")]), moneyDF$DATE))
+  
+}
+dates<-c(dates, seq(as.Date("2018-03-13"), as.Date("2018-03-16"), 1))
+
+importmoney<-function(date) {
+  #   date<-dates[77]#Sys.Date()
+  url<-read_html(paste0(c("https://www.sportsbookreview.com/betting-odds/ncaa-basketball/money-line/?date=",gsub("-", "", date )), collapse=""))
+  money<-url %>%
+    html_nodes("b , .eventLine-value") %>%
+    html_text()
+  if(length(money)>=1){
+    money<-money[!grepl("Pitching|Batting", money)]
+    # money<-iconv(money, to='ASCII//TRANSLIT')
+    money<-gsub("[=]|[?]|[½]", ".5", money)
+    money<-gsub("PK", "0 ", money)
+    money<-data.frame(t(matrix(money, nrow=22)))
+    money$OPP1<-money[, 2]
+    money$OPP2<-money[, 1]
+    money<-as.data.frame(mapply(c, money[, c(TRUE, FALSE)], money[, c(FALSE, TRUE)]))
+    money[money==""]<-NA
+    if(nrow(money)>1){
+      money$DATE<-as.Date(date)
+    }
+  } else{
+    money<-data.frame()
+  }
+  print(date)
+  money
+}
+moneyList<-list();length(moneyList)<-length(dates)
+for(i  in 1:length(dates)){
+  moneyList[[i]]<-importmoney(dates[i])
+}
+money<-ldply(moneyList, data.frame)
+money<-money[!is.na(money$X1) & !is.na(money$OPP1),]
+money$Team<-coordName(tolower(money[, 1]))
+money$OPP<-coordName(tolower(money$OPP1))
+# money[, 2:11]<-sapply(money[, 2:11], function(x) sapply(strsplit(x, "\\s+"), `[[`, 1))
+money[, 2:11]<-sapply(money[, 2:11], as.numeric)
+money$MoneyLine<-apply(money[, 2:11], 1, median, na.rm = TRUE)
+money<-money[, c("Team","OPP", "MoneyLine", "DATE")]
+money$Team<-coordName(sapply(strsplit(money$Team, "\\)"), function(x) sub("^\\s+", "", tail(x, 1))))
+money$OPP<-coordName(sapply(strsplit(money$OPP, "\\)"), function(x) sub("^\\s+", "", tail(x, 1))))
+money[, c("Team", "OPP")]<-sapply(money[, c("Team", "OPP")],function(x) {gsub(paste0(0:9, collapse="|"), "", x)})
+money[, c("Team", "OPP")]<-sapply(money[, c("Team", "OPP")], coordName)
+
+if(!exists("moneyDF")){
+  moneyDF<-money
+} else{
+  moneyDF<-rbind.fill( moneyDF, money)
+}
+moneyDF<-moneyDF[!is.na(moneyDF$MoneyLine), ]
+moneyDF<-moneyDF[!duplicated(moneyDF[, c("Team", "DATE")]), ]
+moneyDF$ImpProb<-ifelse(moneyDF$MoneyLine>0, 100/(moneyDF$MoneyLine+100), moneyDF$MoneyLine/(moneyDF$MoneyLine-100))
 
 
 ##scrape odds data####
@@ -446,7 +518,7 @@ importOdds<-function(date) {
   if(length(odds)>=1){
     odds<-odds[!grepl("Pitching|Batting", odds)]
     # odds<-iconv(odds, to='ASCII//TRANSLIT')
-    odds<-gsub("[=]|[?]|[Â½]", ".5", odds)
+    odds<-gsub("[=]|[?]|[½]", ".5", odds)
     odds<-gsub("PK", "0 ", odds)
     odds<-data.frame(t(matrix(odds, nrow=22)))
     odds$OPP1<-odds[, 2]
@@ -485,16 +557,89 @@ if(!exists("oddsDF")){
   oddsDF<-rbind(odds, oddsDF)
 }
 oddsDF<-oddsDF[!is.na(oddsDF$Spread), ]
+# oddsDF<-rbind( data.frame(Team=c("Syracuse", "Tcu", "Xavier", "Texas Southern"), DATE=as.Date("2018-03-16"),
+#                           OPP=c("Tcu", "Syracuse", "Texas Southern", "Xavier"), Spread=c(3, -3, -21.5, 21.5)), oddsDF)
 oddsDF<-oddsDF[!duplicated(oddsDF[, c("Team", "DATE")]), ]
 
 
 
-oddsDF[oddsDF$DATE==as.Date("2018-03-15")& oddsDF$Team=="Gonzaga", ]
-setdiff(oddsDF$Team, id_df$Team_Full)
 
+if(!exists("vegasDF")){
+  dates<-unique(fulldf$DATE[fulldf$Season>=2009])
+} else{
+  dates<-as.Date(setdiff(unique(fulldf$DATE[fulldf$DATE>as.Date("2008-11-17")]), vegasDF$DATE))
+  
+}
+dates<-c(dates, seq(as.Date("2018-03-13"), as.Date("2018-03-16"), 1))
 
 fulldf<-merge(fulldf[, !colnames(fulldf)%in% "Spread"], oddsDF[, c("Team", "Spread", "DATE")], by.x=c("Team_Full","DATE"), by.y=c("Team", "DATE"),all.x=T)
 fulldf$Spread[ abs(fulldf$Spread)>=50]<-NA #errors in oddsDF
+
+fulldf<-merge(fulldf[, !colnames(fulldf)%in%c("MoneyLine", "ImpProb")], moneyDF[, c("Team", "DATE", "ImpProb", "MoneyLine")], 
+              by.x=c("Team_Full","DATE"), by.y=c("Team", "DATE"),all.x=T)
+
+importVegas<-function(date){
+  #date<-dates[2]
+  
+  string<-format.Date(date, format="%m-%d-%y")
+  url<-paste0("http://www.vegasinsider.com/college-basketball/matchups/matchups.cfm/date/", string)
+  
+  url <- read_html(url)
+  page<- url%>%html_nodes("td")%>% html_text()
+  if("Teams"%in% page){
+    
+    page<-page[which(page=="Teams")[1]:length(page)]
+    page<-gsub("[\r\n\t]", "", page)
+    
+    if(as.Date(date)<Sys.Date()){
+      page<-page[unlist(lapply(which(page=="Teams"), function(x) seq(x, x+35, 1)))]
+      page<-data.frame(matrix(page, ncol=12, byrow=T))
+      names<-as.character(page[1,])
+    } else{
+      page<-page[unlist(lapply(which(page=="Teams"), function(x) seq(x, x+32, 1)))]
+      page<-data.frame(matrix(page, ncol=11, byrow=T))
+      names<-as.character(page[1,])
+    }
+    
+    colnames(page)<-names
+    page<-page[page$Teams!="Teams", ]
+    page$DATE<-as.Date(date)
+  } else{
+    page<-data.frame()
+  }
+  
+  print(date)
+  page
+}
+vegasList<-list();length(vegasList)<-length(dates)
+for(i  in 1:length(dates)){
+  vegasList[[i]]<-importVegas(dates[i])
+}
+vegas<-data.frame(rbindlist(vegasList, fill=T))
+vegas<-vegas[, 1:15]
+vegas$X.Money.[is.na(vegas$X.Money.)]<-vegas$Money[is.na(vegas$X.Money.)]
+vegas$X.Closing.[is.na(vegas$X.Closing.)]<-vegas$Current[is.na(vegas$X.Closing.)]
+vegas<-vegas[, 1:13]
+vegas$Team<-gsub(paste(0:9, collapse="|"), "", vegas$Teams)
+vegas$Team<-gsub("Â«", "", vegas$Team)
+vegas$Team<-trimws(vegas$Team)
+vegas$Team<-coordName(vegas$Team)
+vegas[, c("Open", "X.Closing.", "X1Half", "X2Half", "Side", "X.Money.", "O.U" )]<-
+  sapply(vegas[, c("Open", "X.Closing.", "X1Half", "X2Half", "Side", "X.Money.", "O.U" )], function(x)  as.numeric(gsub("(^\\s+)|(\\s+$)|[%]", "", x)))
+colnames(vegas)[colnames(vegas)%in% c("X.Money.")]<-"Money"
+
+errors<-unique(vegas$DATE[vegas$Team%in% c("Western")])
+
+
+if(!exists("vegasDF")){
+  vegasDF<-vegas
+} else{
+  vegasDF<-rbind(vegasDF,vegas )
+}
+vegasDF<-vegasDF[!duplicated(vegasDF[, c("DATE", "Team")]), ]
+
+fulldf<-merge(fulldf[, !colnames(fulldf)%in% c("Side", "Money")], vegasDF[, c("Team", "Side", "Money", "DATE")], by.x=c("Team_Full","DATE"), by.y=c("Team", "DATE"),all.x=T)
+
 
 #DOL, POM, BPI, SAG, 
 cor(fulldf$Win[!is.na(rowSums(fulldf[,c("Rank.POM",  "Rank.KPK", "Rank.SAG", "Rank.DOL")]))], 
@@ -618,8 +763,6 @@ colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")]<-
   paste( "OPP", colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")], sep="")
 fulldf<-merge(fulldf, OPP_Rank, by.x=c("OPP_Full","Season"), by.y=c("Team_Full", "Season"), all.x=T)
 
-
-
 fulldf<-fulldf[, !colnames(fulldf)%in% c("Rank.TR", "OPP.TR", "Score.TR", "OPPScore.TR")]
 fulldf<-merge(fulldf, TR_Rank, by.x=c("Team_Full","Rank_DATE"), by.y=c("Team_Full", "DATE"), all.x=T)
 OPP_Rank<-TR_Rank
@@ -638,7 +781,7 @@ source("TourneyGeog.R")
 tail(TourneyGeog)
 
 
-save(list=ls()[ls()%in% c("fulldf", "KenPom", "SAG_Rank", "TR_Rank", "Massey_All", "Massey_means","oddsDF", "id_df", "march538", #projections data
+save(list=ls()[ls()%in% c("fulldf", "KenPom", "SAG_Rank", "TR_Rank", "Massey_All", "Massey_means","oddsDF","moneyDF", "vegasDF", "id_df", "march538", #projections data
                           "seasons", "TourneySlots", "TourneySeeds","TourneyRounds","getRound" ,
                           "TourneyGeog", "TeamGeog","CitiesEnriched", "GameGeog", "whoPicked", "SCurve" #tourney specific data
 )], file="data/game data.RData")
