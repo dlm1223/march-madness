@@ -3,6 +3,7 @@
 library(geosphere)
 library(gridExtra)
 library(grid)
+library(Rsymphony)
 library(forecast);library(RSelenium);library(RCurl);library(slam);library(XML)
 library(caret);library(doSNOW);library(rvest);library(robustbase);library(rpart);library(kernlab)
 library(lpSolve);library(lpSolveAPI);library(data.table);library(xgboost);#library(gurobi);library(Rcplex)
@@ -284,6 +285,7 @@ coordName<-function(x){
   x[x=="Md E Shore"|x=="Md Eastern Shore"|x=="Umes"|x=="Md East Shore"]<-"Maryland Eastern Shore"
   x[x=="Ma Lowell"|x=="Massachusetts-Lowell"|x=="Mass Lowell"]<-"Umass Lowell"
   x[x=="Alcorn"]<-"Alcorn State"
+  x[x=="Towson State"|x=="Towson St"]<-"Towson"
   x[x=="Umass"]<-"Massachusetts"
   x[x=="George Wash"]<-"George Washington"
   x[x=="Miami (FL)"|x=="Miami FL"|x=="Miami Fl"|x=="Miami Florida"]<-"Miami"

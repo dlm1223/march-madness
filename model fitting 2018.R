@@ -3,22 +3,6 @@
 # source("functions.R")
 
 
-###PREPROCESS#####
-
-#inspect correlations
-# bool<-fulldf$Season==2017& !is.na(fulldf$Rank.DOK)
-# cors<-sapply(sources, function(x) cor(fulldf$Win[bool], 
-#                                       fulldf[bool, paste0("Rank.", x)]-fulldf[bool, paste0("OPP.", x)], use="pairwise.complete.obs"))
-# mor<-sapply(sources, function(x) cor(fulldf$Rank.MOR[bool],    fulldf[bool, paste0("Rank.", x)], use="pairwise.complete.obs"))
-# all<-data.frame(Cor=cors, Mor=mor)
-# all[order(all$Cor, decreasing = F), ]
-#DOK,TRP, JNG, SEL, MCL, RTP, RPI, 7OT, LOG
-# summary(fulldf$Rank.TRP[bool])
-
-
-#DOK,TRP, JNG, SEL, MCL, RTP, RPI, 7OT, LOG
-#DOK,TRP, JNG, SEL, MCL, RTP, RPI, 7OT, LOG
-
 fulldf$Spread_alt<-ifelse(fulldf$Spread>=(-.5)& fulldf$Spread<=.5,0 , ifelse(fulldf$Spread>=13, 13, ifelse(fulldf$Spread<=(-13), -13, fulldf$Spread)))
 
 fulldf$meanRank_alt<-rowMeans(fulldf[, c("Rank.DOK", "Rank.SEL", "Rank.7OT", "Rank.LOG", "Rank.TRP", "Rank.YAG" )], na.rm=T)
@@ -153,7 +137,6 @@ if(year==2018){
   
   
 } else{
-  bool<-fulldf$Season==year& fulldf$Tournament==1
   samplesubmission<-data.frame(Pred=.5, Team=rep(unique(fulldf$Team[bool]), 
                                                  each=length(unique(fulldf$Team[bool]))), 
                                OPP=rep(unique(fulldf$Team[bool]), 
@@ -244,7 +227,7 @@ tail(seed.lm.submission)
 write.csv(seed.lm.submission, file=paste0(year, "/Kaggle Submission.csv"), row.names=FALSE)
 
 
-
+samplesubmission[samplesubmission$OPP_Full=="Virginia"& samplesubmission$Round<=5, c("Team_Full", "Dist", "OPPDist", "Round")]
 
 
 

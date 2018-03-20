@@ -39,7 +39,7 @@ tourneySims$Payout<-as.numeric(tourneySims$Payout)
 
 brackets<-brackets[, 1:63]
 
-all<-data.frame(Slot=rep(colnames(brackets)[!grepl("Sim", colnames(brackets))], times=nrow(brackets)), 
+all<-data.frame(Slot=rep(colnames(brackets), times=nrow(brackets)), 
                 Team=unlist(lapply(1:nrow(brackets),function(x)brackets[x, !grepl("Sim", colnames(brackets))] )), 
                 Bracket=rep(1:nrow(brackets), each=63))
 #get points for each pick

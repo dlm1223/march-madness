@@ -155,8 +155,9 @@ readMOR<-function(year){
 }
 ##clean up columns--put letters in second column into first column
 
-MOR_Rank<-ldply(lapply(c(2005:2017), readMOR), data.frame)
+MOR_Rank<-ldply(lapply(c(2006:2018), readMOR), data.frame)
 MOR_Rank$Team_Full<-coordName(MOR_Rank$Team_Full)
+MOR_Rank<-MOR_Rank[!duplicated(MOR_Rank[, c("Team_Full", "Season")]) & !MOR_Rank$Team_Full=="", ]
 setdiff(MOR_Rank$Team_Full, id_df$Team_Full)
 
 
@@ -456,7 +457,7 @@ importmoney<-function(date) {
   if(length(money)>=1){
     money<-money[!grepl("Pitching|Batting", money)]
     # money<-iconv(money, to='ASCII//TRANSLIT')
-    money<-gsub("[=]|[?]|[½]", ".5", money)
+    money<-gsub("[=]|[?]|[?]", ".5", money)
     money<-gsub("PK", "0 ", money)
     money<-data.frame(t(matrix(money, nrow=22)))
     money$OPP1<-money[, 2]
@@ -518,7 +519,7 @@ importOdds<-function(date) {
   if(length(odds)>=1){
     odds<-odds[!grepl("Pitching|Batting", odds)]
     # odds<-iconv(odds, to='ASCII//TRANSLIT')
-    odds<-gsub("[=]|[?]|[½]", ".5", odds)
+    odds<-gsub("[=]|[?]|[?]", ".5", odds)
     odds<-gsub("PK", "0 ", odds)
     odds<-data.frame(t(matrix(odds, nrow=22)))
     odds$OPP1<-odds[, 2]
@@ -762,6 +763,17 @@ OPP_Rank<-SAG_Rank
 colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")]<-
   paste( "OPP", colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")], sep="")
 fulldf<-merge(fulldf, OPP_Rank, by.x=c("OPP_Full","Season"), by.y=c("Team_Full", "Season"), all.x=T)
+
+#mor-pre/post tournament (pre for 2012, 13, 14, 17)
+
+fulldf<-fulldf[, !grepl("Score[.]MOR", colnames(fulldf))]
+fulldf<-merge(fulldf, MOR_Rank, by=c("Team_Full","Season"), all.x=T)
+OPP_Rank<-MOR_Rank
+colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")]<-
+  paste( "OPP", colnames(OPP_Rank)[ !colnames(OPP_Rank)%in% c("Team_Full", "Season")], sep="")
+fulldf<-merge(fulldf, OPP_Rank, by.x=c("OPP_Full","Season"), by.y=c("Team_Full", "Season"), all.x=T)
+
+#team-rankings
 
 fulldf<-fulldf[, !colnames(fulldf)%in% c("Rank.TR", "OPP.TR", "Score.TR", "OPPScore.TR")]
 fulldf<-merge(fulldf, TR_Rank, by.x=c("Team_Full","Rank_DATE"), by.y=c("Team_Full", "DATE"), all.x=T)
