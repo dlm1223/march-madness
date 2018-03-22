@@ -8,6 +8,8 @@ function(input, output, session) {
   source("improve brackets helper.R", local=T)
   
   
+  cl<-makeCluster(2, type = "SOCK")
+  registerDoSNOW(cl)
   
   
   
@@ -75,16 +77,21 @@ function(input, output, session) {
       
       source("improve brackets.R", local=T)
       
-      
       progress$set( value = 50)
       
-      improved<-list(customBracket3, customBracket4)
-      improved<- llply(improved, function(i)  {calcBrackets(i, brackets)}, .progress = progress_shiny(progress, step=25))
+      # improved<-list(customBracket3, customBracket4)
+      # improved<- llply(improved, function(i)  {calcBrackets(i, brackets)}, .progress = progress_shiny(progress, step=25))
+      improved<-customBracket3
+      improved<-calcBrackets(improved, brackets)
+      # improved<-  foreach(i=improved,  
+      #                     .packages = c( "data.table", "reshape2", "plyr")) %dopar% {
+      #                       calcBrackets(i, brackets)}
+      
       
     } else{
       
       load(paste0(c(input$year, "/Improved_Brackets.Rda"), sep="", collapse=""))
-      
+      improved<-improved[[1]]
     }
     
     
@@ -92,7 +99,6 @@ function(input, output, session) {
     
     variables$brackets<-brackets
     variables$year<-input$year
-    
     variables$improved<-improved
     
   }
@@ -115,17 +121,21 @@ function(input, output, session) {
     numBrackets<-input$numBrackets
     backtest<-ifelse(year==2018, F,T)
     
-    # source("improve brackets.R", local=T )
     
     #apply optimization to each improved bracket set
-    results<-llply(improved, function(x) getOptimal(x, percentile, numBrackets), .progress = progress_shiny(progress2, step=75/length(improved)))
+    
+    # results<-llply(improved, function(x) getOptimal(x, percentile, numBrackets), .progress = progress_shiny(progress2, step=75/length(improved)))
+    results<-getOptimal(improved, percentile, numBrackets)
     
     #store result of best bracket
-    numSims<-ncol(improved[[1]][, grepl("Sim", colnames(improved[[1]]))])-backtest
-    obj<-sapply(1:length(improved), function(y) sum(results[[y]]$x[(nrow(improved[[y]])+1):(nrow(improved[[y]])+numSims)])/numSims)
-    result<-results[[which.max(obj)]]
-    brackets<-improved[[which.max(obj)]]
+    # numSims<-ncol(improved[[1]][, grepl("Sim", colnames(improved[[1]]))])-backtest
+    # obj<-sapply(1:length(improved), function(y) sum(results[[y]]$x[(nrow(improved[[y]])+1):(nrow(improved[[y]])+numSims)])/numSims)
+    # result<-results[[which.max(obj)]]
+    # brackets<-improved[[which.max(obj)]]
     
+    numSims<-ncol(improved[, grepl("Sim", colnames(improved))])-backtest
+    brackets<-improved
+    result<-results
     list(  result=result, backtest=backtest, brackets=brackets, year=year, numSims=numSims)
     
   })
