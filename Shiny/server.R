@@ -1,3 +1,4 @@
+# Sys.setenv(PATH = paste(Sys.getenv("PATH"), "C:\\RMathew\\PortableApps\\MikTeX\\miktex\\bin", sep=.Platform$path.sep))
 library(datasets)
 
 # Define a server for the Shiny app
@@ -5,11 +6,10 @@ function(input, output, session) {
   
   variables<-reactiveValues(brackets= NULL,improved=NULL, year=2018)
   
-  source("improve brackets helper.R", local=T)
+  #helper functions to perform bracket calculations such as getOptimal, calcBracket, plotBracket
   
-  
-  cl<-makeCluster(2, type = "SOCK")
-  registerDoSNOW(cl)
+  # cl<-makeCluster(2, type = "SOCK")
+  # registerDoSNOW(cl)
   
   
   
@@ -75,14 +75,27 @@ function(input, output, session) {
       
       progress$set( value = 25)
       
+      numSims<-sum(grepl("Sim", colnames(brackets)))-backtest
+      expected<-data.table(tourneySims[tourneySims$Sim<=numSims,])
+      expected<-expected[, list(Expected=sum(Payout)/numSims), by=c("Team_Full", "Round")]  
+      expected<-data.frame(expected)
+      expected<-merge(expected, analyze[, c("Team_Full", "Round", "Slot")], by=c("Team_Full", "Round"), all=T)
+      expected[is.na(expected)]<-0
+      
+      
       source("improve brackets.R", local=T)
+      
+      customBracket3<-brackets[, 1:63]
+      customBracket3[,1:56 ]<-t(sapply(1:nrow(customBracket3), function(x) 
+        optimizeRounds(maximize_round = c("R1", "R2", "R3"),given_round = "R4", row=customBracket3[x, ] )))
+      
       
       progress$set( value = 50)
       
       # improved<-list(customBracket3, customBracket4)
       # improved<- llply(improved, function(i)  {calcBrackets(i, brackets)}, .progress = progress_shiny(progress, step=25))
-      improved<-customBracket3
-      improved<-calcBrackets(improved, brackets)
+      # improved<-
+      improved<-calcBrackets(customBracket3, brackets)
       # improved<-  foreach(i=improved,  
       #                     .packages = c( "data.table", "reshape2", "plyr")) %dopar% {
       #                       calcBrackets(i, brackets)}
@@ -91,7 +104,7 @@ function(input, output, session) {
     } else{
       
       load(paste0(c(input$year, "/Improved_Brackets.Rda"), sep="", collapse=""))
-      improved<-improved[[1]]
+      # improved<-improved[[1]]
     }
     
     
@@ -121,11 +134,12 @@ function(input, output, session) {
     numBrackets<-input$numBrackets
     backtest<-ifelse(year==2018, F,T)
     
+    source("improve brackets.R", local=T)
+    
+    results<-getOptimal(improved, percentile, numBrackets)
     
     #apply optimization to each improved bracket set
-    
     # results<-llply(improved, function(x) getOptimal(x, percentile, numBrackets), .progress = progress_shiny(progress2, step=75/length(improved)))
-    results<-getOptimal(improved, percentile, numBrackets)
     
     #store result of best bracket
     # numSims<-ncol(improved[[1]][, grepl("Sim", colnames(improved[[1]]))])-backtest
@@ -303,7 +317,7 @@ function(input, output, session) {
                     })
       teams<-unlist(teams) %>% pasteSeed()
       
-      source("improve brackets helper.R", local=T)
+      source("improve brackets.R", local=T)
       
       for (i in which(result$x[1:nrow(brackets)]==1)){
         plotBracket(bracket = brackets[i, 1:63])  
