@@ -1,7 +1,14 @@
-# load("data/game data.RData")
-# year<-2018
+load("data/game data.RData")
+# year<-2017:2018
 # source("functions.R")
-
+load("~/NCAA/ncaa-preseason/Team Projections/Aggregated Game Projections.Rda")
+fulldf<-merge(fulldf, coefs[, c("TeamAggCoef", "TeamAggRank", "Team", "cutoff")], 
+              by.x=c("Team_Full","Rank_DATE"), by.y=c("Team", "cutoff"), all.x=T
+              )
+oppcoefs<-coefs
+colnames(oppcoefs)<-gsub("Team", "OPP", colnames(oppcoefs))
+fulldf<-merge(fulldf, oppcoefs[, c("OPPAggCoef", "OPPAggRank", "OPP", "cutoff")],
+              by.x=c("OPP_Full", "Rank_DATE") ,by.y=c("OPP", "cutoff"), all.x=T)
 
 fulldf$Spread_alt<-ifelse(fulldf$Spread>=(-.5)& fulldf$Spread<=.5,0 , ifelse(fulldf$Spread>=13, 13, ifelse(fulldf$Spread<=(-13), -13, fulldf$Spread)))
 
@@ -15,18 +22,12 @@ cor(fulldf$Score.TR[!is.na(rowSums(fulldf[, c("Rank.MOR", "Score.TR","Rank.PGH")
 
 
 table(fulldf$Season, fulldf$Tournament)
-table(fulldf$Season[!is.na(fulldf$Spread)], fulldf$Tournament[!is.na(fulldf$Spread)])
+table(fulldf$Season[!is.na(fulldf$Spread) & fulldf$Round==1], fulldf$Tournament[!is.na(fulldf$Spread) & fulldf$Round==1])
 
 test<-fulldf[which(fulldf$Tournament==1 & fulldf$Season%in%year& fulldf$Team<fulldf$OPP), ]
 
 train<-fulldf[which((fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Season==min(year)))), ]
 
-summary(glm(Win_factor~TeamscoreMARGIN, data=train, family="binomial"))
-scores2prob <- function(margin){
-  margin<-(-0.150504)+0.058840*margin
-  probs <- exp(margin) / (1 + exp(margin))
-  probs
-}
 
 ###MODEL FITTING#####
 
@@ -56,8 +57,8 @@ cor(test$predWin[test$Tournament==1], test$predWin2[test$Tournament==1], use = "
 
 
 #model 3##
-fit3<-glm(Win_factor~I(Score.TR-OPPScore.TR)+I(Rank.MOR-OPP.MOR)++I(Dist^.3-OPPDist^.3),
-          data=train, family="binomial");summary(fit3)
+fit3<-glm(Win_factor~I(TeamAggCoef-OPPAggCoef)+I(Dist^.3-OPPDist^.3),
+          data=train[!is.na(train$TeamAggCoef)& !is.na(train$OPPAggCoef),], family="binomial");summary(fit3)
 train$predWin3<-predict(fit3, newdata=train, type="response")
 test$predWin3<-predict(fit3, newdata=test, type="response")
 
@@ -93,7 +94,7 @@ logLoss(train$Win[train$Round>=1& train$Tournament==1], train$Pred[train$Round>=
 
 test$Pred<-ifelse(test$Round==1, rowMeans(test[, c("predWin" ,"predWin")], na.rm=T), 
                   # ifelse(!is.na(test$predWin4), test$predWin4, test$predWin3))
-                  rowMeans(test[, c("predWin4","predWin4","predWin4",  "predWin3")], na.rm=T))
+                  rowMeans(test[, c("predWin4","predWin3","predWin3",  "predWin3")], na.rm=T))
 
 #align test set predictions so that Team<OPP
 test$Win[test$Team>test$OPP]<-1-test$Win[test$Team>test$OPP]
@@ -227,7 +228,7 @@ tail(seed.lm.submission)
 write.csv(seed.lm.submission, file=paste0(year, "/Kaggle Submission.csv"), row.names=FALSE)
 
 
-samplesubmission[samplesubmission$OPP_Full=="Virginia"& samplesubmission$Round<=5, c("Team_Full", "Dist", "OPPDist", "Round")]
+samplesubmission[samplesubmission$Team_Full=="Loyola Chicago"& samplesubmission$Round==6, c("Team_Full", "OPP_Full", "Dist", "OPPDist", "Round", "Pred")]
 
 
 

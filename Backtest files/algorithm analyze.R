@@ -96,7 +96,7 @@ testGrid<-expand.grid(year=2010:2017, percentile=c(.9, .95, .99), numBrackets=c(
 library(Rsymphony)
 input<-list(r1=10, r2=20, r3=30, r4=40, r5=50, r6=60, upset1_mult=1, upset2_mult=1, upset3_mult=1,
             r1_seed_mult=0, r2_seed_mult=0,r3_seed_mult=0, r4_seed_mult=0,r5_seed_mult=0, r6_seed_mult=0,
-            r1_seed_bonus=1, r2_seed_bonus=0,r3_seed_bonus=0, r4_seed_bonus=0,r5_seed_bonus=0, r6_seed_bonus=0)
+            r1_seed_bonus=0, r2_seed_bonus=0,r3_seed_bonus=0, r4_seed_bonus=0,r5_seed_bonus=0, r6_seed_bonus=0)
 
 backtest<-lapply(1:nrow(testGrid), function(x){
   year<-testGrid$year[x]
@@ -138,9 +138,5 @@ backtest<-lapply(1:nrow(testGrid), function(x){
 
 backtest<-ldply(backtest, data.frame)
 save(backtest, file=paste0(projDir,"/Backtest files/backtest results Arithmetic AddSeedR1.Rda"))
-
-
-
-
 
 

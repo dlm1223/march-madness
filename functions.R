@@ -73,6 +73,7 @@ coordName<-function(x){
   x[substr(x, 1, 4)=="ark "]<-gsub("ark ", "arkansas ", x[substr(x, 1, 4)=="ark "])
   x[substr(x, 1, 5)=="alab "]<-gsub("alab ", "alabama ", x[substr(x, 1, 5)=="alab "])
   x[substr(x, 1, 5)=="wash "]<-gsub("wash ", "washington ", x[substr(x, 1, 5)=="wash "])
+  x[substr(x, 1, 2)=="a "]<-gsub("a ", "", x[substr(x, 1, 2)=="a "])
   
   x<-gsub("wshgtn|washingtn", "washington", x)
   x<-gsub("grn", "green", x)

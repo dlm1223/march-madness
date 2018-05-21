@@ -1,3 +1,6 @@
+
+
+
 #payouts
 tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), input$r1,
                            ifelse(grepl("R2", tourneySims$Slot), input$r2,

@@ -4,7 +4,7 @@
 #then run optimize brackets file where you can optimize brackets
 
 # year<-2018
-# sims<-1000
+# sims<-500
 # name<-"TourneySims_500sims.Rda"
 
 # 
