@@ -1,14 +1,14 @@
 load("data/game data.RData")
 # year<-2017:2018
 # source("functions.R")
-load("~/NCAA/ncaa-preseason/Team Projections/Aggregated Game Projections.Rda")
-fulldf<-merge(fulldf, coefs[, c("TeamAggCoef", "TeamAggRank", "Team", "cutoff")], 
-              by.x=c("Team_Full","Rank_DATE"), by.y=c("Team", "cutoff"), all.x=T
-              )
-oppcoefs<-coefs
-colnames(oppcoefs)<-gsub("Team", "OPP", colnames(oppcoefs))
-fulldf<-merge(fulldf, oppcoefs[, c("OPPAggCoef", "OPPAggRank", "OPP", "cutoff")],
-              by.x=c("OPP_Full", "Rank_DATE") ,by.y=c("OPP", "cutoff"), all.x=T)
+# load("~/NCAA/ncaa-preseason/Team Projections/Aggregated Game Projections.Rda")
+# fulldf<-merge(fulldf, coefs[, c("TeamAggCoef", "TeamAggRank", "Team", "cutoff")], 
+#               by.x=c("Team_Full","Rank_DATE"), by.y=c("Team", "cutoff"), all.x=T
+#               )
+# oppcoefs<-coefs
+# colnames(oppcoefs)<-gsub("Team", "OPP", colnames(oppcoefs))
+# fulldf<-merge(fulldf, oppcoefs[, c("OPPAggCoef", "OPPAggRank", "OPP", "cutoff")],
+#               by.x=c("OPP_Full", "Rank_DATE") ,by.y=c("OPP", "cutoff"), all.x=T)
 
 fulldf$Spread_alt<-ifelse(fulldf$Spread>=(-.5)& fulldf$Spread<=.5,0 , ifelse(fulldf$Spread>=13, 13, ifelse(fulldf$Spread<=(-13), -13, fulldf$Spread)))
 
@@ -30,7 +30,6 @@ train<-fulldf[which((fulldf$Season<min(year) | (fulldf$Tournament==0 & fulldf$Se
 
 
 ###MODEL FITTING#####
-
 
 
 ###model 1##
@@ -57,7 +56,7 @@ cor(test$predWin[test$Tournament==1], test$predWin2[test$Tournament==1], use = "
 
 
 #model 3##
-fit3<-glm(Win_factor~I(TeamAggCoef-OPPAggCoef)+I(Dist^.3-OPPDist^.3),
+fit3<-glm(Win_factor~I(meanRank_alt-OPPmeanRank_alt)+I(Dist^.3-OPPDist^.3),
           data=train[!is.na(train$TeamAggCoef)& !is.na(train$OPPAggCoef),], family="binomial");summary(fit3)
 train$predWin3<-predict(fit3, newdata=train, type="response")
 test$predWin3<-predict(fit3, newdata=test, type="response")
