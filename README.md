@@ -36,7 +36,7 @@ Above are the probabilities of teams reaching each round for 2017, 5000 simulati
 
 ### 2. Bracket-Pool Simulation
 
-Then, using [ESPN Pick Percentages](http://games.espn.com/tournament-challenge-bracket/2017/en/whopickedwhom), you can simulate a pool of brackets.
+Then, using [ESPN Pick Percentages](http://games.espn.com/tournament-challenge-bracket/2017/en/whopickedwhom), you can simulate a pool of brackets corresponding to who the public has picked in their brackets.
 
 ``` r
 head(ownership, 20)
