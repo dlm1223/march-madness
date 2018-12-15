@@ -68,7 +68,7 @@ Above are the ownership percentages by round for the pool of brackets, 5000 brac
 
 ### 3. Optimization
 
-Finally, you can apply your scoring to get finishes for each bracket compared to the others across the simulations, along with mean-points scored for a given bracket across the simulations. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
+Finally, you can apply your scoring to get finishes for each bracket in the pool compared to eachother across the simulations. You can set up an optimization to return the optimal bracket(s) for any number of specifications, Ex: Return 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
 
 ``` r
 bracket<-brackets[which.max(brackets$Prob90), 1:63]
@@ -77,4 +77,4 @@ plotBracket(bracket)
 
 ![](README_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
-Although this bracket was not successfull (North Carolina won in 2017), the system is still useful in that it gives you the optimal bracket, given your projections and your scoring system. By changing the projections and running over multiple years, it also allows for some interesting analyses like how many upsets you should typically put in your bracket.
+As expected, Gonzaga who the projections saw as a favorite in Step 1, appears in this optimal solution. Although this bracket was not successfull (North Carolina won in 2017), the system is still useful in that it gives you the optimal bracket, given your projections and your scoring system. By changing the projections and running over multiple years, it also allows for some interesting analyses like how many upsets you should typically put in your bracket.
