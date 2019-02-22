@@ -14,3 +14,9 @@
 *KaggleBrackets.Rda
 Massey/
 data/MasseyOrdinals.csv
+Old Files/
+model-fitting.R
+organize-data.R
+scrape-data.R
+create-tourney-geog.R
+data/fulldf.Rda
