@@ -74,7 +74,7 @@ function(input, output, session) {
       
       progress$set( value = 25)
       
-      sims<-sum(grepl("Sim", colnames(brackets)))-backtest
+      sims<-max(tourneySims$Sim)-backtest
       bracket.data<-TourneyRounds[grepl("R", TourneyRounds$Slot) & TourneyRounds$Season==year,]
       bracket.data$Team<-TourneySeeds$Team[TourneySeeds$Season==year][match(bracket.data$Seed,TourneySeeds$Seed[TourneySeeds$Season==year] )]
       bracket.data$Team_Full<-Teams$Team_Full[match(bracket.data$Team, Teams$TeamID)]

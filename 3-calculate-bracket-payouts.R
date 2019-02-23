@@ -1,28 +1,29 @@
-#calculates bracket-payouts--need to uncomment files/scoring in order to run
+#calculates bracket-payouts--
+
 # year<-2018;backtest<-ifelse(year==2019, F, T);load("2018/TourneySims_500sims.Rda");load("2018/BracketResults_FullTournament_500sims.Rda")
 # input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1, upset1_add=0, upset2_add=0, upset3_add=0)
 
 
 
-
-
-
 ######CALCULATE PAYOUTS###########
-#what is payout for getting correct team--will be different depending on upset scoring and if team upset someone in the given simulation
-
+#calculate the payout for correct picks--will be different depending on upset scoring and if team upset someone in the given simulation
+tourneySims$team_seed<-as.numeric(tourneySims$team_seed)
 tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), input$r1,
                            ifelse(grepl("R2", tourneySims$Slot), input$r2,
                                   ifelse(grepl("R3", tourneySims$Slot),input$r3,
                                          ifelse(grepl("R4", tourneySims$Slot),input$r4,
                                                 ifelse(grepl("R5", tourneySims$Slot), input$r5,
                                                        ifelse(grepl("R6", tourneySims$Slot), input$r6, 0))))))
+tourneySims$Payout<-ifelse(grepl("R1", tourneySims$Slot), tourneySims$Payout+input$r1*as.numeric(input$r1_seed_mult)*(tourneySims$team_seed-1)+as.numeric(input$r1_seed_bonus)*(tourneySims$team_seed),
+                           ifelse(grepl("R2", tourneySims$Slot), tourneySims$Payout+input$r2*as.numeric(input$r2_seed_mult)*(tourneySims$team_seed-1)+as.numeric(input$r2_seed_bonus)*(tourneySims$team_seed),
+                                  ifelse(grepl("R3", tourneySims$Slot),tourneySims$Payout+input$r3*as.numeric(input$r3_seed_mult)*(tourneySims$team_seed-1)+as.numeric(input$r3_seed_bonus)*(tourneySims$team_seed),
+                                         ifelse(grepl("R4", tourneySims$Slot),tourneySims$Payout+input$r4*as.numeric(input$r4_seed_mult)*(tourneySims$team_seed-1)+as.numeric(input$r4_seed_bonus)*(tourneySims$team_seed),
+                                                ifelse(grepl("R5", tourneySims$Slot), tourneySims$Payout+input$r5*as.numeric(input$r5_seed_mult)*(tourneySims$team_seed-1)+as.numeric(input$r5_seed_bonus)*(tourneySims$team_seed),
+                                                       ifelse(grepl("R6", tourneySims$Slot), tourneySims$Payout+input$r6*as.numeric(input$r6_seed_mult)*(tourneySims$team_seed-1)+as.numeric(input$r6_seed_bonus)*(tourneySims$team_seed), 0))))))
+
 tourneySims$Payout<-ifelse(tourneySims$team_seed>=tourneySims$loser_seed+10, tourneySims$Payout*input$upset3_mult,
                            ifelse(tourneySims$team_seed>=tourneySims$loser_seed+5, tourneySims$Payout*input$upset2_mult,
                                   ifelse(tourneySims$team_seed>tourneySims$loser_seed, tourneySims$Payout*input$upset1_mult, tourneySims$Payout)))
-tourneySims$Payout<-ifelse(tourneySims$team_seed>=tourneySims$loser_seed+10 & tourneySims$Payout>0, tourneySims$Payout+input$upset3_add,
-                           ifelse(tourneySims$team_seed>=tourneySims$loser_seed+5& tourneySims$Payout>0, tourneySims$Payout+input$upset2_add,
-                                  ifelse(tourneySims$team_seed>tourneySims$loser_seed& tourneySims$Payout>0, tourneySims$Payout+input$upset1_add, tourneySims$Payout)))
-tourneySims$Payout<-as.numeric(tourneySims$Payout)
 
 brackets<-brackets[, 1:63]
 head(brackets)
@@ -78,28 +79,4 @@ brackets<-cbind(brackets, bracket.payouts)
 
 # colnames(brackets)[grepl(numSims+1, colnames(brackets))]<-gsub("Sim", "Actual", colnames(brackets)[grepl(numSims+1, colnames(brackets))])
 colnames(brackets)[grepl(sims+1, colnames(brackets))& grepl("Sim", colnames(brackets))]<-"Score.Actual"
-
-###ANALYZE RESULTS#####
-
-# hist(as.numeric(brackets[45,grepl("Sim", colnames(brackets))]))
-# brackets<-brackets[, !grepl("Percentile|Prob", colnames(brackets))]
-# for(i in 1:(sims+backtest) ){
-#   brackets[, paste0("Percentile", i)]<-ecdf(brackets[, paste0("Sim", i)])(brackets[,  paste0("Sim", i)])
-# }
-# if(backtest==T){
-#   colnames(brackets)[grepl(sims+1, colnames(brackets))& grepl("Percentile", colnames(brackets))]<-"Percentile.Actual"
-# }
-# bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
-# brackets$Prob90<-apply(brackets[, bool], 1, function(x) sum(x>.90)/sims)
-# brackets$Prob95<-apply(brackets[,bool], 1, function(x) sum(x>.95)/sims)
-# brackets$Prob97<-apply(brackets[, bool], 1, function(x) sum(x>.97)/sims)
-# brackets$Prob99<-apply(brackets[, bool], 1, function(x) sum(x>.99)/sims)
-# head(brackets[,c("R4W1", "R4X1", "R4Y1", "R4Z1", "R5WX", "R5YZ", "R6CH", "Prob95", "Prob90", "Percentile.Actual") ][order(brackets$Prob99, decreasing=T), ])
-
-
-
-
-###SAVE DATA#####
-
-save(list=ls()[ls()%in% c( "backtest", "playInTbd", "Teams",   "year", "TourneySeeds","TourneyRounds", "brackets" )], file=paste0(year, "/bracketpayouts.RData"))
 

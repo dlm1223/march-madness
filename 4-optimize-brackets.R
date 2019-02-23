@@ -16,12 +16,17 @@ source("functions.R", encoding = "UTF-8")
 load(paste0(year,"/TourneySims_500sims.Rda"))
 load(paste0(year,"/BracketResults_FullTournament_500sims.Rda"))
 load("data/game-data.RData")
-input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1,
-            upset2_mult=1, upset3_mult=1, upset1_add=0, upset2_add=0, upset3_add=0)
+input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2,
+            upset2_mult=3, upset3_mult=4, upset1_add=0, upset2_add=0, upset3_add=0)
+# input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1,
+#             upset2_mult=1, upset3_mult=1, upset1_add=0, upset2_add=0, upset3_add=0)
 
 #calculate payouts based on brackets/sims/scoring
 source("3-calculate-bracket-payouts.R")
 
+#save data: only save if using default scoring
+# save(list=ls()[ls()%in% c( "backtest", "playInTbd", "Teams",   "year", "TourneySeeds","TourneyRounds", "brackets" )],
+#      file=paste0(year, "/bracketpayouts.RData"))
 
 ###team expected values####
 
@@ -144,11 +149,14 @@ maximizeRound<-function(rounds, fixed.rounds="NA", bracket){
 
 
 calcBrackets<-function(customBrackets, brackets, tourneySims){
-  # customBrackets<-customBrackets[, 1:63]
+  # customBrackets<-customBracket0[, 1:63]
   
   bracket.payouts<-data.frame(Slot=rep(colnames(customBrackets)[!grepl("Sim", colnames(customBrackets))], times=nrow(customBrackets)), 
                               Team=unlist(lapply(1:nrow(customBrackets),function(x)customBrackets[x, !grepl("Sim", colnames(customBrackets))] )), 
-                              Bracket=rep(1:nrow(customBrackets)+10000, each=63))
+                              Bracket=rep(1:nrow(customBrackets)+10000, each=63),
+                              CustomBracket=T
+                              )
+  brackets$CustomBracket<-F
   bracket.payouts<-bracket.payouts[order(bracket.payouts$Bracket,bracket.payouts$Slot), ]
   tourneySims<-tourneySims[order(tourneySims$Sim, tourneySims$Slot), ]
   
@@ -158,7 +166,7 @@ calcBrackets<-function(customBrackets, brackets, tourneySims){
   bracket.payouts<-data.table(bracket.payouts, key=c("Team", "Slot"))[
     data.table(reshaped.sims, key=c("Team_Full", "Slot")),
     allow.cartesian=TRUE, nomatch=0  ]
-  bracket.payouts<-bracket.payouts[,  lapply(.SD, sum, na.rm=TRUE),by=c( "Bracket"), .SDcols=colnames(bracket.payouts)[grepl("Payout", colnames(bracket.payouts))]]
+  bracket.payouts<-bracket.payouts[,  lapply(.SD, sum, na.rm=TRUE),by=c( "Bracket", "CustomBracket"), .SDcols=colnames(bracket.payouts)[grepl("Payout", colnames(bracket.payouts))]]
   colnames(bracket.payouts)<-gsub("Payout.", "Sim", colnames(bracket.payouts))
   bracket.payouts<-bracket.payouts[order(bracket.payouts$Bracket, decreasing = F), ]
   
@@ -170,15 +178,16 @@ calcBrackets<-function(customBrackets, brackets, tourneySims){
   #rbind custompool scores to current brackets
   bracket.payouts<-rbind.fill(bracket.payouts, brackets[, grepl("Sim|Bracket|Score", colnames(brackets))])
   bracket.payouts[, paste0("Percentile", (1:sims))]<-NA
-  #calculate percentiles using current brackets only
+  
+  #calculate percentiles for custombrackets based on the non-custom brackets
   for(i in 1:(sims) ){
-    bracket.payouts[bracket.payouts$Bracket>=10000, paste0("Percentile", i)]<-ecdf(bracket.payouts[bracket.payouts$Bracket<10000, paste0("Sim", i)])(bracket.payouts[bracket.payouts$Bracket>=10000,  paste0("Sim", i)])
+    bracket.payouts[bracket.payouts$CustomBracket==T, paste0("Percentile", i)]<-ecdf(bracket.payouts[bracket.payouts$CustomBracket==F, paste0("Sim", i)])(bracket.payouts[bracket.payouts$CustomBracket==T,  paste0("Sim", i)])
   }
   if(backtest){
-    bracket.payouts$Percentile.Actual[bracket.payouts$Bracket>=10000]<-ecdf(bracket.payouts[bracket.payouts$Bracket<10000, "Score.Actual"])(bracket.payouts[bracket.payouts$Bracket>=10000,  "Score.Actual"])
+    bracket.payouts$Percentile.Actual[bracket.payouts$CustomBracket==T]<-ecdf(bracket.payouts[bracket.payouts$CustomBracket==F, "Score.Actual"])(bracket.payouts[bracket.payouts$CustomBracket==T,  "Score.Actual"])
     
   }
-  bracket.payouts<-bracket.payouts[which(bracket.payouts$Bracket>=10000), ]
+  bracket.payouts<-bracket.payouts[which(bracket.payouts$CustomBracket==T), ]
   cbind(customBrackets, bracket.payouts)
 }
 plotBracket<-function(bracket){
@@ -437,19 +446,19 @@ customBracket6<-data.frame(rbindlist(lapply(1:nrow(customBracket5), function(x) 
 customBracket6<-calcBrackets(customBracket6, brackets = brackets, tourneySims = tourneySims)
 
 improved<-list(brackets,customBracket0, customBracket1, customBracket2, customBracket3, customBracket4, customBracket5, customBracket6)
-numBrackets<-4
-percentile<-.98
+numBrackets<-1
+percentile<-.97
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
                   .packages = c( "Rsymphony")) %dopar% {
                     getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=T)
                   }
-x<-4
+x<-5
 inspect<-improved[[x]]
 result<-results[[x]]
-inspect[which(result$x[1:nrow(inspect)]==1),c(1:63, which(colnames(inspect)%in% c("Prob95", "Prob97", "Prob90", "Index") | grepl("Actual", colnames(inspect))) )]
 sum(result$x[(nrow(inspect)+1):(nrow(inspect)+sims)])/sims #prob90
+inspect[which(result$x[1:nrow(inspect)]==1),c(1:63, which(colnames(inspect)%in% c("Prob95", "Prob97", "Prob90", "Index") | grepl("Actual", colnames(inspect))) )]
 # plot(inspect$Index~inspect$Prob97)
 # # 
 # # #plotting function--fix this..

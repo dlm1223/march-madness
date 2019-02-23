@@ -1,29 +1,64 @@
 ---
 title: "March Madness Optimization"
-date: "February 18, 2018"
-output:
-  md_document:
-    variant: markdown_github
+date: "February 18, 2019"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This is the full code used for the [Shiny march madness app](https://bracketmath.shinyapps.io/ncaa/). You can run the code yourself to customize more things such as increasing the number of simulations, increasing the bracket pool size, changing the projection model, and more. To run, the order of files is: 1. "simulate" 2. "ownership" 3. "optimize brackets" in that order. Below I explain the methodology. <br /> <br />
+This is the full code used for the [Shiny march madness app](https://bracketmath.shinyapps.io/ncaa/). You can run the code yourself to customize more things such as increasing the number of simulations, increasing the bracket pool size, changing the projection model, and more. To run, the order of files is: 1-simulate-tournament, 2-simulate-brackets, 3-calculate payouts, 4-optimize-brackets in that order. The data for the shiny app is in the Shiny folder but it is just less customizable. Below I explain the methodology. <br /> <br />
 
 ### 1. Projection and Simulation
 The algorithm starts by projecting all the tournament matchups and then simulating the tournament:
 
 ```{r , echo=F, eval=T , include=F}
-load("2017/allData.RData")
-load("2017/BracketResults_FullTournament.Rda")
-load("2017/TourneySims.Rda")
+load("Shiny/2018/bracketpayouts.RData")
+load("Shiny/2018/BracketResults_FullTournament_500sims.Rda")
+load("Shiny/2018/TourneySims_500sims.Rda")
 
-source("functions.R")
-source("Bracket Plotting/plotting function.R")
-ownership<-ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownership$R2, ownership$R1, decreasing = T), -1]
-probs<-inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), -7]
+input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
+            r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
+            r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
+            year=2018)
+
+source("functions.R", encoding = "UTF-8")
+source("Shiny/optimize-brackets.R")
+source("Shiny/calculate-bracket-payouts.R")
+
+# brackets<-calcBrackets(brackets[, 1:63], brackets, tourneySims) #calculate bracketpayouts/percentiles
+
+##calculate data
+sims<-max(tourneySims$Sim)-backtest
+inspect<-as.data.frame.matrix(table(tourneySims$Team_Full[tourneySims$Sim<=sims], tourneySims$Round[tourneySims$Sim<=sims])/sims) 
+probs<-inspect[order(inspect$R6,inspect$R5,inspect$R4,inspect$R3, inspect$R2,  decreasing = T), ]
+
+
+numBrackets<-nrow(brackets)
+
+r1<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R1", colnames(brackets))])))/numBrackets);colnames(r1)<-c("Team_Full", "R1")
+r2<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R2", colnames(brackets))])))/numBrackets);colnames(r2)<-c("Team_Full", "R2")
+r3<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R3", colnames(brackets))])))/numBrackets);colnames(r3)<-c("Team_Full", "R3")
+r4<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R4", colnames(brackets))])))/numBrackets);colnames(r4)<-c("Team_Full", "R4")
+r5<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R5", colnames(brackets))])))/numBrackets);colnames(r5)<-c("Team_Full", "R5")
+r6<-as.data.frame(table(as.vector(unlist(brackets[, grepl("R6", colnames(brackets))])))/numBrackets);colnames(r6)<-c("Team_Full", "R6")
+ownership<-Reduce(function(x, y) merge(x, y, all=TRUE), list(r1, r2, r3, r4, r5, r6))
+ownership[is.na(ownership)]<-0
+
+analyze<-TourneySeeds[TourneySeeds$Season==year, ]
+analyze$Team_Full<-Teams$Team_Full[match(analyze$Team, Teams$TeamID)]
+names<-unique(analyze[, c("Team_Full", "Seed")])
+names$Seed<-as.numeric(substring(names$Seed, 2, 3))
+pasteSeed<-function(teams){
+  paste(names$Seed[match( teams, names$Team_Full)], teams, sep=" ")
+}
+
+ownership$Team_Full<-pasteSeed(ownership$Team_Full)
+ownership<-ownership[order(ownership$R6, ownership$R5, ownership$R4, ownership$R3, ownership$R2, ownership$R1, decreasing = T), ]
+
+row.names(probs)<-pasteSeed(row.names(probs))
+
 ```
 
 ```{r , echo=T, eval=T , include=T}
@@ -31,11 +66,11 @@ head(probs, 20)
 
 ```
 
-Above are the probabilities of teams reaching each round for 2017, 5000 simulations <br /> <br />
+Above are the probabilities of teams reaching each round for 2018, 500 simulations <br /> <br />
 
 
 ### 2. Bracket-Pool Simulation
-Then, using [ESPN Pick Percentages](http://games.espn.com/tournament-challenge-bracket/2017/en/whopickedwhom), you can simulate a pool of brackets.
+Then, using [ESPN Pick Percentages](http://games.espn.com/tournament-challenge-bracket/2018/en/whopickedwhom), you can simulate a pool of brackets.
 
 
 
@@ -44,20 +79,36 @@ head(ownership, 20)
 
 ```
 
-Above are the ownership percentages by round for the pool of brackets, 5000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections (Duke, UNC), while others seem to be undervalued in the pool relative to their projection (Gonzaga) 
+Above are the ownership percentages by round for the pool of brackets, 500 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections, while others seem to be undervalued in the pool relative to their projection.
 
 
 ### 3. Optimization
-Finally, you can apply your scoring to get finishes for each bracket compared to the others across the simulations, along with mean-points scored for a given bracket across the simulations. With this, you can find different solutions, Ex: 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. Below is the bracket for 2017 which maximized P(90th percentile).
+Finally, you can apply your scoring to get finishes for each bracket in the pool compared to eachother across the simulations. You can set up an optimization to return the optimal bracket(s) for any number of specifications, Ex: Return 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. I can also test out other brackets against the pool of 500 brackets in order to get alternative brackets which may do well but weren't included in the pool.
 
-
-```{r , echo=T, eval=T , include=T}
-bracket<-brackets[which.max(brackets$Prob90), 1:63]
-plotBracket(bracket)
+```{r , echo=F, eval=T , include=F}
+#load improved pool--
+load("Shiny/2018/Improved-Brackets.Rda")
+brackets<-customBracket2
 
 ```
 
-Although this bracket was not successfull (North Carolina won in 2017), the system is still useful in that it gives you the optimal bracket, given your projections and your scoring system. By changing the projections and running over multiple years, it also allows for some interesting analyses like how many upsets you should typically put in your bracket.
+Below is the bracket which maximized P(90th percentile) for 2018:
+
+
+```{r , echo=T, eval=T , include=T,fig.width=11, fig.height=9 }
+brackets$Prob90<-apply(brackets[, grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))], 1, function(x) sum(x>.90)/sims)
+max(brackets$Prob90) #projected P(90th percentile)
+plotBracket(brackets[which.max(brackets$Prob90), 1:63], text.size = .8)
+
+```
+
+
+```{r , echo=T, eval=T , include=T}
+brackets[which.max(brackets$Prob90), c("Percentile.Actual", "Score.Actual")]
+
+```
+
+Using this system allows you optimize the brackets you enter for march madness. In addition, it allows you to change the scoring system, pool sizes, number of brackets entered, and projection system. By testing out the projected finish based on different strategies like point maximization, or point maximization in R1-2 only, or other ideas, you can get an idea of how you should balance expected point maximization with being contrarian.
 
 
 

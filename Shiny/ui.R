@@ -168,7 +168,8 @@ tags$p( "One change I made this year is trying to improve upon the optimal solut
 I could test out many other brackets against the pool of 500 such as a maximized-expected-points bracket, or a bracket that maximizes EV in the first 2 rounds only.
                              In terms of speed, it will take too long to calculate the bracket payouts of 2000+ potential brackets.
                               After testing out different ideas, the maximized-first 3 rounds EV seemed to perform well regardless of scoring/numlineups/percentile parameters and seems to always improve upon the projected finish.
-                              What I do is maximize the EV in the first 3 rounds, given the scoring system and the teams chosen in the 4th round. In summary, it is just a way to slightly improve upon the projected bracket finish instead of just limiting myself to the 500 brackets in the pool simuation." ),
+                              What I do is maximize the EV in the first 3 rounds, given the scoring system and the teams chosen in the 4th round in the bracket pool. 
+        In summary, it is just a way to slightly improve upon the projected/actual bracket results instead of just limiting myself to the 500 brackets in the pool simuation." ),
                       div(p(HTML(paste0('You can get the code for all of this here: ',a(href = 'https://github.com/dlm1223/march-madness', 'https://github.com/dlm1223', target="_blank")))))
                       # a(href = 'https://github.com/dlm1223', 'https://github.com/dlm1223')
                     )

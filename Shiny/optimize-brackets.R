@@ -95,13 +95,14 @@ maximizeRound<-function(rounds, fixed.rounds="NA", bracket){
 
 
 calcBrackets<-function(customBrackets, brackets, tourneySims){
-  # customBrackets<-customBrackets[, 1:63]
+  # customBrackets<-customBracket0[, 1:63]
   
-  #custombrackets get high bracketIndex. this is useful because we don't want to include them in the percentile calculation
-  #only want to use original pool when seeing their percentile
   bracket.payouts<-data.frame(Slot=rep(colnames(customBrackets)[!grepl("Sim", colnames(customBrackets))], times=nrow(customBrackets)), 
                               Team=unlist(lapply(1:nrow(customBrackets),function(x)customBrackets[x, !grepl("Sim", colnames(customBrackets))] )), 
-                              Bracket=rep(1:nrow(customBrackets)+10000, each=63))
+                              Bracket=rep(1:nrow(customBrackets)+10000, each=63),
+                              CustomBracket=T
+  )
+  brackets$CustomBracket<-F
   bracket.payouts<-bracket.payouts[order(bracket.payouts$Bracket,bracket.payouts$Slot), ]
   tourneySims<-tourneySims[order(tourneySims$Sim, tourneySims$Slot), ]
   
@@ -111,7 +112,7 @@ calcBrackets<-function(customBrackets, brackets, tourneySims){
   bracket.payouts<-data.table(bracket.payouts, key=c("Team", "Slot"))[
     data.table(reshaped.sims, key=c("Team_Full", "Slot")),
     allow.cartesian=TRUE, nomatch=0  ]
-  bracket.payouts<-bracket.payouts[,  lapply(.SD, sum, na.rm=TRUE),by=c( "Bracket"), .SDcols=colnames(bracket.payouts)[grepl("Payout", colnames(bracket.payouts))]]
+  bracket.payouts<-bracket.payouts[,  lapply(.SD, sum, na.rm=TRUE),by=c( "Bracket", "CustomBracket"), .SDcols=colnames(bracket.payouts)[grepl("Payout", colnames(bracket.payouts))]]
   colnames(bracket.payouts)<-gsub("Payout.", "Sim", colnames(bracket.payouts))
   bracket.payouts<-bracket.payouts[order(bracket.payouts$Bracket, decreasing = F), ]
   
@@ -123,16 +124,19 @@ calcBrackets<-function(customBrackets, brackets, tourneySims){
   #rbind custompool scores to current brackets
   bracket.payouts<-rbind.fill(bracket.payouts, brackets[, grepl("Sim|Bracket|Score", colnames(brackets))])
   bracket.payouts[, paste0("Percentile", (1:sims))]<-NA
-  #calculate percentiles using current brackets only
+  
+  #calculate percentiles for custombrackets based on the non-custom brackets
   for(i in 1:(sims) ){
-    bracket.payouts[bracket.payouts$Bracket>=10000, paste0("Percentile", i)]<-ecdf(bracket.payouts[bracket.payouts$Bracket<10000, paste0("Sim", i)])(bracket.payouts[bracket.payouts$Bracket>=10000,  paste0("Sim", i)])
+    bracket.payouts[bracket.payouts$CustomBracket==T, paste0("Percentile", i)]<-ecdf(bracket.payouts[bracket.payouts$CustomBracket==F, paste0("Sim", i)])(bracket.payouts[bracket.payouts$CustomBracket==T,  paste0("Sim", i)])
   }
   if(backtest){
-    bracket.payouts$Percentile.Actual[bracket.payouts$Bracket>=10000]<-ecdf(bracket.payouts[bracket.payouts$Bracket<10000, "Score.Actual"])(bracket.payouts[bracket.payouts$Bracket>=10000,  "Score.Actual"])
+    bracket.payouts$Percentile.Actual[bracket.payouts$CustomBracket==T]<-ecdf(bracket.payouts[bracket.payouts$CustomBracket==F, "Score.Actual"])(bracket.payouts[bracket.payouts$CustomBracket==T,  "Score.Actual"])
+    
   }
-  bracket.payouts<-bracket.payouts[which(bracket.payouts$Bracket>=10000), ]
+  bracket.payouts<-bracket.payouts[which(bracket.payouts$CustomBracket==T), ]
   cbind(customBrackets, bracket.payouts)
 }
+
 plotBracket<-function(bracket, text.size=.6){
   
   analyze<-TourneySeeds[TourneySeeds$Season==year, ]
