@@ -20,3 +20,8 @@ organize-data.R
 scrape-data.R
 create-tourney-geog.R
 data/fulldf.Rda
+links for pre-tournament data.txt
+SAG/
+Bracket Plotting/
+538/
+Backtest files/

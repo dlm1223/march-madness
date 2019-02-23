@@ -51,7 +51,7 @@ function(input, output, session) {
     
     
     #load data
-    load(paste0(c( input$year, "/bracketpayouts.Rdata"), sep="", collapse=""))
+    load(paste0(c( input$year, "/bracketpayouts.RData"), sep="", collapse=""))
     load(paste0(c( input$year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
     load(paste0(c(input$year, "/BracketResults_FullTournament_500sims.Rda"), sep="", collapse=""))
     

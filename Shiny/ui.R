@@ -1,4 +1,4 @@
-# library(datasets)
+library(datasets)
 library(shiny)
 library(shinydashboard)
 library(shinyBS)
@@ -156,13 +156,15 @@ navbarPage("March Madness Optimization",
                       tags$p("Use this app to find optimal brackets based on your pool's scoring system and size. 
 To use, enter scoring system/leave defaults on Scoring page and click Apply Scoring, 
 then go to Optimization page and enter desired optimization parameters."), 
+                      hr(),                      
                       tags$h3("How it Works:"),
                       
                       tags$p("First the app simulates the tournament 500 times to get estimates of team finishes. Next the app simulates a pool of 500 
-brackets based on the ESPN data of who picked who that year. Finally, based on the entered scoring system, it calculates how each of these brackets expects to finish
+brackets based on the ESPN data of who picked who that year. This data is shown on the data page. Finally, based on the entered scoring system, it 
+calculates how each of the brackets expects to finish
 relative to the others across the simulations. Using this data, I can say things like: take the bracket with the highest chance of getting a 90th percentile. 
-                             Data from the 500 simulations and 500 brackets can be viewed on Data page. Teams that do well in the simulations but have a low ownership percentage will come up more often in the optimal solutions."),
-                      tags$p( "One change I made this year is trying to improve upon the optimal solutions. Because there are so many potential brackets, it is likely that there are good brackets that weren't part of the pool simulation. 
+                              On the Data page, you can how some teams are undervalued in the ownership relative to the simulations and so they will come up more in the optimal soluations"),
+tags$p( "One change I made this year is trying to improve upon the optimal solutions. Because there are so many potential brackets, it is likely that there are good brackets that weren't part of the pool simulation. 
 I could test out many other brackets against the pool of 500 such as a maximized-expected-points bracket, or a bracket that maximizes EV in the first 2 rounds only.
                              In terms of speed, it will take too long to calculate the bracket payouts of 2000+ potential brackets.
                               After testing out different ideas, the maximized-first 3 rounds EV seemed to perform well regardless of scoring/numlineups/percentile parameters and seems to always improve upon the projected finish.

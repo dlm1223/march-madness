@@ -44,7 +44,7 @@ tourneySims<-tourneySims[order(tourneySims$Sim, tourneySims$Slot), ]
 
 #need to get payout of each pick for each bracket.
 #merging is quicker but runs into memory issues for large numSims, numBrackets
-if(sims>1000){
+if(sims>2000){
   test<-data.frame(Bracket=1:max(bracket.payouts$Bracket))
   test[, paste("Sim", 1:max(tourneySims$Sim), sep="")]<-NA
   for(i in 1:max(tourneySims$Sim)){
@@ -77,25 +77,24 @@ if(sims>1000){
 brackets<-cbind(brackets, bracket.payouts)
 
 # colnames(brackets)[grepl(numSims+1, colnames(brackets))]<-gsub("Sim", "Actual", colnames(brackets)[grepl(numSims+1, colnames(brackets))])
+colnames(brackets)[grepl(sims+1, colnames(brackets))& grepl("Sim", colnames(brackets))]<-"Score.Actual"
 
 ###ANALYZE RESULTS#####
 
-hist(as.numeric(brackets[45,grepl("Sim", colnames(brackets))]))
-brackets<-brackets[, !grepl("Percentile|Prob", colnames(brackets))]
-for(i in 1:(sims+backtest) ){
-  brackets[, paste0("Percentile", i)]<-ecdf(brackets[, paste0("Sim", i)])(brackets[,  paste0("Sim", i)])
-}
-if(backtest==T){
-  colnames(brackets)[grepl(sims+1, colnames(brackets))& grepl("Sim", colnames(brackets))]<-"Score.Actual"
-  colnames(brackets)[grepl(sims+1, colnames(brackets))& grepl("Percentile", colnames(brackets))]<-"Percentile.Actual"
-  
-}
-bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
-brackets$Prob90<-apply(brackets[, bool], 1, function(x) sum(x>.90)/sims)
-brackets$Prob95<-apply(brackets[,bool], 1, function(x) sum(x>.95)/sims)
-brackets$Prob97<-apply(brackets[, bool], 1, function(x) sum(x>.97)/sims)
-brackets$Prob99<-apply(brackets[, bool], 1, function(x) sum(x>.99)/sims)
-head(brackets[,c("R4W1", "R4X1", "R4Y1", "R4Z1", "R5WX", "R5YZ", "R6CH", "Prob95", "Prob90", "Percentile.Actual") ][order(brackets$Prob99, decreasing=T), ])
+# hist(as.numeric(brackets[45,grepl("Sim", colnames(brackets))]))
+# brackets<-brackets[, !grepl("Percentile|Prob", colnames(brackets))]
+# for(i in 1:(sims+backtest) ){
+#   brackets[, paste0("Percentile", i)]<-ecdf(brackets[, paste0("Sim", i)])(brackets[,  paste0("Sim", i)])
+# }
+# if(backtest==T){
+#   colnames(brackets)[grepl(sims+1, colnames(brackets))& grepl("Percentile", colnames(brackets))]<-"Percentile.Actual"
+# }
+# bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
+# brackets$Prob90<-apply(brackets[, bool], 1, function(x) sum(x>.90)/sims)
+# brackets$Prob95<-apply(brackets[,bool], 1, function(x) sum(x>.95)/sims)
+# brackets$Prob97<-apply(brackets[, bool], 1, function(x) sum(x>.97)/sims)
+# brackets$Prob99<-apply(brackets[, bool], 1, function(x) sum(x>.99)/sims)
+# head(brackets[,c("R4W1", "R4X1", "R4Y1", "R4Z1", "R5WX", "R5YZ", "R6CH", "Prob95", "Prob90", "Percentile.Actual") ][order(brackets$Prob99, decreasing=T), ])
 
 
 

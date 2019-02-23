@@ -9,8 +9,9 @@
 #customBracket2 seems to work the best in terms of usually giving the best brackets that maximize probability of high finish
 #it optimizes brackets to maximize EV in the first 3 rounds
 
-year<-2013
+year<-2018
 backtest<-ifelse(year==2019, F, T)
+playInTbd<-F
 source("functions.R", encoding = "UTF-8")
 load(paste0(year,"/TourneySims_500sims.Rda"))
 load(paste0(year,"/BracketResults_FullTournament_500sims.Rda"))
@@ -396,6 +397,7 @@ getOptimal<-function(brackets, percentile, numBrackets, speedUp=T){
 }
 
 ###LOOK FOR DIFFERENT BRACKETS BY APPLYING MAX-EV STRATEGIES TO BRACKET POOL####
+brackets<-calcBrackets(brackets[, 1:63], brackets = brackets, tourneySims = tourneySims)
 
 #iterate through previous rounds and maximize EV s.t. bracket remains valid i.e. team can't leave and return
 customBracket0<-brackets[, 1:63]
