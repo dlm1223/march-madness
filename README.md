@@ -1,4 +1,4 @@
-## March Madness Optimization
+# March Madness Optimization
 
 This is the full code used for the [Shiny march madness
 app](https://bracketmath.shinyapps.io/ncaa/). You can run the code
