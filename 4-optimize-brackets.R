@@ -1,4 +1,5 @@
-#i use the pool of brackets in addition testing other brackets to maximize chance of hitting percentile
+#run this to search for various potential brackets.. uses pool of brackets in addition to maximized-ev brackets.
+#searches more brackets than the shiny app
 
 #functions:
 #   optimizeRounds() maximizes EV of specified rounds
@@ -9,7 +10,7 @@
 #customBracket2 seems to work the best in terms of usually giving the best brackets that maximize probability of high finish
 #it optimizes brackets to maximize EV in the first 3 rounds
 
-year<-2013
+year<-2018
 backtest<-ifelse(year==2019, F, T)
 playInTbd<-F
 source("functions.R", encoding = "UTF-8")
@@ -20,6 +21,10 @@ input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mu
             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
             year=year)
+# input<-list(r1=1, r2=2, r3=4, r4=8, r5=16, r6=32, upset1_mult=1, upset2_mult=1, upset3_mult=1,
+#             r1_seed_mult=1, r2_seed_mult=1, r3_seed_mult=1, r4_seed_mult=1, r5_seed_mult=1, r6_seed_mult=1,
+#             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
+#             year=year)
 # input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2, upset2_mult=3, upset3_mult=4,
 #             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
 #             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
@@ -31,8 +36,8 @@ source("3-calculate-bracket-payouts.R")
 
 
 #save data: team-specific data, useful for shiny app bracket plotting/data plotting
-save(list=ls()[ls()%in% c( "backtest", "playInTbd", "Teams",   "year", "TourneySeeds","TourneyRounds")],
-     file=paste0(year, "/team-data.RData"))
+# save(list=ls()[ls()%in% c( "backtest", "playInTbd", "Teams",   "year", "TourneySeeds","TourneyRounds")],
+#      file=paste0(year, "/team-data.RData"))
 
 ###team expected values####
 
@@ -430,7 +435,7 @@ customBracket2<-brackets[, 1:63]
 customBracket2<-data.frame(rbindlist(lapply(1:nrow(customBracket2), function(x) optimizeRounds(rounds = c("R1", "R2", "R3"),fixed.rounds = "R4", bracket=customBracket2[x, ] ))))
 customBracket2<-calcBrackets(customBracket2, brackets = brackets, tourneySims = tourneySims)
 
-save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
+# save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
 
 
 customBracket3<-brackets[, 1:63]
@@ -452,19 +457,25 @@ customBracket6<-brackets[, 1:63]
 customBracket6<-data.frame(rbindlist(lapply(1:nrow(customBracket5), function(x) maximizeRound(rounds = c("R1", "R2", "R3"), bracket=customBracket6[x, ] ))))
 customBracket6<-calcBrackets(customBracket6, brackets = brackets, tourneySims = tourneySims)
 
+customBracket7<-brackets[, 1:63]
+customBracket7<-data.frame(rbindlist(lapply(1:nrow(customBracket5), function(x) maximizeRound(rounds = c("R1", "R2", "R3", "R4"), bracket=customBracket7[x, ] ))))
+customBracket7<-calcBrackets(customBracket7, brackets = brackets, tourneySims = tourneySims)
+
+#can combine sets here..useful if multi-entering
 customBracket1.5<-rbind(customBracket0, customBracket2)
 customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
 
-improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, customBracket3, customBracket4, customBracket5, customBracket6)
-numBrackets<-3
-percentile<-.90
+improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2,
+               customBracket3, customBracket4, customBracket5, customBracket6,customBracket7)
+numBrackets<-4
+percentile<-.98
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
                   .packages = c( "Rsymphony")) %dopar% {
-                    getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=T)
+                    getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=F)
                   }
-x<-5
+x<-4
 inspect<-improved[[x]]
 result<-results[[x]]
 sum(result$x[(nrow(inspect)+1):(nrow(inspect)+sims)])/sims #prob90
@@ -472,4 +483,4 @@ inspect[which(result$x[1:nrow(inspect)]==1),c(1:63, which(colnames(inspect)%in% 
 # plot(inspect$Index~inspect$Prob97)
 # # 
 # # #plotting function--fix this..
-plotBracket(inspect[which(result$x[1:nrow(inspect)]==1)[3],1:63])
+plotBracket(inspect[which(result$x[1:nrow(inspect)]==1)[1],1:63])
