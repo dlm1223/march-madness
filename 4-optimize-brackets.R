@@ -455,6 +455,10 @@ customBracket6<-calcBrackets(customBracket6, brackets = brackets, tourneySims = 
 customBracket1.5<-rbind(customBracket0, customBracket2)
 customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
 
+###GET OPTIMAL RESULTS FOR CUSTOM BRACKET POOLS####                                            
+#look at how the different custom-bracket pools perform in maximizing prob(90), prob(99), etc. 
+#customBracket2 seems to almost always perform best i.e. it has a good mix of max-EV and being contrarian
+                                            
 improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, customBracket3, customBracket4, customBracket5, customBracket6)
 numBrackets<-3
 percentile<-.90
