@@ -1,4 +1,4 @@
-#run this to search for various potential brackets.. uses pool of brackets in addition to maximized-ev brackets.
+#i use the pool of brackets in addition testing other brackets to maximize chance of hitting percentile
 #searches more brackets than the shiny app
 
 #functions:
@@ -465,10 +465,20 @@ customBracket7<-calcBrackets(customBracket7, brackets = brackets, tourneySims = 
 customBracket1.5<-rbind(customBracket0, customBracket2)
 customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
 
+<<<<<<< HEAD
 improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2,
                customBracket3, customBracket4, customBracket5, customBracket6,customBracket7)
 numBrackets<-4
 percentile<-.98
+=======
+###GET OPTIMAL RESULTS FOR CUSTOM BRACKET POOLS####                                            
+#look at how the different custom-bracket pools perform in maximizing prob(90), prob(99), etc. 
+#customBracket2 seems to almost always perform best i.e. it has a good mix of max-EV and being contrarian
+                                            
+improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, customBracket3, customBracket4, customBracket5, customBracket6)
+numBrackets<-3
+percentile<-.90
+>>>>>>> 1977ce4b2ec16afd585b392ba98fb751357260cc
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,

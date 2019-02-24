@@ -1,6 +1,6 @@
 
 ##to run, can change number of sims, year, name of file to save tourneysims
-#then run ownership file, where you can change numBrackets and file name to save brackets
+#then run sim brackets file, where you can change numBrackets and file name to save brackets
 #then run optimize brackets file where you can optimize brackets
 
 ##SET PARAMETERS/READ DATA######
