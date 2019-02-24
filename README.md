@@ -90,10 +90,10 @@ the pool.
 
 Below is the bracket which maximized P(90th percentile) for 2018:
 
-    brackets$Prob90<-apply(brackets[, grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))], 1, function(x) sum(x>.90)/sims)
+    brackets$Prob90<-apply(brackets[, grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))], 1, function(x) sum(x>=.90)/sims)
     max(brackets$Prob90) #projected P(90th percentile)
 
-    ## [1] 0.305
+    ## [1] 0.306
 
     plotBracket(brackets[which.max(brackets$Prob90), 1:63], text.size = .8)
 
