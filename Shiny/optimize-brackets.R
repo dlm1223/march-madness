@@ -29,7 +29,7 @@ optimizeRounds<-function(rounds, fixed.rounds="NA", bracket, optmode="Rsymphony"
     
     #if a team is selected in a round, they must be selected in the previous roundss
     A[q, i]<-1;
-    A[q, which(must_fill$Team_Full==team& must_fill$Round_num<=rd-1)]<-(-1)
+    A[q, which(must_fill$Team_Full==team& must_fill$Round_num==rd-1)]<-(-1)
     model$sense[q]<-"<="; model$rhs[q]<-0;q<-q+1
     
   }

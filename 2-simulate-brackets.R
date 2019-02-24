@@ -1,9 +1,9 @@
-year<-2017
-numBrackets<-500
+year<-2013
+numBrackets<-1000
 playInTbd<-F
 load("data/game-data.RData"); 
-load(paste0(year,"/TourneySims_500sims.Rda"))
-name<-paste0(year,"/BracketResults_FullTournament_500sims.Rda")
+load(paste0(year,"/TourneySims_1000sims.Rda")) #tourneysims file
+name<-paste0(year,"/BracketResults_FullTournament_",numBrackets ,"sims.Rda") #name to save this file as 
 
 ###organize ownership data, check names********************
 
@@ -34,7 +34,6 @@ if(playInTbd==T & year==2018){
 }
 
 
-setdiff( bracket.data$Team_Full, whoPicked$Team)
 setdiff( whoPicked$Team, bracket.data$Team_Full)
 
 
@@ -54,6 +53,7 @@ setdiff( bracket.data$Team_Full, whoPicked$Team)
 
 bracket.data<-bracket.data[bracket.data$Seed%in% whoPicked$Seed, ]
 
+setdiff( bracket.data$Team_Full, whoPicked$Team)
 
 
 ####CREATE BRACKETS######

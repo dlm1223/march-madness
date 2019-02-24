@@ -13,13 +13,17 @@ year<-2018
 backtest<-ifelse(year==2019, F, T)
 playInTbd<-F
 source("functions.R", encoding = "UTF-8")
-load(paste0(year,"/TourneySims_500sims.Rda"))
-load(paste0(year,"/BracketResults_FullTournament_500sims.Rda"))
+load(paste0(year,"/TourneySims_1000sims.Rda"))
+load(paste0(year,"/BracketResults_FullTournament_1000sims.Rda"))
 load("data/game-data.RData")
-input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2,
-            upset2_mult=3, upset3_mult=4, upset1_add=0, upset2_add=0, upset3_add=0)
-# input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1,
-#             upset2_mult=1, upset3_mult=1, upset1_add=0, upset2_add=0, upset3_add=0)
+# input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
+#             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
+#             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
+#             year=year)
+input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2, upset2_mult=3, upset3_mult=4,
+            r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
+            r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
+            year=year)
 
 #calculate payouts based on brackets/sims/scoring
 source("3-calculate-bracket-payouts.R")
@@ -78,11 +82,12 @@ optimizeRounds<-function(rounds, fixed.rounds="NA", bracket, optmode="Rsymphony"
   #for rounds being filled that are >1
   for(i in which(must_fill$Round_num>1)){
     
-    team<-must_fill$Team_Full[i];rd<-must_fill$Round_num[i]
+    team<-must_fill$Team_Full[i]
+    rd<-must_fill$Round_num[i]
     
     #if a team is selected in a round, they must be selected in the previous roundss
     A[q, i]<-1;
-    A[q, which(must_fill$Team_Full==team& must_fill$Round_num<=rd-1)]<-(-1)
+    A[q, which(must_fill$Team_Full==team& must_fill$Round_num==rd-1)]<-(-1)
     model$sense[q]<-"<="; model$rhs[q]<-0;q<-q+1
     
   }
@@ -155,7 +160,7 @@ calcBrackets<-function(customBrackets, brackets, tourneySims){
                               Team=unlist(lapply(1:nrow(customBrackets),function(x)customBrackets[x, !grepl("Sim", colnames(customBrackets))] )), 
                               Bracket=rep(1:nrow(customBrackets)+10000, each=63),
                               CustomBracket=T
-                              )
+  )
   brackets$CustomBracket<-F
   bracket.payouts<-bracket.payouts[order(bracket.payouts$Bracket,bracket.payouts$Slot), ]
   tourneySims<-tourneySims[order(tourneySims$Sim, tourneySims$Slot), ]
@@ -445,14 +450,17 @@ customBracket6<-brackets[, 1:63]
 customBracket6<-data.frame(rbindlist(lapply(1:nrow(customBracket5), function(x) maximizeRound(rounds = c("R1", "R2", "R3"), bracket=customBracket6[x, ] ))))
 customBracket6<-calcBrackets(customBracket6, brackets = brackets, tourneySims = tourneySims)
 
-improved<-list(brackets,customBracket0, customBracket1, customBracket2, customBracket3, customBracket4, customBracket5, customBracket6)
-numBrackets<-1
-percentile<-.97
+customBracket1.5<-rbind(customBracket0, customBracket2)
+customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
+
+improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, customBracket3, customBracket4, customBracket5, customBracket6)
+numBrackets<-5
+percentile<-.98
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
                   .packages = c( "Rsymphony")) %dopar% {
-                    getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=T)
+                    getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=F)
                   }
 x<-5
 inspect<-improved[[x]]
@@ -462,4 +470,4 @@ inspect[which(result$x[1:nrow(inspect)]==1),c(1:63, which(colnames(inspect)%in% 
 # plot(inspect$Index~inspect$Prob97)
 # # 
 # # #plotting function--fix this..
-plotBracket(inspect[which(result$x[1:nrow(inspect)]==1)[1],1:63])
+plotBracket(inspect[which(result$x[1:nrow(inspect)]==1)[3],1:63])

@@ -6,15 +6,16 @@
 ##SET PARAMETERS/READ DATA######
 
 year<-2013
-sims<-500
-name<-paste0(year,"/TourneySims_500sims.Rda")
+sims<-1000
+name<-paste0(year,"/TourneySims_", sims,"sims.Rda")
 backtest<-ifelse(year==2019, F, T)
 playInTbd<-F  
 
 load("data/game-data.RData")
 source("functions.R", encoding = "UTF-8")
 
-samplesubmission<-read.csv(paste0(year, "/Kaggle Submission.csv"), stringsAsFactors = F)
+#if you use kaggle data files, this is where you could put your own projections...id like to add this to the shiny app but it's just not gonna happen
+samplesubmission<-read.csv(paste0(year, "/Kaggle Submission.csv"), stringsAsFactors = F) 
 colnames(samplesubmission)[colnames(samplesubmission)%in% c("id", "Id")]<-"ID"
 colnames(samplesubmission)[colnames(samplesubmission)%in% c("pred", "PRED")]<-"Pred"
 samplesubmission$Team<-as.numeric(sapply(strsplit(samplesubmission$ID, "_"), `[[`, 2))
