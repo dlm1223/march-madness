@@ -1,4 +1,4 @@
-\# March Madness Optimization
+\ March Madness Optimization
 -----------------------------
 
 This is the full code used for the [Shiny march madness
