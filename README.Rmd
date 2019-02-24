@@ -1,7 +1,8 @@
 ---
-title: "March Madness Optimization"
-date: "February 18, 2019"
-output: html_document
+output: md_document
+---
+
+# March Madness Optimization
 ---
 
 ```{r setup, include=FALSE}
@@ -14,9 +15,9 @@ This is the full code used for the [Shiny march madness app](https://bracketmath
 The algorithm starts by projecting all the tournament matchups and then simulating the tournament:
 
 ```{r , echo=F, eval=T , include=F}
-load("Shiny/2018/bracketpayouts.RData")
-load("Shiny/2018/BracketResults_FullTournament_500sims.Rda")
-load("Shiny/2018/TourneySims_500sims.Rda")
+load("Shiny/2018/team-data.RData")
+load("Shiny/2018/BracketResults_FullTournament_1000sims.Rda")
+load("Shiny/2018/TourneySims_1000sims.Rda")
 
 input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
@@ -66,7 +67,7 @@ head(probs, 20)
 
 ```
 
-Above are the probabilities of teams reaching each round for 2018, 500 simulations <br /> <br />
+Above are the probabilities of teams reaching each round for 2018, 1000 simulations <br /> <br />
 
 
 ### 2. Bracket-Pool Simulation
@@ -79,11 +80,11 @@ head(ownership, 20)
 
 ```
 
-Above are the ownership percentages by round for the pool of brackets, 500 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections, while others seem to be undervalued in the pool relative to their projection.
+Above are the ownership percentages by round for the pool of brackets, 1000 brackets. You can start to see that certain teams are overvalued in the pool of brackets compared to their projections, while others seem to be undervalued in the pool relative to their projection.
 
 
 ### 3. Optimization
-Finally, you can apply your scoring to get finishes for each bracket in the pool compared to eachother across the simulations. You can set up an optimization to return the optimal bracket(s) for any number of specifications, Ex: Return 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. I can also test out other brackets against the pool of 500 brackets in order to get alternative brackets which may do well but weren't included in the pool.
+Finally, you can apply your scoring to get finishes for each bracket in the pool compared to eachother across the simulations. You can set up an optimization to return the optimal bracket(s) for any number of specifications, Ex: Return 1 Bracket to maximize P(90th percentile). 3 brackets to maximize P(97th), 1 bracket to maximize points, etc. I can also test out other brackets against the pool of 1000 brackets in order to get alternative brackets which may do well but weren't included in the pool.
 
 ```{r , echo=F, eval=T , include=F}
 #load improved pool--

@@ -51,9 +51,9 @@ function(input, output, session) {
     
     
     #load data
-    load(paste0(c( input$year, "/bracketpayouts.RData"), sep="", collapse=""))
-    load(paste0(c( input$year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
-    load(paste0(c(input$year, "/BracketResults_FullTournament_500sims.Rda"), sep="", collapse=""))
+    load(paste0(c( input$year, "/team-data.RData"), sep="", collapse=""))
+    load(paste0(c( input$year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
+    load(paste0(c(input$year, "/BracketResults_FullTournament_1000sims.Rda"), sep="", collapse=""))
     
     
     
@@ -70,6 +70,7 @@ function(input, output, session) {
       progress$set(message = 'Updating Bracket Payouts')
       progress$set( value = 1)
       
+      #re-calculate bracket-scores using new scoring
       source("calculate-bracket-payouts.R", local=T)
       
       progress$set( value = 25)
@@ -86,6 +87,7 @@ function(input, output, session) {
       expected<-merge(expected, bracket.data[, c("Team_Full", "Round", "Slot")], by=c("Team_Full", "Round"), all=T)
       expected[is.na(expected)]<-0
       
+      #functions for optimizing brackets
       source("optimize-brackets.R", local=T)
       
       customBracket3<-brackets[, 1:63]
@@ -220,8 +222,9 @@ function(input, output, session) {
     optimization <- optimization()
     year<-optimization$year
     
-    load(paste0(c( year, "/bracketpayouts.RData"), sep="", collapse=""))
-    load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
+    load(paste0(c(year, "/BracketResults_FullTournament_1000sims.Rda"), sep="", collapse=""))
+    load(paste0(c( year, "/team-data.RData"), sep="", collapse=""))
+    load(paste0(c( year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
     sims<-optimization$sims
     
     analyze<-TourneySeeds[TourneySeeds$Season==year, ]
@@ -242,8 +245,9 @@ function(input, output, session) {
     optimization <- optimization()
     year<-optimization$year
     
-    load(paste0(c( year, "/bracketpayouts.RData"), sep="", collapse=""))
-    load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
+    load(paste0(c(year, "/BracketResults_FullTournament_1000sims.Rda"), sep="", collapse=""))
+    load(paste0(c( year, "/team-data.RData"), sep="", collapse=""))
+    load(paste0(c( year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
     
     
     bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
@@ -292,8 +296,8 @@ function(input, output, session) {
     optimization <- optimization()
     year<-optimization$year
     
-    load(paste0(c( year, "/bracketpayouts.RData"), sep="", collapse=""))
-    load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
+    load(paste0(c( year, "/team-data.RData"), sep="", collapse=""))
+    load(paste0(c( year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
     
     brackets<-optimization$brackets
     result<-optimization$result
@@ -306,8 +310,8 @@ function(input, output, session) {
     optimization <- optimization()
     year<-optimization$year
     
-    load(paste0(c( year, "/bracketpayouts.RData"), sep="", collapse=""))
-    load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
+    load(paste0(c( year, "/team-data.RData"), sep="", collapse=""))
+    load(paste0(c( year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
     
     brackets<-optimization$brackets
     result<-optimization$result
@@ -324,8 +328,8 @@ function(input, output, session) {
     optimization <- optimization()
     year<-optimization$year
     
-    load(paste0(c( year, "/bracketpayouts.RData"), sep="", collapse=""))
-    load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
+    load(paste0(c( year, "/team-data.RData"), sep="", collapse=""))
+    load(paste0(c( year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
     
     brackets<-optimization$brackets
     result<-optimization$result
@@ -342,8 +346,8 @@ function(input, output, session) {
     optimization <- optimization()
     year<-optimization$year
     
-    load(paste0(c( year, "/bracketpayouts.RData"), sep="", collapse=""))
-    load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
+    load(paste0(c( year, "/team-data.RData"), sep="", collapse=""))
+    load(paste0(c( year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
     
     brackets<-optimization$brackets
     result<-optimization$result
@@ -361,8 +365,8 @@ function(input, output, session) {
     optimization <- optimization()
     year<-optimization$year
     
-    load(paste0(c( year, "/bracketpayouts.RData"), sep="", collapse=""))
-    load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
+    load(paste0(c( year, "/team-data.RData"), sep="", collapse=""))
+    load(paste0(c( year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
     
     brackets<-optimization$brackets
     result<-optimization$result
@@ -390,8 +394,8 @@ function(input, output, session) {
       optimization <- optimization()
       year<-optimization$year
       
-      load(paste0(c( year, "/bracketpayouts.RData"), sep="", collapse=""))
-      load(paste0(c( year, "/TourneySims_500sims.Rda"), sep="", collapse=""))
+      load(paste0(c( year, "/team-data.RData"), sep="", collapse=""))
+      load(paste0(c( year, "/TourneySims_1000sims.Rda"), sep="", collapse=""))
       
       brackets<-optimization$brackets
       result<-optimization$result

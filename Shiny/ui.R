@@ -159,17 +159,17 @@ then go to Optimization page and enter desired optimization parameters."),
                       hr(),                      
                       tags$h3("How it Works:"),
                       
-                      tags$p("First the app simulates the tournament 500 times to get estimates of team finishes. Next the app simulates a pool of 500 
+                      tags$p("First the app simulates the tournament 1000 times to get estimates of team finishes. Next the app simulates a pool of 1000 
 brackets based on the ESPN data of who picked who that year. This data is shown on the data page. Finally, based on the entered scoring system, it 
 calculates how each of the brackets expects to finish
 relative to the others across the simulations. Using this data, I can say things like: take the bracket with the highest chance of getting a 90th percentile. 
-                              On the Data page, you can how some teams are undervalued in the ownership relative to the simulations and so they will come up more in the optimal soluations"),
+                              On the Data page, you can see how some teams are undervalued in the ownership relative to the simulations and so they will come up more in the optimal solutions"),
 tags$p( "One change I made this year is trying to improve upon the optimal solutions. Because there are so many potential brackets, it is likely that there are good brackets that weren't part of the pool simulation. 
-I could test out many other brackets against the pool of 500 such as a maximized-expected-points bracket, or a bracket that maximizes EV in the first 2 rounds only.
-                             In terms of speed, it will take too long to calculate the bracket payouts of 2000+ potential brackets.
+I could test out many other brackets against the pool of 1000 such as a maximized-expected-points bracket, or a bracket that maximizes EV in the first 2 rounds only.
+                             In terms of speed, it will take too long to calculate the bracket payouts of so many potential brackets, especially when I am trying to choose multiple brackets.
                               After testing out different ideas, the maximized-first 3 rounds EV seemed to perform well regardless of scoring/numlineups/percentile parameters and seems to always improve upon the projected finish.
-                              What I do is maximize the EV in the first 3 rounds, given the scoring system and the teams chosen in the 4th round in the bracket pool. 
-        In summary, it is just a way to slightly improve upon the projected/actual bracket results instead of just limiting myself to the 500 brackets in the pool simuation." ),
+                              What I do is go through the bracket pool and maximize the EV in the first 3 rounds, given the teams chosen in the 4th round, and I do this for each bracket. 
+        In summary, it is just a way to slightly improve upon the projected/actual bracket results instead of just limiting myself to the 1000 brackets in the pool simuation." ),
                       div(p(HTML(paste0('You can get the code for all of this here: ',a(href = 'https://github.com/dlm1223/march-madness', 'https://github.com/dlm1223', target="_blank")))))
                       # a(href = 'https://github.com/dlm1223', 'https://github.com/dlm1223')
                     )

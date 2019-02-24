@@ -9,28 +9,30 @@
 #customBracket2 seems to work the best in terms of usually giving the best brackets that maximize probability of high finish
 #it optimizes brackets to maximize EV in the first 3 rounds
 
-year<-2018
+year<-2013
 backtest<-ifelse(year==2019, F, T)
 playInTbd<-F
 source("functions.R", encoding = "UTF-8")
 load(paste0(year,"/TourneySims_1000sims.Rda"))
 load(paste0(year,"/BracketResults_FullTournament_1000sims.Rda"))
 load("data/game-data.RData")
-# input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
-#             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
-#             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
-#             year=year)
-input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2, upset2_mult=3, upset3_mult=4,
+input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
             year=year)
+# input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2, upset2_mult=3, upset3_mult=4,
+#             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
+#             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
+#             year=year)
+
 
 #calculate payouts based on brackets/sims/scoring
 source("3-calculate-bracket-payouts.R")
 
-#save data: only save if using default scoring
-# save(list=ls()[ls()%in% c( "backtest", "playInTbd", "Teams",   "year", "TourneySeeds","TourneyRounds", "brackets" )],
-#      file=paste0(year, "/bracketpayouts.RData"))
+
+#save data: team-specific data, useful for shiny app bracket plotting/data plotting
+save(list=ls()[ls()%in% c( "backtest", "playInTbd", "Teams",   "year", "TourneySeeds","TourneyRounds")],
+     file=paste0(year, "/team-data.RData"))
 
 ###team expected values####
 
@@ -454,13 +456,13 @@ customBracket1.5<-rbind(customBracket0, customBracket2)
 customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
 
 improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, customBracket3, customBracket4, customBracket5, customBracket6)
-numBrackets<-5
-percentile<-.98
+numBrackets<-3
+percentile<-.90
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
                   .packages = c( "Rsymphony")) %dopar% {
-                    getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=F)
+                    getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=T)
                   }
 x<-5
 inspect<-improved[[x]]
