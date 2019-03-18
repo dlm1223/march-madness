@@ -1980,3 +1980,30 @@ coordTeam<-function(x){
   x
   
 }
+
+#model fitting functions:
+convert<-function(rank){
+  4.727242330105+0.000170862480*rank^2-0.000000272551*rank^3-2.004875459469*sqrt(rank)+3.307630411738*log(354 - rank)
+}
+clip<-function(x, high=.975, low=.025){
+  x[x>high]<-high
+  x[x<low]<-low
+  x
+}
+clip2<-function(x){
+  x<- (-0.002737339) + 0.432836*x + 1.717916*x^2 - 1.145277*x^3
+  # x <- 0.001196782 + 0.3373227*x + 1.993124*x^2 - 1.3344*x^3
+  x[x>1]<-1
+  x[x<0]<-0
+  x
+}
+clip3<-function(x){
+  x<- 1.110223e-16 + 1.533333*x - 1.6*x^2 + 1.066667*x^3
+  x[x>1]<-1
+  x[x<0]<-0
+  x
+  
+}
+# plot(seq(0, 1, .01), seq(0, 1, .01))
+# lines(seq(0, 1, .01), clip2(seq(0, 1, .01)))
+#https://mycurvefit.com/
