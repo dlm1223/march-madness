@@ -227,8 +227,23 @@ calcBrackets<-function(customBrackets, brackets, tourneySims){
 }
 plotBracket<-function(bracket){
   
+  #need to clean this up eventually...was annoying to handle playingames
+  
   analyze<-TourneySeeds[TourneySeeds$Season==year, ]
   analyze$Team_Full<-Teams$Team_Full[match(analyze$Team, Teams$TeamID)]
+  if(playInTbd==T & year==2018){
+    analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+    analyze$Team_Full[analyze$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+    analyze$Team_Full[analyze$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+    analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+  } else if (playInTbd==T & year==2019){
+    analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+    analyze$Team_Full[analyze$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+    analyze$Team_Full[analyze$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+    analyze$Team_Full[analyze$Team_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+  }
+  
+  
   names<-unique(analyze[, c("Team_Full", "Seed")])
   names$Seed<-as.numeric(substring(names$Seed, 2, 3))
   pasteSeed<-function(teams){
@@ -238,6 +253,20 @@ plotBracket<-function(bracket){
   round64 <- tourneySims[tourneySims$Round=="R1" & tourneySims$Sim==1,]
   round64<-round64[order(round64$Slot, decreasing = F), ]
   round64$Loser_Full<-Teams$Team_Full[match(round64$Loser, Teams$TeamID)]
+  
+  if(playInTbd==T & year==2018){
+    round64$Loser_Full[round64$Loser_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+    round64$Loser_Full[round64$Loser_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+    round64$Loser_Full[round64$Loser_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+    round64$Loser_Full[round64$Loser_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+  } else if (playInTbd==T & year==2019){
+    round64$Loser_Full[round64$Loser_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+    round64$Loser_Full[round64$Loser_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+    round64$Loser_Full[round64$Loser_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+    round64$Loser_Full[round64$Loser_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+  }
+  
+  
   ords<-c(1, 8, 4, 5, 3, 6, 2, 7)
   round64<-round64[c(ords, ords+8, ords+16, ords+24), ]
   teams<-lapply(1:nrow(round64),
