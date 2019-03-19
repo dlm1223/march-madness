@@ -487,7 +487,7 @@ customBracket2<-brackets[, 1:63]
 customBracket2<-data.frame(rbindlist(lapply(1:nrow(customBracket2), function(x) optimizeRounds(rounds = c("R1", "R2", "R3"),fixed.rounds = "R4", bracket=customBracket2[x, ] ))))
 customBracket2<-calcBrackets(customBracket2, brackets = brackets, tourneySims = tourneySims)
 
-# save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
+save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
 
 
 customBracket3<-brackets[, 1:63]
@@ -514,13 +514,8 @@ customBracket7<-data.frame(rbindlist(lapply(1:nrow(customBracket5), function(x) 
 customBracket7<-calcBrackets(customBracket7, brackets = brackets, tourneySims = tourneySims)
 
 #can combine sets here..useful if multi-entering
-customBracket1.5<-rbind(customBracket0, customBracket2)
+customBracket1.5<-rbind(customBracket1, customBracket2)
 customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
-
-improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2,
-               customBracket3, customBracket4, customBracket5, customBracket6,customBracket7)
-numBrackets<-4
-percentile<-.98
 ###GET OPTIMAL RESULTS FOR CUSTOM BRACKET POOLS####                                            
 #look at how the different custom-bracket pools perform in maximizing prob(90), prob(99), etc. 
 #customBracket2 seems to almost always perform best i.e. it has a good mix of max-EV and being contrarian
@@ -528,7 +523,7 @@ percentile<-.98
 improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, 
                customBracket3, customBracket4, customBracket5, customBracket6)
 numBrackets<-1
-percentile<-.90
+percentile<-.95
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
