@@ -10,9 +10,9 @@
 #customBracket2 seems to work the best in terms of usually giving the best brackets that maximize probability of high finish
 #it optimizes brackets to maximize EV in the first 3 rounds
 
-year<-2018
+year<-2019
 backtest<-ifelse(year==2019, F, T)
-playInTbd<-F
+playInTbd<-T
 source("functions.R", encoding = "UTF-8")
 load(paste0(year,"/TourneySims_1000sims.Rda"))
 load(paste0(year,"/BracketResults_FullTournament_1000sims.Rda"))
@@ -47,14 +47,37 @@ bracket.data$Team<-TourneySeeds$Team[TourneySeeds$Season==year][match(bracket.da
 bracket.data$Team_Full<-Teams$Team_Full[match(bracket.data$Team, Teams$TeamID)]
 bracket.data$Round<-substring(bracket.data$Slot, 1 ,2)
 
+if(playInTbd==T & year==2018){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+  whoPicked$Team[whoPicked$Team%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+  whoPicked$Team[whoPicked$Team%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+  whoPicked$Team[whoPicked$Team%in% c("Long Island", "Radford")]<-"Liu/rad"
+  whoPicked$Team[whoPicked$Team%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+} else if (playInTbd==T & year==2019){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+  whoPicked$Team[whoPicked$Team%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+  whoPicked$Team[whoPicked$Team%in% c("Belmont", "Temple")]<-"Bel/tem"
+  whoPicked$Team[whoPicked$Team%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+  whoPicked$Team[whoPicked$Team%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+  
+}
+
 expected<-data.table(tourneySims[tourneySims$Sim<=sims,])
-expected<-expected[, list(Expected=sum(Payout)/sims), by=c("Team_Full", "Round")]  
+expected<-expected[, list(Expected=sum(Payout)/sims), by=c("Team_Full", "Round")] 
+#delete duplicated team-full round since play in games will duplicate rows
+expected<-merge(expected, bracket.data[!duplicated(bracket.data[, c("Team_Full", "Round")]), c("Team_Full", "Round", "Slot")], by=c("Team_Full", "Round"), all=T)
 expected<-data.frame(expected)
-expected<-merge(expected, bracket.data[, c("Team_Full", "Round", "Slot")], by=c("Team_Full", "Round"), all=T)
 expected[is.na(expected)]<-0
 head(expected)
 head(expected[order(expected$Expected, decreasing = T),]) #championship favorites have a high EV
-
+head(expected[grepl("/", expected$Team_Full),], 30)
+#there shuold be 384 rounds
 
 ###MAXIMIZE BRACKET EV'S#####
 #customBracket1<-brackets[, 1:63]
@@ -465,27 +488,25 @@ customBracket7<-calcBrackets(customBracket7, brackets = brackets, tourneySims = 
 customBracket1.5<-rbind(customBracket0, customBracket2)
 customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
 
-<<<<<<< HEAD
 improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2,
                customBracket3, customBracket4, customBracket5, customBracket6,customBracket7)
 numBrackets<-4
 percentile<-.98
-=======
 ###GET OPTIMAL RESULTS FOR CUSTOM BRACKET POOLS####                                            
 #look at how the different custom-bracket pools perform in maximizing prob(90), prob(99), etc. 
 #customBracket2 seems to almost always perform best i.e. it has a good mix of max-EV and being contrarian
                                             
-improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, customBracket3, customBracket4, customBracket5, customBracket6)
-numBrackets<-3
+improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, 
+               customBracket3, customBracket4, customBracket5, customBracket6)
+numBrackets<-1
 percentile<-.90
->>>>>>> 1977ce4b2ec16afd585b392ba98fb751357260cc
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
                   .packages = c( "Rsymphony")) %dopar% {
                     getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=F)
                   }
-x<-4
+x<-5
 inspect<-improved[[x]]
 result<-results[[x]]
 sum(result$x[(nrow(inspect)+1):(nrow(inspect)+sims)])/sims #prob90

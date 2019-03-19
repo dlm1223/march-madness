@@ -5,11 +5,11 @@
 
 ##SET PARAMETERS/READ DATA######
 
-year<-2013
+year<-2019
 sims<-1000
 name<-paste0(year,"/TourneySims_", sims,"sims.Rda")
 backtest<-ifelse(year==2019, F, T)
-playInTbd<-F  
+playInTbd<-T  
 
 load("data/game-data.RData")
 source("functions.R", encoding = "UTF-8")
@@ -33,7 +33,7 @@ TourneySlots<-TourneySlots[TourneySlots$Season==year,]
 
 #handling play-in games, impute actual into simulation prediction iff game has occured
 losing_teams<-c()
-if(year==2019){
+if(year==2018){
   losing_teams<-c("Ucla", "Long Island", "Arizona State", "North Carolina Central")  #
 }
 
@@ -148,11 +148,17 @@ tourneySims<-tourneySims[as.numeric(gsub("R", "",tourneySims$Round))>=1,]
 tourneySims$Team_Full<-Teams$Team_Full[match(tourneySims$Team, Teams$TeamID)]
 
 
+#line up with espn ownership data
 if(playInTbd==T & year==2018){
   tourneySims$Team_Full[tourneySims$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
   tourneySims$Team_Full[tourneySims$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
   tourneySims$Team_Full[tourneySims$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
   tourneySims$Team_Full[tourneySims$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+} else if (playInTbd==T & year==2019){
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+  tourneySims$Team_Full[tourneySims$Team_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
 }
 
 save(tourneySims, file=name)

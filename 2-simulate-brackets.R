@@ -1,4 +1,4 @@
-year<-2013
+year<-2019
 numBrackets<-1000
 playInTbd<-F
 load("data/game-data.RData"); 
@@ -31,9 +31,17 @@ if(playInTbd==T & year==2018){
   whoPicked$Team[whoPicked$Team%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
   whoPicked$Team[whoPicked$Team%in% c("Long Island", "Radford")]<-"Liu/rad"
   whoPicked$Team[whoPicked$Team%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+} else if (playInTbd==T & year==2019){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+  whoPicked$Team[whoPicked$Team%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+  whoPicked$Team[whoPicked$Team%in% c("Belmont", "Temple")]<-"Bel/tem"
+  whoPicked$Team[whoPicked$Team%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+  whoPicked$Team[whoPicked$Team%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+  
 }
-
-
 setdiff( whoPicked$Team, bracket.data$Team_Full)
 
 

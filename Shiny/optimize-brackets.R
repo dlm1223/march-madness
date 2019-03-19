@@ -141,6 +141,17 @@ plotBracket<-function(bracket, text.size=.6){
   
   analyze<-TourneySeeds[TourneySeeds$Season==year, ]
   analyze$Team_Full<-Teams$Team_Full[match(analyze$Team, Teams$TeamID)]
+  # if(playInTbd==T & year==2018){
+  #   analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+  #   analyze$Team_Full[analyze$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+  #   analyze$Team_Full[analyze$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+  #   analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+  # } else if (playInTbd==T & year==2019){
+  #   analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+  #   analyze$Team_Full[analyze$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+  #   analyze$Team_Full[analyze$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+  #   analyze$Team_Full[analyze$Team_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+  # }
   names<-unique(analyze[, c("Team_Full", "Seed")])
   names$Seed<-as.numeric(substring(names$Seed, 2, 3))
   pasteSeed<-function(teams){

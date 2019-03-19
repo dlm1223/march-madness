@@ -1,10 +1,9 @@
-# Sys.setenv(PATH = paste(Sys.getenv("PATH"), "C:\\RMathew\\PortableApps\\MikTeX\\miktex\\bin", sep=.Platform$path.sep))
 library(datasets)
 
 # Define a server for the Shiny app
 function(input, output, session) {
   
-  variables<-reactiveValues(brackets= NULL,improved=NULL, year=2018)
+  variables<-reactiveValues(brackets= NULL,improved=NULL, year=2019)
   
   #helper functions to perform bracket calculations such as getOptimal, calcBracket, plotBracket
   
@@ -81,10 +80,28 @@ function(input, output, session) {
       bracket.data$Team_Full<-Teams$Team_Full[match(bracket.data$Team, Teams$TeamID)]
       bracket.data$Round<-substring(bracket.data$Slot, 1 ,2)
       
+      bracket.data<-TourneyRounds[grepl("R", TourneyRounds$Slot) & TourneyRounds$Season==year,]
+      bracket.data$Team<-TourneySeeds$Team[TourneySeeds$Season==year][match(bracket.data$Seed,TourneySeeds$Seed[TourneySeeds$Season==year] )]
+      bracket.data$Team_Full<-Teams$Team_Full[match(bracket.data$Team, Teams$TeamID)]
+      bracket.data$Round<-substring(bracket.data$Slot, 1 ,2)
+      
+      if(playInTbd==T & input$year==2018){
+        bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+        bracket.data$Team_Full[bracket.data$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+        bracket.data$Team_Full[bracket.data$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+        bracket.data$Team_Full[bracket.data$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+      } else if (playInTbd==T & input$year==2019){
+        bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+        bracket.data$Team_Full[bracket.data$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+        bracket.data$Team_Full[bracket.data$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+        bracket.data$Team_Full[bracket.data$Team_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+      }
+      
+      
       expected<-data.table(tourneySims[tourneySims$Sim<=sims,])
       expected<-expected[, list(Expected=sum(Payout)/sims), by=c("Team_Full", "Round")]  
       expected<-data.frame(expected)
-      expected<-merge(expected, bracket.data[, c("Team_Full", "Round", "Slot")], by=c("Team_Full", "Round"), all=T)
+      expected<-merge(expected, bracket.data[!duplicated(bracket.data[, c("Team_Full", "Round")]), c("Team_Full", "Round", "Slot")], by=c("Team_Full", "Round"), all=T)
       expected[is.na(expected)]<-0
       
       #functions for optimizing brackets
@@ -229,6 +246,20 @@ function(input, output, session) {
     
     analyze<-TourneySeeds[TourneySeeds$Season==year, ]
     analyze$Team_Full<-Teams$Team_Full[match(analyze$Team, Teams$TeamID)]
+    if(playInTbd==T & year==2018){
+      analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+      analyze$Team_Full[analyze$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+      analyze$Team_Full[analyze$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+      analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+    } else if (playInTbd==T & year==2019){
+      analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+      analyze$Team_Full[analyze$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+      analyze$Team_Full[analyze$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+      analyze$Team_Full[analyze$Team_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+    }
+    # 
+    
+    
     names<-unique(analyze[, c("Team_Full", "Seed")])
     names$Seed<-as.numeric(substring(names$Seed, 2, 3))
     pasteSeed<-function(teams){
@@ -266,6 +297,17 @@ function(input, output, session) {
     
     analyze<-TourneySeeds[TourneySeeds$Season==year, ]
     analyze$Team_Full<-Teams$Team_Full[match(analyze$Team, Teams$TeamID)]
+    if(playInTbd==T & year==2018){
+      analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
+      analyze$Team_Full[analyze$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
+      analyze$Team_Full[analyze$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
+      analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
+    } else if (playInTbd==T & year==2019){
+      analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
+      analyze$Team_Full[analyze$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
+      analyze$Team_Full[analyze$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
+      analyze$Team_Full[analyze$Team_Full%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+    }
     names<-unique(analyze[, c("Team_Full", "Seed")])
     names$Seed<-as.numeric(substring(names$Seed, 2, 3))
     pasteSeed<-function(teams){
