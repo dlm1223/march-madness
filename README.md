@@ -74,8 +74,8 @@ you can simulate a pool of brackets.
 
 Above are the ownership percentages by round for the pool of brackets,
 1000 brackets. You can start to see that certain teams are overvalued in
-the pool of brackets compared to their projections, while others seem to
-be undervalued in the pool relative to their projection.
+the pool of brackets compared to their projections (ex: Mich St), while others seem to
+be undervalued in the pool relative to their projection (ex: Villanova).
 
 ### 3. Optimization
 
