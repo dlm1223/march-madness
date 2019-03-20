@@ -20,7 +20,7 @@ load("data/game-data.RData")
 # input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
 #             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
 #             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
-            # year=year)
+# year=year)
 #b-league
 input<-list(r1=1, r2=2, r3=4, r4=8, r5=16, r6=32, upset1_mult=1, upset2_mult=1, upset3_mult=1,
             r1_seed_mult=1, r2_seed_mult=1, r3_seed_mult=1, r4_seed_mult=1, r5_seed_mult=1, r6_seed_mult=1,
@@ -488,7 +488,7 @@ customBracket1<-calcBrackets(customBracket1, brackets = brackets, tourneySims = 
 customBracket2<-brackets[, 1:63]
 customBracket2<-data.frame(rbindlist(lapply(1:nrow(customBracket2), function(x) optimizeRounds(rounds = c("R1", "R2", "R3"),fixed.rounds = "R4", bracket=customBracket2[x, ] ))))
 customBracket2<-calcBrackets(customBracket2, brackets = brackets, tourneySims = tourneySims)
-
+# 
 # save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
 
 
@@ -525,7 +525,7 @@ customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
 improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, 
                customBracket3, customBracket4, customBracket5, customBracket6)
 numBrackets<-1
-percentile<-.9
+percentile<-.94
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
