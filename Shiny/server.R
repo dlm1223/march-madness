@@ -178,10 +178,13 @@ function(input, output, session) {
     sims<-optimization$sims
     
     bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
+    brackets[,paste("Prob", 90, sep="", collapse="") ]<-apply(brackets[, bool], 1, function(x) sum(x>=.9)/sims)
+    brackets[,paste("Prob", 95, sep="", collapse="") ]<-apply(brackets[, bool], 1, function(x) sum(x>=.95)/sims)
+    brackets[,paste("Prob", 97, sep="", collapse="") ]<-apply(brackets[, bool], 1, function(x) sum(x>=.97)/sims)
     brackets[,paste("Prob", percentile*100, sep="", collapse="") ]<-apply(brackets[, bool], 1, function(x) sum(x>=percentile)/sims)
     
     #displaycols
-    cols<- colnames(brackets)[grepl("R4|R5|R6|Actual", colnames(brackets)) | colnames(brackets)%in% paste("Prob", percentile*100, sep="", collapse="")]
+    cols<- colnames(brackets)[grepl("R4|R5|R6|Actual|Prob90|Prob95|Prob97", colnames(brackets)) | colnames(brackets)%in% paste("Prob", percentile*100, sep="", collapse="")]
     cols<-c(cols[!grepl("Actual", cols)], cols[grepl("Actual", cols)])
     
     #ordercol
