@@ -74,13 +74,13 @@ you can simulate a pool of brackets.
 
 Above are the ownership percentages by round for the pool of brackets,
 1000 brackets. You can start to see that certain teams are overvalued in
-the pool of brackets compared to their projections, while others seem to
-be undervalued in the pool relative to their projection.
+the pool of brackets compared to their projections (ex: Mich St), while others seem to
+be undervalued in the pool relative to their projection (ex: Villanova).
 
 ### 3. Optimization
 
 Finally, you can apply your scoring to get finishes for each bracket in
-the pool compared to eachother across the simulations. For example, the 2nd bracket generated in the pool of brackets will have different finishes for each simulation, and so I can get the probability it will finish in the 90th percentile or the 95th percentile by looking at how it finished relative to the other brackets across the simulations. Then you can set up an
+the pool compared to eachother across the simulations. For example, the 2nd bracket generated in the pool of brackets will have different finishes for each simulation, and so by summarizing its finishes I can get its P(90th percentile) or P(95th percentile). Then you can set up an
 optimization to return the optimal bracket(s) for any number of
 specifications, Ex: Return 1 Bracket to maximize P(90th percentile). 3
 brackets to maximize P(97th), 1 bracket to maximize points, etc. I can
