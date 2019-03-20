@@ -35,6 +35,8 @@ TourneySlots<-TourneySlots[TourneySlots$Season==year,]
 losing_teams<-c()
 if(year==2018){
   losing_teams<-c("Ucla", "Long Island", "Arizona State", "North Carolina Central")  #
+} else if (year==2019){
+  losing_teams<-c("Prairie View A&m", "Temple")
 }
 
 if(length(losing_teams)>=1){
@@ -118,7 +120,9 @@ for(j in 1:sims){
     resultDF[nrow(resultDF)+1,1:3]<-c(result[[1]], result[[2]], result[[3]])
   }
   resultDF$Sim<-j
-  print(j)
+  if(j%%100==0){
+    print(j)
+  }
   tourneySims[[j]]<-resultDF
 }
 

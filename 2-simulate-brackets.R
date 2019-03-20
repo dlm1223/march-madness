@@ -1,6 +1,6 @@
 year<-2019
 numBrackets<-1000
-playInTbd<-F
+playInTbd<-T
 load("data/game-data.RData"); 
 load(paste0(year,"/TourneySims_1000sims.Rda")) #tourneysims file
 name<-paste0(year,"/BracketResults_FullTournament_",numBrackets ,"sims.Rda") #name to save this file as 
@@ -40,7 +40,6 @@ if(playInTbd==T & year==2018){
   whoPicked$Team[whoPicked$Team%in% c("Belmont", "Temple")]<-"Bel/tem"
   whoPicked$Team[whoPicked$Team%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
   whoPicked$Team[whoPicked$Team%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
-  
 }
 setdiff( whoPicked$Team, bracket.data$Team_Full)
 
@@ -186,7 +185,9 @@ for(j in 1:length(brackets)){
   #save full sampled bracket
   brackets[[j]]<-c(r1_df$TeamPicked,r2_df$TeamPicked,
                    R3_1, R3_2, R3_3, R3_4, R3_5, R3_6, R3_7, R3_8,R4_1, R4_2, R4_3, R4_4, R5_1, R5_2, R6)
-  print(j)
+  if(j%%100==0){
+    print(j)
+  }
 }
 
 #combine and save

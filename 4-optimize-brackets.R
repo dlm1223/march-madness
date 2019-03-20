@@ -11,20 +11,22 @@
 #it optimizes brackets to maximize EV in the first 3 rounds
 
 year<-2019
+playInTbd<-ifelse(year==2019, T, F)
 backtest<-ifelse(year==2019, F, T)
-playInTbd<-T
 source("functions.R", encoding = "UTF-8")
 load(paste0(year,"/TourneySims_1000sims.Rda"))
 load(paste0(year,"/BracketResults_FullTournament_1000sims.Rda"))
 load("data/game-data.RData")
-input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
-            r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
+# input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
+#             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
+#             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
+            # year=year)
+#b-league
+input<-list(r1=1, r2=2, r3=4, r4=8, r5=16, r6=32, upset1_mult=1, upset2_mult=1, upset3_mult=1,
+            r1_seed_mult=1, r2_seed_mult=1, r3_seed_mult=1, r4_seed_mult=1, r5_seed_mult=1, r6_seed_mult=1,
             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
             year=year)
-# input<-list(r1=1, r2=2, r3=4, r4=8, r5=16, r6=32, upset1_mult=1, upset2_mult=1, upset3_mult=1,
-#             r1_seed_mult=1, r2_seed_mult=1, r3_seed_mult=1, r4_seed_mult=1, r5_seed_mult=1, r6_seed_mult=1,
-#             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
-#             year=year)
+#office league
 # input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2, upset2_mult=3, upset3_mult=4,
 #             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
 #             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
@@ -487,7 +489,7 @@ customBracket2<-brackets[, 1:63]
 customBracket2<-data.frame(rbindlist(lapply(1:nrow(customBracket2), function(x) optimizeRounds(rounds = c("R1", "R2", "R3"),fixed.rounds = "R4", bracket=customBracket2[x, ] ))))
 customBracket2<-calcBrackets(customBracket2, brackets = brackets, tourneySims = tourneySims)
 
-save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
+# save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
 
 
 customBracket3<-brackets[, 1:63]
@@ -523,17 +525,20 @@ customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
 improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, 
                customBracket3, customBracket4, customBracket5, customBracket6)
 numBrackets<-1
-percentile<-.95
+percentile<-.9
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
                   .packages = c( "Rsymphony")) %dopar% {
                     getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=F)
                   }
-x<-5
+x<-6
 inspect<-improved[[x]]
 result<-results[[x]]
+inspect$Prob90<-apply(inspect[, grepl("Percentile", colnames(inspect)) & !grepl("Actual", colnames(inspect))], 1, function(x) sum(x>=.9)/sims)
+inspect$Prob95<-apply(inspect[, grepl("Percentile", colnames(inspect)) & !grepl("Actual", colnames(inspect))], 1, function(x) sum(x>=.95)/sims)
 sum(result$x[(nrow(inspect)+1):(nrow(inspect)+sims)])/sims #prob90
+
 inspect[which(result$x[1:nrow(inspect)]==1),c(1:63, which(colnames(inspect)%in% c("Prob95", "Prob97", "Prob90", "Index") | grepl("Actual", colnames(inspect))) )]
 # plot(inspect$Index~inspect$Prob97)
 # # 

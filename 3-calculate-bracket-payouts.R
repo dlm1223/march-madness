@@ -45,7 +45,7 @@ tourneySims<-tourneySims[order(tourneySims$Sim, tourneySims$Slot), ]
 
 #need to get payout of each pick for each bracket.
 #merging is quicker but runs into memory issues for large numSims, numBrackets
-if(sims>2000){
+if(sims>2500){
   test<-data.frame(Bracket=1:max(bracket.payouts$Bracket))
   test[, paste("Sim", 1:max(tourneySims$Sim), sep="")]<-NA
   for(i in 1:max(tourneySims$Sim)){
