@@ -36,7 +36,7 @@ losing_teams<-c()
 if(year==2018){
   losing_teams<-c("Ucla", "Long Island", "Arizona State", "North Carolina Central")  #
 } else if (year==2019){
-  losing_teams<-c("Prairie View A&m", "Temple")
+  losing_teams<-c("Prairie View A&m", "Temple", "North Carolina Central")
 }
 
 if(length(losing_teams)>=1){

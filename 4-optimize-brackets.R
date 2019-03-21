@@ -525,7 +525,7 @@ customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
 improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, 
                customBracket3, customBracket4, customBracket5, customBracket6)
 numBrackets<-1
-percentile<-.94
+percentile<-.93
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
