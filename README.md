@@ -1,9 +1,9 @@
 March Madness Optimization
 -----------------------------
 
-This is the full code used for the [Shiny march madness
-app](https://bracketmath.shinyapps.io/ncaa/). You can run the code
-yourself to customize more things such as increasing the number of
+This is the full code used for my [march madness
+app](https://bracketmath.shinyapps.io/ncaa/). The app calculates a set of diversified brackets which gives you the best chance of winning in march madness. You can run the code
+yourself to customize things such as increasing the number of
 simulations, increasing the bracket pool size, changing the projection
 model, and more. To run, the order of files is: 1-simulate-tournament,
 2-simulate-brackets, 3-calculate payouts, 4-optimize-brackets in that
