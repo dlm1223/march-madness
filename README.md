@@ -104,10 +104,9 @@ Below is the bracket which maximized P(90th percentile) for 2018:
     ##     Percentile.Actual Score.Actual
     ## 261             0.925         1070
 
-Using this system allows you optimize the brackets you enter for march
-madness. In addition, it allows you to change the scoring system, pool
-sizes, number of brackets entered, and projection system. By testing out
-the projected finish based on different strategies like point
-maximization, or point maximization in R1-2 only, or other ideas, you
-can get an idea of how you should balance expected point maximization
+The bracket ended up getting in the 92.5th percentile (getting the chamption right will usually get you there). I calculated the 92.5 by comparing the bracket's actual score to the actual scores of the brackets in the bracket pool.
+
+In conclusion, using this system allows you to optimize the brackets you enter for march
+madness. With the app or the code you can change the scoring system, pool
+sizes, number of brackets entered, and projection system. Using this system gives you an analytical way to balance expected point maximization
 with being contrarian.
