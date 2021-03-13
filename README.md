@@ -1,8 +1,8 @@
-March Madness Optimization
+March Madness Algorithm
 -----------------------------
 
 This is the full code used for my [march madness
-app](https://bracketmath.shinyapps.io/ncaa/). The app calculates a set of diversified brackets which gives you the best chance of winning in march madness. You can run the code
+optimization app](https://bracketmath.shinyapps.io/ncaa/). The app calculates a set of diversified brackets which gives you the best chance of winning in march madness. You can run the code
 yourself to customize things such as increasing the number of
 simulations, increasing the bracket pool size, changing the projection
 model, and more. To run, the order of files is: 1-simulate-tournament,
