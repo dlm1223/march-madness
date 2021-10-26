@@ -7,8 +7,7 @@ yourself to customize things such as increasing the number of
 simulations, increasing the bracket pool size, changing the projection
 model, and more. To run, the order of files is: 1-simulate-tournament,
 2-simulate-brackets, 3-calculate payouts, 4-optimize-brackets in that
-order. The data for the shiny app is in the Shiny folder but it is just
-less customizable. Below I explain the methodology. <br /> <br />
+order. Or you can just use the optimization app. Below I explain the methodology. <br /> <br />
 
 ### 1. Projection and Simulation
 
