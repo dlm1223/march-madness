@@ -1,14 +1,30 @@
-year<-2019
+year<-2023
 numBrackets<-1000
-playInTbd<-T
 load("data/game-data.RData"); 
-load(paste0(year,"/TourneySims_1000sims.Rda")) #tourneysims file
+load(paste0(year,"/TourneySims_2000sims.Rda")) #tourneysims file
 name<-paste0(year,"/BracketResults_FullTournament_",numBrackets ,"sims.Rda") #name to save this file as 
 
 ###organize ownership data, check names********************
 
 
 whoPicked<-whoPicked[whoPicked$Season==year, !colnames(whoPicked)%in% "Season"]
+
+
+#comment out after getting kaggle data:
+#can delete this once kaggle data released
+#TourneySeeds<-TourneySeeds_temp
+# TourneyRounds2<-TourneyRounds[TourneyRounds$Season==2021,]
+# TourneyRounds2$Season<-2022
+# TourneyRounds<-rbind.fill(TourneyRounds, TourneyRounds2)
+# table(TourneyRounds$Season)
+
+# TourneySlots2<-TourneySlots[TourneySlots$Season==2021,]
+# TourneySlots2$Season<-2022
+# TourneySlots<-rbind.fill(TourneySlots, TourneySlots2)
+# table(TourneySlots$Season)
+# setdiff(TourneySeeds$Seed[TourneySeeds$Season==2022], TourneySlots$StrongSeed[TourneySlots$Season==2022])
+TourneySlots[, c("Slot", "StrongSeed", "WeakSeed")]<-sapply(TourneySlots[, c("Slot", "StrongSeed", "WeakSeed")], as.character)
+
 
 
 
@@ -20,9 +36,9 @@ bracket.data$Round<-substring(bracket.data$Slot, 1 ,2)
 
 #handle play-in games, if playINTBD=T then combine play-in games into one
 bracket.data<-bracket.data[bracket.data$Team%in% c(tourneySims$Team[grepl("R1", tourneySims$Slot) ],
-                                    tourneySims$Loser[grepl("R1", tourneySims$Slot) ]), ]
+                                                   tourneySims$Loser[grepl("R1", tourneySims$Slot) ]), ]
 
-if(playInTbd==T & year==2018){
+if( year==2018){
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
@@ -31,7 +47,7 @@ if(playInTbd==T & year==2018){
   whoPicked$Team[whoPicked$Team%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
   whoPicked$Team[whoPicked$Team%in% c("Long Island", "Radford")]<-"Liu/rad"
   whoPicked$Team[whoPicked$Team%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
-} else if (playInTbd==T & year==2019){
+} else if (year==2019){
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
@@ -40,6 +56,37 @@ if(playInTbd==T & year==2018){
   whoPicked$Team[whoPicked$Team%in% c("Belmont", "Temple")]<-"Bel/tem"
   whoPicked$Team[whoPicked$Team%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
   whoPicked$Team[whoPicked$Team%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
+}else if (year==2021){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Michigan State", "Ucla")]<-"Msu/ucla"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Norfolk State", "Appalachian State")]<-"Norf/app"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Wichita State", "Drake")]<-"Wich/drke"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Mount St Marys", "Texas Southern")]<-"Msm/txso"
+  
+  whoPicked$Team[whoPicked$Team%in% c("Michigan State", "Ucla")]<-"Msu/ucla"
+  whoPicked$Team[whoPicked$Team%in% c("Norfolk State", "Appalachian State")]<-"Norf/app"
+  whoPicked$Team[whoPicked$Team%in% c("Wichita State", "Drake")]<-"Wich/drke"
+  whoPicked$Team[whoPicked$Team%in% c("Mount St Marys", "Texas Southern")]<-"Msm/txso"
+}else if (year==2022){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Texas Southern", "Texas A&m Corpus Christi")]<-"Txso/tcc"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Wright State", "Bryant")]<-"Wrst/bry"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Rutgers", "Notre Dame")]<-"Rutg/nd"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Wyoming", "Indiana")]<-"Wyo/iu"
+  
+  whoPicked$Team[whoPicked$Team%in% c("Texas Southern", "Texas A&m Corpus Christi")]<-"Txso/tcc"
+  whoPicked$Team[whoPicked$Team%in% c("Wright State", "Bryant")]<-"Wrst/bry"
+  whoPicked$Team[whoPicked$Team%in% c("Rutgers", "Notre Dame")]<-"Rutg/nd"
+  whoPicked$Team[whoPicked$Team%in% c("Wyoming", "Indiana")]<-"Wyo/iu"
+}else if (year==2023){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Southeast Missouri State", "Texas A&m Corpus Christi")]<-"Amcc/smo"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Texas Southern", "Fairleigh Dickinson")]<-"Txso/fdu"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "Nevada")]<-"Asu/nev"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Mississippi State", "Pittsburgh")]<-"Msst/pitt"
+  
+  whoPicked$Team[whoPicked$Team%in% c("Southeast Missouri State", "Texas A&m Corpus Christi")]<-"Amcc/smo"
+  whoPicked$Team[whoPicked$Team%in% c("Texas Southern", "Fairleigh Dickinson")]<-"Txso/fdu"
+  whoPicked$Team[whoPicked$Team%in% c("Arizona State", "Nevada")]<-"Asu/nev"
+  whoPicked$Team[whoPicked$Team%in% c("Mississippi State", "Pittsburgh")]<-"Msst/pitt"
+  
 }
 setdiff( whoPicked$Team, bracket.data$Team_Full)
 
@@ -185,9 +232,7 @@ for(j in 1:length(brackets)){
   #save full sampled bracket
   brackets[[j]]<-c(r1_df$TeamPicked,r2_df$TeamPicked,
                    R3_1, R3_2, R3_3, R3_4, R3_5, R3_6, R3_7, R3_8,R4_1, R4_2, R4_3, R4_4, R5_1, R5_2, R6)
-  if(j%%100==0){
-    print(j)
-  }
+  print(j)
 }
 
 #combine and save
@@ -199,5 +244,7 @@ r1_df<-data.frame(Slot=c(paste0("R1W", c(1, 8, 4,5, 3, 6, 2, 7)), paste0("R1X", 
 colnames(brackets)<-  c(r1_df$Slot, r2_df$Slot,
                         "R3W1", "R3W2", "R3X1", "R3X2", "R3Y1", "R3Y2"  , "R3Z1", "R3Z2", "R4W1", "R4X1", "R4Y1", "R4Z1", "R5WX", "R5YZ", "R6CH")
 
-
 save(brackets, file=name)
+
+
+

@@ -4,42 +4,57 @@
 #functions:
 #   optimizeRounds() maximizes EV of specified rounds
 #   maximizeRounds() maximizes EV of earlier rounds, without constraint that a knocked out team can't return (most pools don't allow this)
+#    sampleRounds() samples specified rounds, sample weights are proportional to their EV.
 #   calcBrackets()  recalculates percentile/scores of a set of brackets against the original pool of brackets which were made according to ESPN ownership
 #   plotBrackets() plots a bracket
 #   getOptimal() maximizes probability of hitting a spefied percentile
 #customBracket2 seems to work the best in terms of usually giving the best brackets that maximize probability of high finish
 #it optimizes brackets to maximize EV in the first 3 rounds
 
-year<-2019
-playInTbd<-ifelse(year==2019, T, F)
-backtest<-ifelse(year==2019, F, T)
+year<-2023
+backtest<-ifelse(year==2023, F, T)
 source("functions.R", encoding = "UTF-8")
-load(paste0(year,"/TourneySims_1000sims.Rda"))
-load(paste0(year,"/BracketResults_FullTournament_1000sims.Rda"))
+load(paste0(year,"/TourneySims_5000sims.Rda"))  #use 2000sims for Shiny App
+load(paste0(year,"/BracketResults_FullTournament_2000sims.Rda"))  #use 1000brackets for shiny app
 load("data/game-data.RData")
-# input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
-#             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
-#             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
-# year=year)
+input<-list(r1=10, r2=20, r3=40, r4=80, r5=160, r6=320, upset1_mult=1, upset2_mult=1, upset3_mult=1,
+            r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
+            r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
+            year=year)
 #b-league
 # input<-list(r1=1, r2=2, r3=4, r4=8, r5=16, r6=32, upset1_mult=1, upset2_mult=1, upset3_mult=1,
 #             r1_seed_mult=1, r2_seed_mult=1, r3_seed_mult=1, r4_seed_mult=1, r5_seed_mult=1, r6_seed_mult=1,
 #             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
 #             year=year)
 #office league
-input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2, upset2_mult=3, upset3_mult=4,
-            r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
-            r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
-            year=year)
+# input<-list(r1=5, r2=10, r3=15, r4=25, r5=30, r6=40, upset1_mult=2, upset2_mult=3, upset3_mult=4,
+#             r1_seed_mult=0, r2_seed_mult=0, r3_seed_mult=0, r4_seed_mult=0, r5_seed_mult=0, r6_seed_mult=0,
+#             r1_seed_bonus=0, r2_seed_bonus=0, r3_seed_bonus=0, r4_seed_bonus=0, r5_seed_bonus=0, r6_seed_bonus=0,
+#             year=year)
 
+
+#comment out after getting kaggle data:
+#can delete this once kaggle data released
+# TourneySeeds<-TourneySeeds_temp
+# TourneyRounds2<-TourneyRounds[TourneyRounds$Season==2021,]
+# TourneyRounds2$Season<-2022
+# TourneyRounds<-rbind.fill(TourneyRounds, TourneyRounds2)
+# table(TourneyRounds$Season)
+# 
+# TourneySlots2<-TourneySlots[TourneySlots$Season==2921,]
+# TourneySlots2$Season<-2022
+# TourneySlots<-rbind.fill(TourneySlots, TourneySlots2)
+# table(TourneySlots$Season)
+# setdiff(TourneySeeds$Seed[TourneySeeds$Season==2021], TourneySlots$StrongSeed[TourneySlots$Season==2021])
+TourneySlots[, c("Slot", "StrongSeed", "WeakSeed")]<-sapply(TourneySlots[, c("Slot", "StrongSeed", "WeakSeed")], as.character)
 
 #calculate payouts based on brackets/sims/scoring
 source("3-calculate-bracket-payouts.R")
 
 
 #save data: team-specific data, useful for shiny app bracket plotting/data plotting
-# save(list=ls()[ls()%in% c( "backtest", "playInTbd", "Teams",   "year", "TourneySeeds","TourneyRounds")],
-#      file=paste0(year, "/team-data.RData"))
+save(list=ls()[ls()%in% c( "backtest",  "Teams",   "year", "TourneySeeds","TourneyRounds")],
+     file=paste0(year, "/team-data.RData"))
 
 ###team expected values####
 
@@ -49,7 +64,7 @@ bracket.data$Team<-TourneySeeds$Team[TourneySeeds$Season==year][match(bracket.da
 bracket.data$Team_Full<-Teams$Team_Full[match(bracket.data$Team, Teams$TeamID)]
 bracket.data$Round<-substring(bracket.data$Slot, 1 ,2)
 
-if(playInTbd==T & year==2018){
+if( year==2018){
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
@@ -58,7 +73,7 @@ if(playInTbd==T & year==2018){
   whoPicked$Team[whoPicked$Team%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
   whoPicked$Team[whoPicked$Team%in% c("Long Island", "Radford")]<-"Liu/rad"
   whoPicked$Team[whoPicked$Team%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
-} else if (playInTbd==T & year==2019){
+} else if (year==2019){
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
   bracket.data$Team_Full[bracket.data$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
@@ -68,7 +83,39 @@ if(playInTbd==T & year==2018){
   whoPicked$Team[whoPicked$Team%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
   whoPicked$Team[whoPicked$Team%in% c("North Dakota State", "North Carolina Central")]<-"Nds/ncc"
   
+}else if (year==2021){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Michigan State", "Ucla")]<-"Msu/ucla"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Norfolk State", "Appalachian State")]<-"Norf/app"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Wichita State", "Drake")]<-"Wich/drke"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Mount St Marys", "Texas Southern")]<-"Msm/txso"
+  
+  whoPicked$Team[whoPicked$Team%in% c("Michigan State", "Ucla")]<-"Msu/ucla"
+  whoPicked$Team[whoPicked$Team%in% c("Norfolk State", "Appalachian State")]<-"Norf/app"
+  whoPicked$Team[whoPicked$Team%in% c("Wichita State", "Drake")]<-"Wich/drke"
+  whoPicked$Team[whoPicked$Team%in% c("Mount St Marys", "Texas Southern")]<-"Msm/txso"
+}else if (year==2022){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Texas Southern", "Texas A&m Corpus Christi")]<-"Txso/tcc"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Wright State", "Bryant")]<-"Wrst/bry"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Rutgers", "Notre Dame")]<-"Rutg/nd"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Wyoming", "Indiana")]<-"Wyo/iu"
+  
+  whoPicked$Team[whoPicked$Team%in% c("Texas Southern", "Texas A&m Corpus Christi")]<-"Txso/tcc"
+  whoPicked$Team[whoPicked$Team%in% c("Wright State", "Bryant")]<-"Wrst/bry"
+  whoPicked$Team[whoPicked$Team%in% c("Rutgers", "Notre Dame")]<-"Rutg/nd"
+  whoPicked$Team[whoPicked$Team%in% c("Wyoming", "Indiana")]<-"Wyo/iu"
+}else if (year==2023){
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Southeast Missouri State", "Texas A&m Corpus Christi")]<-"Amcc/smo"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Texas Southern", "Fairleigh Dickinson")]<-"Txso/fdu"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Arizona State", "Nevada")]<-"Asu/nev"
+  bracket.data$Team_Full[bracket.data$Team_Full%in% c("Mississippi State", "Pittsburgh")]<-"Msst/pitt"
+  
+  whoPicked$Team[whoPicked$Team%in% c("Southeast Missouri State", "Texas A&m Corpus Christi")]<-"Amcc/smo"
+  whoPicked$Team[whoPicked$Team%in% c("Texas Southern", "Fairleigh Dickinson")]<-"Txso/fdu"
+  whoPicked$Team[whoPicked$Team%in% c("Arizona State", "Nevada")]<-"Asu/nev"
+  whoPicked$Team[whoPicked$Team%in% c("Mississippi State", "Pittsburgh")]<-"Msst/pitt"
 }
+
+
 
 expected<-data.table(tourneySims[tourneySims$Sim<=sims,])
 expected<-expected[, list(Expected=sum(Payout)/sims), by=c("Team_Full", "Round")] 
@@ -135,7 +182,7 @@ optimizeRounds<-function(rounds, fixed.rounds="NA", bracket, optmode="Rsymphony"
   params <- list(OutputFlag=0)
   model$A<-A[1:(q-1),]
   
-  if(optmode=="RCplex"){
+  if(optmode=="Rcplex"){
     model$sense[model$sense=="="]<-"E"
     model$sense[model$sense=="<="]<-"L"
     model$sense[model$sense==">="]<-"G"
@@ -145,7 +192,7 @@ optimizeRounds<-function(rounds, fixed.rounds="NA", bracket, optmode="Rsymphony"
   } else if (optmode%in% c("Rsymphony", "RSymphony")){
     model$sense[model$sense=="="]<-"=="
     result<-Rsymphony_solve_LP(max=T, obj=model$obj, mat=A[1:(q-1),], types=rep("B",ncol(A)),
-                               rhs=model$rhs, dir = model$sense, time_limit = 30, gap_limit = .03 )
+                               rhs=model$rhs, dir = model$sense, time_limit = 60, gap_limit = .03 )
     result$x<-result$solution
     
   }
@@ -160,6 +207,43 @@ optimizeRounds<-function(rounds, fixed.rounds="NA", bracket, optmode="Rsymphony"
   bracket[, cols]<-final_vec
   bracket
 }
+
+#sample teams weighted based on Expected Value
+sampleRounds<-function(rounds, fixed.rounds="NA", bracket, optmode="Rsymphony"){
+  #fixed.rounds<-"R4";rounds<-c("R1", "R2", "R3") 
+  
+  #rounds must contain fixed.rounds. the rest of slots, chose to mazimize EV
+  fixed_slot<-expected[expected$Round%in% fixed.rounds& expected$Team_Full%in% as.character(bracket[, grepl(fixed.rounds, colnames(bracket))]), ] 
+  
+  must_fill<-expected[expected$Round%in% rounds& !expected$Slot%in% fixed_slot$Slot, ] 
+  
+  for(round in rev(rounds)){
+    slots<-unique(must_fill$Slot[must_fill$Round==round])
+    fixed_slot_preceding<-must_fill$Slot[must_fill$Slot%in% slots&must_fill$Team_Full%in% fixed_slot$Team_Full]
+    must_fill$Expected[must_fill$Slot%in% fixed_slot_preceding &!must_fill$Team_Full%in% fixed_slot$Team_Full]<-0
+    
+    #need positive value for purpose of sampling, even if actual EV is 0
+    must_fill$Expected[must_fill$Slot%in% fixed_slot_preceding &must_fill$Team_Full%in% fixed_slot$Team_Full&must_fill$Expected==0]<-.001 
+    
+    for(i in slots){
+      #must_fill[must_fill$Slot==i,]
+      team<-sample(must_fill$Team_Full[must_fill$Slot==i], size = 1, prob = must_fill$Expected[must_fill$Slot==i]/sum(must_fill$Expected[must_fill$Slot==i]))
+      fixed_slot<-rbind(fixed_slot, data.frame(Team_Full=team, Round=round,Expected=must_fill$Expected[must_fill$Slot==i&must_fill$Team_Full==team], Slot=i))
+    }
+    
+  }
+  
+  
+  #return optimized results to bracket
+  return_vec<-fixed_slot
+  final_vec<-data.frame(t(return_vec$Team_Full))
+  colnames(final_vec)<-return_vec$Slot
+  cols<- colnames(bracket[, grepl(paste0(c(rounds, fixed.rounds),collapse="|"), colnames(bracket))])
+  final_vec<-final_vec[,cols]
+  bracket[, cols]<-final_vec
+  bracket
+}
+
 
 # test<-data.frame(rbindlist(lapply(1:3, function(x) optimizeRounds(rounds = c("R1", "R2"),fixed.rounds = "R3",bracket=customBracket1[x, ] ))))
 
@@ -198,13 +282,17 @@ calcBrackets<-function(customBrackets, brackets, tourneySims){
   tourneySims<-tourneySims[order(tourneySims$Sim, tourneySims$Slot), ]
   
   #want a column for each sim result to cbind to the brackets
-  reshaped.sims<-reshape(tourneySims[, c("Team_Full", "Slot", "Sim", "Payout")], idvar = c("Team_Full", "Slot"), timevar="Sim",direction = "wide")
   
-  bracket.payouts<-data.table(bracket.payouts, key=c("Team", "Slot"))[
-    data.table(reshaped.sims, key=c("Team_Full", "Slot")),
-    allow.cartesian=TRUE, nomatch=0  ]
+  reshaped.sims<-data.table::dcast(data.table(tourneySims[, c("Team_Full", "Slot", "Sim", "Payout")]),
+                                   Team_Full+Slot~paste0("Payout.",Sim), value.var="Payout")
+  # reshaped.sims<-reshape(tourneySims[, c("Team_Full", "Slot", "Sim", "Payout")],
+  #                        idvar = c("Team_Full", "Slot"), timevar="Sim",direction = "wide")
+  #merge 
+  bracket.payouts<-data.table::merge.data.table(reshaped.sims, bracket.payouts,  
+                                                by.x=c("Team_Full", "Slot"),by.y=c("Team", "Slot"))%>% data.table()
+  
   bracket.payouts<-bracket.payouts[,  lapply(.SD, sum, na.rm=TRUE),by=c( "Bracket", "CustomBracket"), .SDcols=colnames(bracket.payouts)[grepl("Payout", colnames(bracket.payouts))]]
-  colnames(bracket.payouts)<-gsub("Payout.", "Sim", colnames(bracket.payouts))
+  colnames(bracket.payouts)<-gsub("Payout[.]", "Sim", colnames(bracket.payouts))
   bracket.payouts<-bracket.payouts[order(bracket.payouts$Bracket, decreasing = F), ]
   
   
@@ -233,12 +321,12 @@ plotBracket<-function(bracket){
   
   analyze<-TourneySeeds[TourneySeeds$Season==year, ]
   analyze$Team_Full<-Teams$Team_Full[match(analyze$Team, Teams$TeamID)]
-  if(playInTbd==T & year==2018){
+  if( year==2018){
     analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
     analyze$Team_Full[analyze$Team_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
     analyze$Team_Full[analyze$Team_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
     analyze$Team_Full[analyze$Team_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
-  } else if (playInTbd==T & year==2019){
+  } else if ( year==2019){
     analyze$Team_Full[analyze$Team_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
     analyze$Team_Full[analyze$Team_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
     analyze$Team_Full[analyze$Team_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
@@ -256,12 +344,12 @@ plotBracket<-function(bracket){
   round64<-round64[order(round64$Slot, decreasing = F), ]
   round64$Loser_Full<-Teams$Team_Full[match(round64$Loser, Teams$TeamID)]
   
-  if(playInTbd==T & year==2018){
+  if(year==2018){
     round64$Loser_Full[round64$Loser_Full%in% c("Arizona State", "Syracuse")]<-"Asu/sy"
     round64$Loser_Full[round64$Loser_Full%in% c("St Bonaventure", "Ucla")]<-"Bon/la"
     round64$Loser_Full[round64$Loser_Full%in% c("Long Island", "Radford")]<-"Liu/rad"
     round64$Loser_Full[round64$Loser_Full%in% c("North Carolina Central", "Texas Southern")]<-"Ncc/ts"
-  } else if (playInTbd==T & year==2019){
+  } else if (year==2019){
     round64$Loser_Full[round64$Loser_Full%in% c("Arizona State", "St Johns")]<-"Asu/sju"
     round64$Loser_Full[round64$Loser_Full%in% c("Belmont", "Temple")]<-"Bel/tem"
     round64$Loser_Full[round64$Loser_Full%in% c("Fairleigh Dickinson", "Prairie View A&m")]<-"Fdu/pv"
@@ -387,13 +475,13 @@ getOptimal<-function(brackets, percentile, numBrackets, speedUp=T){
   if(numBrackets==1){
     
     percentiles<-brackets[, grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))]
-    percentiles<-sapply(percentiles, function(x) as.numeric(x>percentile))
+    percentiles<-sapply(percentiles, function(x) as.numeric(x>=percentile))
     percentiles<-t(percentiles)
     # numBrackets<-ncol(percentiles)
     numSims<-nrow(percentiles)
     
     bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
-    brackets[,paste("Prob", percentile*100, sep="", collapse="") ]<-apply(brackets[, bool], 1, function(x) sum(x>percentile)/numSims)
+    brackets[,paste("Prob", percentile*100, sep="", collapse="") ]<-apply(brackets[, bool], 1, function(x) sum(x>=percentile)/numSims)
     
     result<-list()
     opt<-which.max(brackets[,paste("Prob", percentile*100, sep="", collapse="") ])
@@ -411,13 +499,13 @@ getOptimal<-function(brackets, percentile, numBrackets, speedUp=T){
     
     #each row is a simulation, each column is a lineup. goal:maximize sum of 
     percentiles<-brackets[, grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))]
-    percentiles<-sapply(percentiles, function(x) as.numeric(x>percentile))
+    percentiles<-sapply(percentiles, function(x) as.numeric(x>=percentile))
     percentiles<-t(percentiles)
     # head(percentiles)
     
     numSims<-nrow(percentiles)
     bool<-grepl("Percentile", colnames(brackets)) & !grepl("Actual", colnames(brackets))
-    brackets[,paste("Prob", percentile*100, sep="", collapse="") ]<-apply(brackets[, bool], 1, function(x) sum(x>percentile)/numSims)
+    brackets[,paste("Prob", percentile*100, sep="", collapse="") ]<-apply(brackets[, bool], 1, function(x) sum(x>=percentile)/numSims)
     brackets$Index<-nrow(brackets)+1-rank(brackets[,paste("Prob", percentile*100, sep="", collapse="") ])
     
     
@@ -440,13 +528,13 @@ getOptimal<-function(brackets, percentile, numBrackets, speedUp=T){
     A[q, which(duplicated(brackets[, 1:63]))]<-1; model$sense[q]<-"="; model$rhs[q]<-0;q<-q+1  #if there are duplicated brackets, set to 0
     
     if(speedUp){
-      A[q, which(brackets$Index>=200)]<-1; model$sense[q]<-"="; model$rhs[q]<-0;q<-q+1  #set some to zero--speed up simulation?
+      A[q, which(brackets$Index>=300)]<-1; model$sense[q]<-"="; model$rhs[q]<-0;q<-q+1  #set some to zero--speed up simulation?
     }
     model$vtype   <- 'B'
     params <- list(OutputFlag=0)
     model$A<-A[1:(q-1),]
     
-    if(optmode=="RCplex"){
+    if(optmode=="Rcplex"){
       model$sense[model$sense=="="]<-"E"
       model$sense[model$sense=="<="]<-"L"
       model$sense[model$sense==">="]<-"G"
@@ -471,77 +559,117 @@ getOptimal<-function(brackets, percentile, numBrackets, speedUp=T){
   result
 }
 
-###LOOK FOR DIFFERENT BRACKETS BY APPLYING MAX-EV STRATEGIES TO BRACKET POOL####
-# brackets<-calcBrackets(brackets[, 1:63], brackets = brackets, tourneySims = tourneySims)
-# 
-# #iterate through previous rounds and maximize EV s.t. bracket remains valid i.e. team can't leave and return
-# customBracket0<-brackets[, 1:63]
-# customBracket0<-data.frame(rbindlist(lapply(1:nrow(customBracket0), function(x) optimizeRounds(rounds = c("R1"),fixed.rounds = "R2",bracket=customBracket0[x, ] ))))
-# customBracket0<-calcBrackets(customBracket0, brackets = brackets, tourneySims = tourneySims)
+###IMPROVED BRACKET ANALYSIS: LOOK FOR DIFFERENT BRACKETS BY APPLYING MAX-EV STRATEGIES TO BRACKET POOL####
 
-customBracket1<-brackets[, 1:63]
-customBracket1<-data.frame(rbindlist(lapply(1:nrow(customBracket1), function(x) optimizeRounds(rounds = c("R1", "R2"),fixed.rounds = "R3",bracket=customBracket1[x, ] ))))
-customBracket1<-calcBrackets(customBracket1, brackets = brackets, tourneySims = tourneySims)
+
+brackets<-calcBrackets(brackets[, 1:63], brackets = brackets, tourneySims = tourneySims)
 
 
 #custombrackets2 seems to do the best accross percentiles and numbrackets
 customBracket2<-brackets[, 1:63]
-customBracket2<-data.frame(rbindlist(lapply(1:nrow(customBracket2), function(x) optimizeRounds(rounds = c("R1", "R2", "R3"),fixed.rounds = "R4", bracket=customBracket2[x, ] ))))
+customBracket2<-data.frame(rbindlist(lapply(1:nrow(customBracket2), 
+                                            function(x) optimizeRounds(rounds = c("R1", "R2", "R3"),fixed.rounds = "R4", bracket=customBracket2[x, ] ))))
 customBracket2<-calcBrackets(customBracket2, brackets = brackets, tourneySims = tourneySims)
-# 
-# save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
+
+##*MAKE SURE AM USING YAHOO SCORING W. 2000 SIMS. COPY/PASTE FILE TO THE SHINY APP FOLDER ****
+#save(customBracket2, file=paste0(year,"/Improved-Brackets.Rda"))
+
+#iterate through previous rounds and maximize EV s.t. bracket remains valid i.e. team can't leave and return
+customBracket0<-brackets[, 1:63]
+customBracket0<-data.frame(rbindlist(lapply(1:nrow(customBracket0), 
+                                            function(x) optimizeRounds(rounds = c("R1"),fixed.rounds = "R2",bracket=customBracket0[x, ] ))))
+customBracket0<-calcBrackets(customBracket0, brackets = brackets, tourneySims = tourneySims)
+
+customBracket1<-brackets[, 1:63]
+customBracket1<-data.frame(rbindlist(lapply(1:nrow(customBracket1), 
+                                            function(x) optimizeRounds(rounds = c("R1", "R2"),fixed.rounds = "R3",bracket=customBracket1[x, ] ))))
+customBracket1<-calcBrackets(customBracket1, brackets = brackets, tourneySims = tourneySims)
 
 
-customBracket3<-brackets[, 1:63]
-customBracket3<-data.frame(rbindlist(lapply(1:nrow(customBracket3), function(x) optimizeRounds(rounds =  c("R1", "R2", "R3","R4"),fixed.rounds = "R5", bracket=customBracket3[x, ] ))))
-customBracket3<-calcBrackets(customBracket3, brackets = brackets, tourneySims = tourneySims)
+
+# customBracket3<-brackets[, 1:63]
+# customBracket3<-data.frame(rbindlist(lapply(1:nrow(customBracket3), 
+#                                             function(x) optimizeRounds(rounds =  c("R1", "R2", "R3","R4"),fixed.rounds = "R5", bracket=customBracket3[x, ] ))))
+# customBracket3<-calcBrackets(customBracket3, brackets = brackets, tourneySims = tourneySims)
 
 
 # customBracket4<-brackets[, 1:63]
-# customBracket4<-data.frame(rbindlist(lapply(1:nrow(customBracket4), function(x) optimizeRounds(rounds =  c("R1", "R2", "R3","R4", "R5"),fixed.rounds = "R6", bracket=customBracket4[x, ] ))))
+# customBracket4<-data.frame(rbindlist(lapply(1:nrow(customBracket4), 
+#                                             function(x) optimizeRounds(rounds =  c("R1", "R2", "R3","R4", "R5"),fixed.rounds = "R6", bracket=customBracket4[x, ] ))))
 # customBracket4<-calcBrackets(customBracket4, brackets = brackets, tourneySims = tourneySims)
-# 
-# 
-# #maximize EV without constraining bracket i.e. allowing teams to lose and then return
+
+
+customBracket10<-brackets[, 1:63]
+customBracket10<-data.frame(rbindlist(lapply(1:nrow(customBracket10), 
+                                             function(x) sampleRounds(rounds = c("R1", "R2", "R3"),fixed.rounds = "R4", bracket=customBracket10[x, ]))))
+customBracket10<-calcBrackets(customBracket10, brackets = brackets, tourneySims = tourneySims)
+
+customBracket11<-customBracket1[, 1:63]
+customBracket11<-data.frame(rbindlist(lapply(1:nrow(customBracket11), 
+                                             function(x) sampleRounds(rounds = c("R1"),fixed.rounds = c("R2"), bracket=customBracket11[x, ]))))
+customBracket11<-calcBrackets(customBracket11, brackets = brackets, tourneySims = tourneySims)
+
+
+customBracket12<-customBracket2[, 1:63]
+customBracket12<-data.frame(rbindlist(lapply(1:nrow(customBracket12), 
+                                             function(x) sampleRounds(rounds = c("R1"),fixed.rounds = c("R2"), bracket=customBracket12[x, ]))))
+customBracket12<-calcBrackets(customBracket12, brackets = brackets, tourneySims = tourneySims)
+
+#maximize EV without constraining bracket i.e. allows teams to lose and then return (most pools don't allow this)
 # customBracket5<-brackets[, 1:63]
-# customBracket5<-data.frame(rbindlist(lapply(1:nrow(customBracket5), function(x) maximizeRound(rounds = c("R1", "R2"), bracket=customBracket5[x, ] ))))
+# customBracket5<-data.frame(rbindlist(lapply(1:nrow(customBracket5), 
+#                                             function(x) maximizeRound(rounds = c("R1", "R2"), bracket=customBracket5[x, ] ))))
 # customBracket5<-calcBrackets(customBracket5, brackets = brackets, tourneySims = tourneySims)
 # 
 # customBracket6<-brackets[, 1:63]
-# customBracket6<-data.frame(rbindlist(lapply(1:nrow(customBracket5), function(x) maximizeRound(rounds = c("R1", "R2", "R3"), bracket=customBracket6[x, ] ))))
+# customBracket6<-data.frame(rbindlist(lapply(1:nrow(customBracket5), 
+#                                             function(x) maximizeRound(rounds = c("R1", "R2", "R3"), bracket=customBracket6[x, ] ))))
 # customBracket6<-calcBrackets(customBracket6, brackets = brackets, tourneySims = tourneySims)
 # 
 # customBracket7<-brackets[, 1:63]
-# customBracket7<-data.frame(rbindlist(lapply(1:nrow(customBracket5), function(x) maximizeRound(rounds = c("R1", "R2", "R3", "R4"), bracket=customBracket7[x, ] ))))
+# customBracket7<-data.frame(rbindlist(lapply(1:nrow(customBracket5), 
+#                                             function(x) maximizeRound(rounds = c("R1", "R2", "R3", "R4"), bracket=customBracket7[x, ] ))))
 # customBracket7<-calcBrackets(customBracket7, brackets = brackets, tourneySims = tourneySims)
 
 #can combine sets here..useful if multi-entering
-# customBracket1.5<-rbind(customBracket1, customBracket2)
-# customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
+customBracket1.5<-rbindlist(list(customBracket1, customBracket2,customBracket12)) %>% data.frame()
+customBracket1.5<-customBracket1.5[!duplicated(customBracket1.5[, 1:63]),]
+
+
+customBracket2.5<-rbindlist(list(customBracket1, customBracket2)) %>% data.frame()
+customBracket2.5<-customBracket2.5[!duplicated(customBracket2.5[, 1:63]),]
+
 ###GET OPTIMAL RESULTS FOR CUSTOM BRACKET POOLS####                                            
 #look at how the different custom-bracket pools perform in maximizing prob(90), prob(99), etc. 
 #customBracket2 seems to almost always perform best i.e. it has a good mix of max-EV and being contrarian
-#                                             
-# improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, 
-#                customBracket3, customBracket4, customBracket5, customBracket6, customBracket7)
-improved<-list( customBracket1, customBracket2,  customBracket3)
-numBrackets<-1
-percentile<-.96
+
+#test different bracket improvements. ex: "brackets" is just the original bracket pool. customBracket0 has rd1 EV maximized, etc.                                  
+improved<-list(brackets,customBracket0, customBracket1,customBracket1.5, customBracket2, customBracket2.5, 
+               customBracket10,customBracket11,customBracket12) #, customBracket5, customBracket6
+numBrackets<-10
+percentile<-.997
 cl<-makeCluster(2, type = "SOCK")
 registerDoSNOW(cl)
 results<- foreach(i=improved,
-                  .packages = c( "Rsymphony")) %dopar% {
-                    getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=F)
+                  .packages = c( "Rsymphony" )) %dopar% {
+                    getOptimal(i, percentile = percentile, numBrackets =numBrackets, speedUp=T)  #speedUP param
                   }
-x<-2
+#probsuccess for each optimization:
+sapply(1:length(results), function(i) {inspect<-improved[[i]];result<-results[[i]];sum(result$x[(nrow(inspect)+1):(nrow(inspect)+sims)])/sims })
+
+
+x<-4
 inspect<-improved[[x]]
 result<-results[[x]]
 inspect$Prob90<-apply(inspect[, grepl("Percentile", colnames(inspect)) & !grepl("Actual", colnames(inspect))], 1, function(x) sum(x>=.9)/sims)
 inspect$Prob95<-apply(inspect[, grepl("Percentile", colnames(inspect)) & !grepl("Actual", colnames(inspect))], 1, function(x) sum(x>=.95)/sims)
-inspect$Prob97<-apply(inspect[, grepl("Percentile", colnames(inspect)) & !grepl("Actual", colnames(inspect))], 1, function(x) sum(x>=.97)/sims)
-sum(result$x[(nrow(inspect)+1):(nrow(inspect)+sims)])/sims #prob90
+inspect$Prob99<-apply(inspect[, grepl("Percentile", colnames(inspect)) & !grepl("Actual", colnames(inspect))], 1, function(x) sum(x>=.99)/sims)
+inspect$Prob985<-apply(inspect[, grepl("Percentile", colnames(inspect)) & !grepl("Actual", colnames(inspect))], 1, function(x) sum(x>=.985)/sims)
+sum(result$x[(nrow(inspect)+1):(nrow(inspect)+sims)])/sims 
 
-inspect[which(result$x[1:nrow(inspect)]==1),c(1:63, which(colnames(inspect)%in% c("Prob95", "Prob97", "Prob90", "Index") | grepl("Actual", colnames(inspect))) )]
+
+
+inspect[which(result$x[1:nrow(inspect)]==1),c(1:63, which(colnames(inspect)%in% c("Prob95", "Prob99",  "Prob97", "Prob90", "Prob985", "Index") | grepl("Actual", colnames(inspect))) )]
 # plot(inspect$Index~inspect$Prob97)
 # # 
 # # #plotting function--fix this..
